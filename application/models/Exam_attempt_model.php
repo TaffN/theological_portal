@@ -17,7 +17,7 @@ class Exam_attempt_model extends CI_Model
     const GRACE_SECONDS = 30;
 
     /** Events that count as a warning sign. The rest are shown for context only. */
-    public static $flag_types = ['left', 'paste', 'device_blocked'];
+    public static $flag_types = ['left', 'paste', 'bulk_insert', 'device_blocked'];
 
     /* ------------------------------------------------------------ BASICS */
 
@@ -422,6 +422,7 @@ class Exam_attempt_model extends CI_Model
             'left'            => 'Left the exam page',
             'returned'        => 'Came back',
             'paste'           => 'Tried to paste text',
+            'bulk_insert'     => 'Text appeared without typing (e.g. "Force paste")',
             'copy'            => 'Copied text',
             'device_blocked'  => 'Tried to open the exam on another device',
             'device_reset'    => 'New device allowed',

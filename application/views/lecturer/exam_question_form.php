@@ -78,4 +78,4 @@
         </div>
     </div>
 </div>
-<script src="<?= base_url('assets/js/exam.js') ?>?v=1"></script>
+<script src="<?= base_url('assets/js/exam.js') ?>?v=2"></script>

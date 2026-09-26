@@ -19,10 +19,11 @@
         <ul class="small text-muted mb-0 ps-3">
             <li><strong>Left the page</strong>: the student switched to another app or tab (WhatsApp, a browser, a call). A short visit can be innocent; many long ones are worth a conversation.</li>
             <li><strong>Pasted</strong>: they tried to paste text into an answer. Pasting is blocked, but the attempt is recorded.</li>
+            <li><strong>Text appeared without typing</strong>: a large block of text was inserted at once, for example with a "Force paste" tool. It was undone, and the text they tried to insert is shown in their script's activity log.</li>
             <li><strong>Other device</strong>: someone tried to open this student's exam on a second phone or computer. It was blocked.</li>
             <li>If a student's phone dies, use <strong>New device</strong> so they can continue on another one. Their saved answers are kept and the timer doesn't stop.</li>
             <li>Flags are evidence, not proof. Open a student's script to see exactly what happened and when.</li>
         </ul>
     </div>
 </div>
-<script src="<?= base_url('assets/js/exam.js') ?>?v=1"></script>
+<script src="<?= base_url('assets/js/exam.js') ?>?v=2"></script>

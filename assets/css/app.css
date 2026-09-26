@@ -1153,5 +1153,7 @@ a.attach-row:hover { border-color: var(--border-strong); background: var(--surfa
 .exam-option:has(input:checked) .q-letter, .exam-option.is-checked .q-letter { background: var(--accent); color: var(--accent-fg); }
 .exam-option:has(input:focus-visible) { box-shadow: 0 0 0 3px var(--ring); }
 .exam-option-text { overflow-wrap: anywhere; }
+/* Questions can't be selected (to copy into a search engine); answer boxes still can. */
+.exam-take .q-prompt, .exam-take .exam-option, .exam-take .exam-instructions { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .exam-answer { font-size: 1rem; line-height: 1.55; }
 .exam-mode #offlineBanner { display: none !important; }   /* the exam bar shows its own "No connection" status */

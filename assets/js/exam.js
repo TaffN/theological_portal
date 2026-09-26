@@ -206,19 +206,99 @@
             var fs = e.target.closest('[data-question]');
             if (fs && e.target.type === 'radio') { markChosen(); queue(fs.getAttribute('data-question'), 0); }
         });
-        form.addEventListener('input', function (e) {
-            var fs = e.target.closest('[data-question]');
-            if (fs && e.target.tagName === 'TEXTAREA') { queue(fs.getAttribute('data-question'), 1500); }
-        });
-        form.addEventListener('paste', function (e) {
-            if (e.target.tagName !== 'TEXTAREA') { return; }
+        /* -- typed answers, and everything that tries to put text in without typing --
+           Pasting can come from the keyboard, the right-click menu, a phone's text menu,
+           drag-and-drop, or an extension's "Force paste". They all end in the same few
+           browser actions, which are cancelled here. Anything that still gets through
+           (e.g. an extension writing into the box directly) shows up as a big jump in
+           the text: it's undone and flagged. Voice typing is left alone. */
+        var BULK = 40;   // characters appearing in one step that can't be normal typing
+        var lastText = {};
+        form.querySelectorAll('textarea.exam-answer').forEach(function (t) { lastText[t.name] = t.value; });
+
+        function isAnswerBox(el) { return el && el.tagName === 'TEXTAREA' && el.classList.contains('exam-answer'); }
+        function warn(msg) { setStatus(msg, 'is-warn'); }
+        function blockPaste(detail) {
+            report('paste', { detail: detail });
+            warn('Pasting is turned off in exams. Please type your answer.');
+        }
+        function undoBulk(t, how) {
+            var added = t.value.length - (lastText[t.name] || '').length;
+            report('bulk_insert', { detail: 'Blocked: ' + added + ' characters appeared at once (' + how + '): "' + t.value.replace(/\s+/g, ' ').slice(0, 80) + '"' });
+            t.value = lastText[t.name] || '';
+            warn('That text was not accepted. Please type your answer yourself.');
+        }
+
+        window.addEventListener('beforeinput', function (e) {
+            if (!isAnswerBox(e.target)) { return; }
+            var type = e.inputType || '';
+            if (/^insertFrom(Paste|PasteAsQuotation|Drop|Yank)$/.test(type)) {
+                e.preventDefault();
+                blockPaste('Blocked (' + type + ')');
+            } else if (type === 'insertText' && e.data && e.data.length >= BULK && !e.isComposing) {
+                // A keyboard types one character at a time; "Force paste" tools insert the whole
+                // text in one go. (Phone voice typing arrives as composition text, so it's unaffected.)
+                e.preventDefault();
+                report('bulk_insert', { detail: 'Blocked: ' + e.data.length + ' characters inserted at once: "' + e.data.replace(/\s+/g, ' ').slice(0, 80) + '"' });
+                warn('That text was not accepted. Please type your answer yourself.');
+            }
+        }, true);
+
+        window.addEventListener('paste', function (e) {
+            if (!e.target.closest || !e.target.closest('#exam-form')) { return; }
             e.preventDefault();
             var text = (e.clipboardData && e.clipboardData.getData('text')) || '';
-            report('paste', { detail: text.length + ' characters' });
-            setStatus('Pasting is turned off in exams. Please type your answer.', 'is-warn');
+            blockPaste(text.length + ' characters');
+        }, true);
+
+        ['drop', 'dragover'].forEach(function (ev) {
+            window.addEventListener(ev, function (e) {
+                if (!e.target.closest || !e.target.closest('#exam-form')) { return; }
+                e.preventDefault();
+                if (ev === 'drop') { blockPaste('Dropped text'); }
+            }, true);
         });
-        document.addEventListener('copy', function () {
-            if (Date.now() - lastCopy > 10000) { lastCopy = Date.now(); report('copy'); }
+
+        // No right-click / long-press menu in the answer boxes: that's where "Force paste" lives.
+        form.addEventListener('contextmenu', function (e) {
+            if (isAnswerBox(e.target) || e.target.closest('.exam-q')) { e.preventDefault(); }
+        });
+
+        form.addEventListener('input', function (e) {
+            var t = e.target;
+            if (!isAnswerBox(t)) { return; }
+            var added = t.value.length - (lastText[t.name] || '').length;
+            // Typing adds a character or a word at a time. Only voice/phone composition may add more.
+            var composing = e.isComposing || e.inputType === 'insertCompositionText';
+            if (added >= BULK && !composing) {
+                undoBulk(t, e.inputType || 'unknown');
+                return;
+            }
+            lastText[t.name] = t.value;
+            queue(t.closest('[data-question]').getAttribute('data-question'), 1500);
+        });
+
+        // Some tools write straight into the box without any input event: check every 1.5 s.
+        setInterval(function () {
+            if (finished) { return; }
+            form.querySelectorAll('textarea.exam-answer').forEach(function (t) {
+                if (t.value === (lastText[t.name] || '')) { return; }
+                if (t.value.length - (lastText[t.name] || '').length >= BULK) {
+                    undoBulk(t, 'written into the box directly');
+                } else {
+                    lastText[t.name] = t.value;
+                    queue(t.closest('[data-question]').getAttribute('data-question'), 0);
+                }
+            });
+        }, 1500);
+
+        // Copying the questions (e.g. to search the internet) is blocked and recorded.
+        ['copy', 'cut'].forEach(function (ev) {
+            document.addEventListener(ev, function (e) {
+                if (!e.target.closest || !e.target.closest('.exam-take')) { return; }
+                e.preventDefault();
+                if (Date.now() - lastCopy > 10000) { lastCopy = Date.now(); report('copy', { detail: 'Blocked' }); }
+            }, true);
         });
 
         /* -- leaving the page (switching apps, tabs, screen off) -- */

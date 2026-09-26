@@ -163,7 +163,7 @@ class Student_exams extends Student_Controller
         $this->_json(['ok' => true, 'left' => Exam_attempt_model::seconds_left($attempt)]);
     }
 
-    /** Something the page noticed: left / returned / paste / copy / offline. */
+    /** Something the page noticed: left / returned / paste / bulk_insert / copy / offline. */
     public function event($attemptId)
     {
         $attempt = $this->_ajax_attempt($attemptId);
@@ -171,7 +171,7 @@ class Student_exams extends Student_Controller
             return;
         }
         $type = (string) $this->input->post('type');
-        if (in_array($type, ['left', 'returned', 'paste', 'copy', 'offline'], true)) {
+        if (in_array($type, ['left', 'returned', 'paste', 'bulk_insert', 'copy', 'offline'], true)) {
             $seconds = $this->input->post('seconds');
             $this->Exam_attempt_model->log_event($attempt, $type,
                 $this->input->post('detail') ? mb_substr((string) $this->input->post('detail'), 0, 200) : null,

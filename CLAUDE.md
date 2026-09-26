@@ -259,6 +259,11 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-theme-toggle`, `data-theme-choice`, `data-sidebar-toggle`, `data-photo-form`/`data-photo-input`,
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
+### Cache busting
+- CSS/JS links carry a version: `app.css?v=6` (header + verify page), `app.js?v=6` (footer), `exam.js?v=2`
+  (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
+  (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
+
 ### Styling
 - All colours are **CSS variables** in `app.css` with light and `[data-bs-theme="dark"]` values
   (`--surface-0..3`, `--text-1..3`, `--border`, `--accent`, `--soft-*-bg/fg`, chart `--c0..c7`).
@@ -298,7 +303,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `exam_questions` | exam_id, position, type enum(mcq, short), prompt, options (JSON array), correct_option (index), marks |
 | `exam_attempts` | exam_id + student_id (**unique pair** = one attempt), question_ids (JSON, this student's questions in order), option_orders (JSON {qid: [display order]}), **session_token** (device lock; NULL = next device takes over), pledge_at, started_at, **deadline_at** = min(start + duration, closes_at), submitted_at, submit_reason enum(student, time_up), max_score, auto_score (MCQ), total_score (set when fully marked), feedback, graded_by/at, flag_count, away_seconds, ip_address, user_agent, last_seen_at |
 | `exam_answers` | attempt_id + question_id (unique), answer (option index or text), is_correct, marks_awarded |
-| `exam_events` | attempt_id, type (started, left, returned, paste, copy, device_blocked, device_reset, network_changed, offline, submitted), detail, seconds, created_at. **Flags** = left, paste, device_blocked |
+| `exam_events` | attempt_id, type (started, left, returned, paste, bulk_insert, copy, device_blocked, device_reset, network_changed, offline, submitted), detail, seconds, created_at. **Flags** = left, paste, bulk_insert, device_blocked |
 | `migrations` | version = 16 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
@@ -373,7 +378,11 @@ Students: exam list (open now / coming up / finished), rules + **integrity pledg
 closes before the full time), a distraction-free paper (menus hidden) with a sticky countdown, answered count and
 save status; answers autosave (radios instantly, text after 1.5 s), are queued in `localStorage` while offline and
 sent when the signal returns; pasting is blocked; leaving the page, pasting, copying, going offline ≥ 10 s and network
-changes are reported; auto-hand-in at zero; result page with %, feedback and a per-question breakdown with correct
+changes are reported; auto-hand-in at zero;
+**paste hardening (v7.1, after the user found "Force paste" got through):** `beforeinput` insertFromPaste/Drop/Yank
+and any non-composition `insertText` ≥ 40 chars are cancelled; the `input` handler and a 1.5 s watchdog undo any
+jump of ≥ 40 characters that isn't phone voice/IME composition (flag `bulk_insert`, detail shows the attempted text);
+drop and the right-click menu are blocked in the paper; question text can't be selected or copied; result page with %, feedback and a per-question breakdown with correct
 answers. Dashboard cards for both roles.
 
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
