@@ -87,6 +87,7 @@ class Dashboard extends Auth_Controller
             'materials'      => $this->Dashboard_model->student_recent_materials($uid, 5),
             'checklist'      => $this->Dashboard_model->student_checklist($uid, $courses),
             'due'            => $this->_assignments() ? array_slice($this->Assignment_model->student_outstanding($uid), 0, 5) : [],
+            'exams'          => $this->_student_exams($uid),
         ];
     }
 
@@ -102,7 +103,35 @@ class Dashboard extends Auth_Controller
             'materials'      => $this->Dashboard_model->lecturer_recent_materials($uid, 5),
             'unread'         => $this->Dashboard_model->unread_notifications($uid),
             'to_mark'        => $this->_assignments() ? $this->Assignment_model->to_mark_count($uid) : 0,
+            'exam_to_mark'   => $this->_exams() ? $this->Exam_model->to_mark_count($uid) : 0,
         ];
+    }
+
+    /** Exams open now, in progress or coming up (not finished ones), soonest first. */
+    private function _student_exams($uid)
+    {
+        if (! $this->_exams()) {
+            return [];
+        }
+        $this->Exam_attempt_model->finalize_expired(null, $uid);
+        $out = [];
+        foreach ($this->Exam_model->for_student($uid) as $e) {
+            $e['state'] = Exam_model::student_state($e);
+            if (in_array($e['state'], ['open', 'writing', 'scheduled'], true)) {
+                $out[] = $e;
+            }
+        }
+        return array_slice($out, 0, 5);
+    }
+
+    /** Loads the exam models, once migration 016 has been run. */
+    private function _exams()
+    {
+        if (! $this->db->table_exists('exams')) {
+            return false;
+        }
+        $this->load->model(['Exam_model', 'Exam_attempt_model']);
+        return true;
     }
 
     /** Loads the assignments model, once migration 015 has been run. */

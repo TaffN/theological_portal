@@ -2,9 +2,10 @@
     <div class="position-relative">
         <p class="welcome-kicker mb-1"><?= ! empty($birthday) ? '🎉 Happy birthday! &middot; ' : '' ?><?= date('l, j F Y') ?></p>
         <h2 class="welcome-title"><?= greeting() ?>, <?= html_escape($first_name) ?></h2>
-        <p class="welcome-sub mb-3">Post notes and readings, set assignments and mark work. Students are notified automatically.</p>
+        <p class="welcome-sub mb-3">Post notes and readings, set assignments and exams, and mark work. Students are notified automatically.</p>
         <a href="<?= base_url('lecturer_materials') ?>" class="btn btn-gold btn-sm"><?= icon('plus', 16) ?> Post material</a>
         <a href="<?= base_url('lecturer_assignments') ?>" class="btn btn-light btn-sm ms-1"><?= icon('edit', 16) ?> Assignments</a>
+        <a href="<?= base_url('lecturer_exams') ?>" class="btn btn-light btn-sm ms-1"><?= icon('clock', 16) ?> Exams</a>
     </div>
 </div>
 
@@ -30,13 +31,13 @@
         </div>
     </div>
     <div class="col-6 col-xl-3">
-        <div class="card stat-card">
-            <div class="stat-icon bg-soft-gold"><?= icon('file', 22) ?></div>
+        <a href="<?= base_url('lecturer_exams') ?>" class="card stat-card stat-link">
+            <div class="stat-icon bg-soft-gold"><?= icon('clock', 22) ?></div>
             <div>
-                <div class="stat-value"><?= (int) $material_count ?></div>
-                <div class="stat-label">Materials posted</div>
+                <div class="stat-value"><?= (int) $exam_to_mark ?></div>
+                <div class="stat-label">Exam scripts to mark</div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-xl-3">
         <a href="<?= base_url('lecturer_assignments') ?>" class="card stat-card stat-link">

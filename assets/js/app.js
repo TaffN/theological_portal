@@ -166,23 +166,23 @@
         initDropzones();
         initToasts();
 
-        // Forms: confirm first (if asked), then lock the button.
-        document.querySelectorAll('form').forEach(function (form) {
-            if ((form.getAttribute('method') || '').toLowerCase() !== 'post') { return; }
-            form.addEventListener('submit', function (e) {
-                if (form.hasAttribute('data-confirm') && !form.dataset.confirmed) {
-                    e.preventDefault();
-                    askConfirm(form.getAttribute('data-confirm'), form.getAttribute('data-confirm-ok'),
-                        form.hasAttribute('data-confirm-danger'), function () {
-                            form.dataset.confirmed = '1';
-                            setBusy(form);
-                            form.submit();
-                        });
-                    return;
-                }
-                if (form.checkValidity && !form.checkValidity()) { return; }
-                setBusy(form);
-            });
+        // Forms: confirm first (if asked), then lock the button. Listens on the
+        // document, so forms added later (e.g. the live invigilation table) work too.
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            if (e.defaultPrevented || !form || (form.getAttribute('method') || '').toLowerCase() !== 'post') { return; }
+            if (form.hasAttribute('data-confirm') && !form.dataset.confirmed) {
+                e.preventDefault();
+                askConfirm(form.getAttribute('data-confirm'), form.getAttribute('data-confirm-ok'),
+                    form.hasAttribute('data-confirm-danger'), function () {
+                        form.dataset.confirmed = '1';
+                        setBusy(form);
+                        form.submit();
+                    });
+                return;
+            }
+            if (form.checkValidity && !form.checkValidity()) { return; }
+            setBusy(form);
         });
 
         // Links that need a confirm (e.g. Apply, Remove lecturer).

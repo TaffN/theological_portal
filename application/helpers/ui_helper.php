@@ -88,21 +88,21 @@ if (! function_exists('nav_items')) {
                     $dashboard,
                     ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
                     $alerts,
                     $help,
-                    ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                 ];
 
             default: // student
                 return [
                     $dashboard,
-                    ['key' => 'courses', 'label' => 'Courses', 'url' => 'courses', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'courses', 'label' => 'Courses', 'url' => 'courses', 'icon' => 'book', 'section' => 'Menu'],
                     ['key' => 'student_assignments', 'label' => 'Assignments', 'url' => 'student_assignments', 'icon' => 'edit', 'badge' => 'assignments', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'student_exams', 'label' => 'Exams', 'url' => 'student_exams', 'icon' => 'clock', 'badge' => 'exams', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
                     $alerts,
                     $help,
-                    ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                     ['key' => 'results', 'label' => 'Results', 'url' => '#', 'icon' => 'award', 'soon' => true],
                 ];
         }
@@ -141,6 +141,18 @@ if (! function_exists('status_badge')) {
             'graded'          => ['Marked', 'pill-success'],
             'late'            => ['Late', 'pill-warning'],
             'to_mark'         => ['To mark', 'pill-warning'],
+            // exams (Exam_model::phase / student_state, invigilation)
+            'exam_draft'       => ['Draft', 'pill-muted'],
+            'exam_scheduled'   => ['Scheduled', 'pill-warning'],
+            'exam_open'        => ['Open now', 'pill-success'],
+            'exam_closed'      => ['Closed', 'pill-muted'],
+            'exam_not_started' => ['Not started', 'pill-muted'],
+            'exam_absent'      => ['Didn\'t sit', 'pill-danger'],
+            'exam_writing'     => ['Writing', 'pill-warning'],
+            'exam_handed_in'   => ['Handed in', 'pill-success'],
+            'exam_waiting'     => ['Awaiting result', 'pill-muted'],
+            'exam_missed'      => ['Missed', 'pill-danger'],
+            'exam_result'      => ['Result out', 'pill-success'],
         ];
 
         list($label, $class) = isset($map[$status]) ? $map[$status] : [ucfirst((string) $status), 'pill-muted'];
@@ -186,7 +198,7 @@ if (! function_exists('layout_context')) {
         $userId = $CI->session->userdata('user_id');
         $role   = $CI->session->userdata('role');
 
-        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0, 'marking' => 0, 'assignments' => 0];
+        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0, 'marking' => 0, 'assignments' => 0, 'exam_marking' => 0, 'exams' => 0];
         if ($userId) {
             if ($CI->db->table_exists('notifications')) {
                 $badges['notifications'] = $CI->db->where('user_id', $userId)->where('is_read', 0)->count_all_results('notifications');
@@ -197,6 +209,18 @@ if (! function_exists('layout_context')) {
                     $badges['marking'] = $CI->Assignment_model->to_mark_count($userId);
                 } else {
                     $badges['assignments'] = count($CI->Assignment_model->student_outstanding($userId));
+                }
+            }
+            if ($role !== 'admin' && $CI->db->table_exists('exams')) {
+                $CI->load->model('Exam_model');
+                if ($role === 'lecturer') {
+                    $badges['exam_marking'] = $CI->Exam_model->to_mark_count($userId);
+                } else {
+                    foreach ($CI->Exam_model->for_student($userId) as $e) {   // open to start, or started and not handed in
+                        if (in_array(Exam_model::student_state($e), ['open', 'writing'], true)) {
+                            $badges['exams']++;
+                        }
+                    }
                 }
             }
             if ($role === 'admin') {
@@ -314,6 +338,9 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
                 $items[] = ['Actions', 'Set a new assignment', base_url('lecturer_assignments'), 'plus', 'Assignments'];
                 $items[] = ['Actions', 'Mark handed-in work', base_url('lecturer_assignments'), 'check', 'Assignments'];
+                $items[] = ['Actions', 'Create an exam', base_url('lecturer_exams'), 'plus', 'Exams'];
+                $items[] = ['Actions', 'Invigilate a running exam', base_url('lecturer_exams'), 'eye', 'Exams'];
+                $items[] = ['Actions', 'Mark exam scripts / release results', base_url('lecturer_exams'), 'award', 'Exams'];
                 break;
             default:
                 $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
@@ -321,6 +348,8 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Open my materials', base_url('student_materials'), 'folder', 'Materials'];
                 $items[] = ['Actions', 'Hand in an assignment', base_url('student_assignments'), 'upload', 'Assignments'];
                 $items[] = ['Actions', 'See my marks and feedback', base_url('student_assignments'), 'award', 'Assignments'];
+                $items[] = ['Actions', 'Start or continue an exam', base_url('student_exams'), 'clock', 'Exams'];
+                $items[] = ['Actions', 'See my exam results', base_url('student_exams'), 'award', 'Exams'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
         }
 

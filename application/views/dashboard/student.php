@@ -151,13 +151,33 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100 card-soon">
+        <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
                     <h5 class="card-heading"><?= icon('clock', 18) ?> Upcoming exams</h5>
-                    <span class="pill pill-muted">Coming soon</span>
+                    <a href="<?= base_url('student_exams') ?>" class="card-link-sm">All exams <?= icon('arrow', 14) ?></a>
                 </div>
-                <div class="empty-state">Exam dates and times will appear here, with a button to start when they open.</div>
+                <?php if (empty($exams)): ?>
+                    <div class="empty-state"><?= $active_count > 0 ? 'No exams coming up.' : 'Exam dates and times will appear here, with a button to start when they open.' ?></div>
+                <?php else: ?>
+                    <ul class="due-list">
+                    <?php foreach ($exams as $x): ?>
+                        <li>
+                            <div class="due-date"><strong><?= date('j', strtotime($x['opens_at'])) ?></strong><small><?= date('M', strtotime($x['opens_at'])) ?></small></div>
+                            <div class="flex-grow-1 min-w-0">
+                                <a href="<?= base_url('student_exams/view/' . $x['id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none"><?= html_escape($x['title']) ?></a>
+                                <small class="text-muted"><?= html_escape($x['course_name']) ?> &middot;
+                                    <?= $x['state'] === 'scheduled' ? 'opens ' . html_escape(due_in($x['opens_at'])) : ($x['state'] === 'writing' ? 'in progress' : 'open until ' . html_escape(date('H:i', strtotime($x['closes_at'])))) ?></small>
+                            </div>
+                            <?php if ($x['state'] === 'scheduled'): ?>
+                                <?= status_badge('exam_scheduled') ?>
+                            <?php else: ?>
+                                <a href="<?= base_url('student_exams/view/' . $x['id']) ?>" class="btn btn-sm btn-primary"><?= $x['state'] === 'writing' ? 'Continue' : 'Start' ?></a>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </div>
         </div>
     </div>
