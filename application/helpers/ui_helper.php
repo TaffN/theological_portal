@@ -74,6 +74,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'admin_users', 'label' => 'Students', 'url' => 'admin_users/students', 'icon' => 'users', 'badge' => 'resets', 'section' => 'Menu', 'mobile' => true, 'exact' => true],
                     ['key' => 'admin_courses', 'label' => 'Courses', 'url' => 'admin_courses', 'icon' => 'layers', 'section' => 'Menu'],
                     ['key' => 'admin_users', 'label' => 'Lecturers', 'url' => 'admin_users/lecturers', 'icon' => 'user', 'section' => 'Menu', 'exact' => true],
+                    ['key' => 'admin_results', 'label' => 'Results', 'url' => 'admin_results', 'icon' => 'award', 'section' => 'Menu'],
                     ['key' => 'admin_announcements', 'label' => 'Announcements', 'url' => 'admin_announcements', 'icon' => 'bell', 'section' => 'Menu'],
                     $alerts,
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
@@ -89,6 +90,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'lecturer_results', 'label' => 'Results', 'url' => 'lecturer_results', 'icon' => 'award', 'section' => 'Menu'],
                     $alerts,
                     $help,
                 ];
@@ -100,10 +102,10 @@ if (! function_exists('nav_items')) {
                     ['key' => 'student_assignments', 'label' => 'Assignments', 'url' => 'student_assignments', 'icon' => 'edit', 'badge' => 'assignments', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_exams', 'label' => 'Exams', 'url' => 'student_exams', 'icon' => 'clock', 'badge' => 'exams', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'student_results', 'label' => 'Results', 'url' => 'student_results', 'icon' => 'award', 'section' => 'Menu'],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
                     $alerts,
                     $help,
-                    ['key' => 'results', 'label' => 'Results', 'url' => '#', 'icon' => 'award', 'soon' => true],
                 ];
         }
     }
@@ -332,6 +334,8 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Payment details shown to students', base_url('admin_settings') . '#set-payments', 'card', 'Settings'];
                 $items[] = ['Actions', 'Add another administrator', base_url('admin_users/admins'), 'lock', 'Administrators'];
                 $items[] = ['Actions', 'Change my login email', base_url('admin_users/admins'), 'edit', 'Administrators'];
+                $items[] = ['Actions', 'Export all results (CSV)', base_url('admin_results/export'), 'upload', 'Results'];
+                $items[] = ['Actions', 'Grade boundaries', base_url('admin_settings') . '#set-results', 'award', 'Settings'];
                 $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
                 break;
             case 'lecturer':
@@ -341,6 +345,8 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Create an exam', base_url('lecturer_exams'), 'plus', 'Exams'];
                 $items[] = ['Actions', 'Invigilate a running exam', base_url('lecturer_exams'), 'eye', 'Exams'];
                 $items[] = ['Actions', 'Mark exam scripts / release results', base_url('lecturer_exams'), 'award', 'Exams'];
+                $items[] = ['Actions', 'Publish course results', base_url('lecturer_results'), 'award', 'Results'];
+                $items[] = ['Actions', 'Change assignment / exam weighting', base_url('lecturer_results'), 'layers', 'Results'];
                 break;
             default:
                 $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
@@ -350,6 +356,8 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'See my marks and feedback', base_url('student_assignments'), 'award', 'Assignments'];
                 $items[] = ['Actions', 'Start or continue an exam', base_url('student_exams'), 'clock', 'Exams'];
                 $items[] = ['Actions', 'See my exam results', base_url('student_exams'), 'award', 'Exams'];
+                $items[] = ['Actions', 'My course results', base_url('student_results'), 'award', 'Results'];
+                $items[] = ['Actions', 'Print my statement of results', base_url('student_results/statement'), 'file', 'Results'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
         }
 
@@ -363,6 +371,23 @@ if (! function_exists('palette_items')) {
         $items[] = ['Account', 'Log out', base_url('auth/logout'), 'logout', ''];
 
         return $items;
+    }
+}
+
+/** Coloured pill for an overall grade (Stage 6). */
+if (! function_exists('grade_badge')) {
+    function grade_badge($grade)
+    {
+        $class = ['Distinction' => 'pill-success', 'Merit' => 'pill-success', 'Pass' => 'pill-warning', 'Fail' => 'pill-danger'];
+        return '<span class="pill ' . (isset($class[$grade]) ? $class[$grade] : 'pill-muted') . '">' . html_escape($grade) . '</span>';
+    }
+}
+
+/** 67.5 -> "67.5%", null -> "—". */
+if (! function_exists('pct')) {
+    function pct($value)
+    {
+        return $value === null || $value === '' ? '—' : score_fmt(round((float) $value, 1)) . '%';
     }
 }
 

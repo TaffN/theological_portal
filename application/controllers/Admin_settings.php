@@ -41,6 +41,12 @@ class Admin_settings extends Admin_Controller
             'id_card_note'         => ['Note on the back of ID cards', 'If found, please return to...', 'text'],
             'privacy_notice'       => ['Privacy notice (shown at registration and on the Help page)', '', 'textarea'],
         ],
+        'Results' => [
+            'grade_distinction' => ['Distinction from (%)', '75', 'number'],
+            'grade_merit'       => ['Merit from (%)', '60', 'number'],
+            'grade_pass'        => ['Pass mark (%): below this is a Fail', '50', 'number'],
+            'statement_note'    => ['Note printed on statements of results', 'Scan the QR code to confirm this statement is genuine.', 'text'],
+        ],
     ];
 
     public function __construct()
@@ -69,6 +75,13 @@ class Admin_settings extends Admin_Controller
             return redirect('admin_settings');
         }
         $pairs['id_card_valid_months'] = (string) max(1, min(120, (int) $pairs['id_card_valid_months'] ?: 12));
+        // Grade boundaries: whole or half percentages, highest first (Distinction > Merit > Pass).
+        $pass  = max(1, min(100, (float) ($pairs['grade_pass'] !== '' ? $pairs['grade_pass'] : 50)));
+        $merit = max($pass, min(100, (float) ($pairs['grade_merit'] !== '' ? $pairs['grade_merit'] : 60)));
+        $dist  = max($merit, min(100, (float) ($pairs['grade_distinction'] !== '' ? $pairs['grade_distinction'] : 75)));
+        $pairs['grade_pass'] = score_fmt($pass);
+        $pairs['grade_merit'] = score_fmt($merit);
+        $pairs['grade_distinction'] = score_fmt($dist);
         $pairs['org_initials'] = strtoupper(mb_substr(preg_replace('/[^A-Za-z]/', '', $pairs['org_initials']), 0, 3)) ?: 'TC';
 
         $before = $this->settings->all();

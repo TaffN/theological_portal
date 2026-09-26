@@ -15,7 +15,7 @@ $config['migration_type'] = 'sequential';
 $config['migration_timestamp_format'] = 'Y-m-d-His';
 $config['migration_table'] = 'migrations';
 $config['migration_auto_latest'] = FALSE;
-$config['migration_version'] = 16;
+$config['migration_version'] = 17;
 $config['migration_path'] = APPPATH.'migrations/';
 |
 */
@@ -79,7 +79,7 @@ $config['migration_auto_latest'] = FALSE;
 | be upgraded / downgraded to.
 |
 */
-$config['migration_version'] = 16;
+$config['migration_version'] = 17;
 
 /*
 |--------------------------------------------------------------------------

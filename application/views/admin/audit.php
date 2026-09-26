@@ -1,6 +1,6 @@
 <?php
     $icons = ['auth' => ['user', 'bg-soft-navy'], 'payment' => ['card', 'bg-soft-green'], 'course' => ['book', 'bg-soft-blue'],
-              'material' => ['file', 'bg-soft-gold'], 'assignment' => ['edit', 'bg-soft-gold'], 'submission' => ['upload', 'bg-soft-blue'], 'exam' => ['clock', 'bg-soft-gold'], 'attempt' => ['clock', 'bg-soft-blue'], 'user' => ['users', 'bg-soft-navy'], 'profile' => ['user', 'bg-soft-blue'],
+              'material' => ['file', 'bg-soft-gold'], 'assignment' => ['edit', 'bg-soft-gold'], 'submission' => ['upload', 'bg-soft-blue'], 'exam' => ['clock', 'bg-soft-gold'], 'attempt' => ['clock', 'bg-soft-blue'], 'result' => ['award', 'bg-soft-green'], 'grading' => ['layers', 'bg-soft-gold'], 'user' => ['users', 'bg-soft-navy'], 'profile' => ['user', 'bg-soft-blue'],
               'error' => ['alert', 'bg-soft-red'], 'support' => ['alert', 'bg-soft-red'], 'announcement' => ['bell', 'bg-soft-gold'],
               'audit' => ['shield', 'bg-soft-navy'], 'enrollment' => ['book', 'bg-soft-green']];
     $qsBase = array_filter($f);

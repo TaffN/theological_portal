@@ -1157,3 +1157,35 @@ a.attach-row:hover { border-color: var(--border-strong); background: var(--surfa
 .exam-take .q-prompt, .exam-take .exam-option, .exam-take .exam-instructions { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .exam-answer { font-size: 1rem; line-height: 1.55; }
 .exam-mode #offlineBanner { display: none !important; }   /* the exam bar shows its own "No connection" status */
+
+/* ---------------------------------------------------------------- Stage 6: Results */
+.weight-chip { font-weight: 800; font-variant-numeric: tabular-nums; padding: .25rem .6rem; border-radius: 999px; background: var(--soft-navy-bg); color: var(--soft-navy-fg); min-width: 58px; text-align: center; }
+.result-list { list-style: none; margin: 0; padding: 0; }
+.result-list > li { padding: .85rem 1.1rem; border-top: 1px solid var(--border); }
+.result-list > li.is-blocked { background: var(--surface-2); }
+.result-row { display: flex; align-items: center; gap: .75rem; }
+.result-row .result-tick { width: 1.2em; height: 1.2em; margin: 0; flex-shrink: 0; }
+.result-final { flex-shrink: 0; min-width: 88px; }
+.result-final .fw-bold { font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--text-1); }
+.result-detail { padding-left: calc(1.2em + 34px + 1.5rem); margin-top: .35rem; }
+@media (max-width: 575.98px) { .result-detail { padding-left: 0; } }
+.result-breakdown summary { cursor: pointer; color: var(--link); font-weight: 600; }
+.breakdown-table { font-size: .85rem; --bs-table-bg: transparent; }
+.breakdown-table th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 700; }
+.breakdown-table td { color: var(--text-1); }
+.breakdown-type { display: inline-block; font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; padding: .05rem .4rem;
+    border-radius: 6px; background: var(--surface-3); color: var(--text-2); margin-right: .3rem; }
+
+/* Statement of results (printable) */
+.statement { max-width: 820px; }
+.statement-table { --bs-table-bg: transparent; font-size: .9rem; }
+.statement-table th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 700; }
+.statement-table td { color: var(--text-1); }
+.statement-foot { display: flex; gap: 1rem; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--border-strong); }
+.statement-qr { width: 96px; height: 96px; flex-shrink: 0; background: #fff; border-radius: 8px; padding: 4px; }
+.statement-qr svg { width: 100%; height: 100%; display: block; }
+.verify-card-wide { max-width: 560px; }
+@media print {
+    .statement { box-shadow: none !important; border: 1px solid #ccc !important; max-width: none; }
+    .statement .pill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

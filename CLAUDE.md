@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 26 September 2026 (after Portal **v7** = Stage 5 Online exams with invigilation, database migration **16**).
+Last updated: 26 September 2026 (after Portal **v8** = Stage 6 Results, database migration **17**).
 
 ---
 
@@ -87,14 +87,17 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | (extras) | Admin screens, dashboards + charts, modern UI + dark mode, error reporting, audit trail, IDs, photos, QR ID cards, org settings, extended profiles, help page | ✅ Done (v4/v5) |
 | 4 | **Assignments**: lecturers set them, students submit, lecturers mark + feedback (+ Administrators screen) | ✅ Done (v6) |
 | 5 | **Online exams**: timed, open/close window, MCQ + short answer, pools/shuffling, device lock, activity flags, live invigilation, marking, release results | ✅ Done (v7) |
-| **6** | **Results**: publish assignment/exam results per enrollment (transcript/report card) | ⏭️ **NEXT** |
-| After 6 | **"Ezra" AI assistant** (see §9). **Remind the user to start Ezra once Stage 6 is done**; they asked for this reminder. | ⏳ |
+| 6 | **Results**: per-course weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
+| **Next** | **"Ezra" AI assistant** (see §9, §11). The user asked to be reminded once Stage 6 was done: **reminded at the end of v8**. | ⏭️ |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
-**Current state:** v6 (Stage 4) is merged into `main` and running on the laptop (the user pulled the branch and
-pushed `main` themselves). v7 (Stage 5) is on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test.
-Laptop steps: `git fetch origin` → `git checkout claude/inspiring-ramanujan-y9isjf` → back up DB → `/migrate` (→ 16) →
-test → merge into `main`.
+**Current state:** v7 (Stage 5 exams + paste hardening) is merged into `main` and on the laptop (DB at 16).
+v8 (Stage 6 results) is on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test.
+Laptop steps: `git checkout claude/inspiring-ramanujan-y9isjf` → `git pull origin claude/inspiring-ramanujan-y9isjf`
+(the local branch already exists, so **pull is required**; a bare checkout just switches to the stale copy, which
+happened once) → back up DB → `/migrate` (→ 17) → test → merge into `main` (checkout main, pull the branch, push main).
+Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
+`config/migration.php` is only what the page prints. There is no "go back a version" button.
 
 **Git workflow (the user is new to Git, learning as we go):** `main` = the working version on the laptop. Each piece of
 work goes on a branch; the user tests it with `git fetch origin` + `git checkout <branch>`, then it's merged into
@@ -127,7 +130,7 @@ theological_portal/
 │   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
 │   └── photos/     (profile photos; .htaccess deny; served by Photo controller)
 └── application/
-    ├── config/     autoload, config, database, migration (version 16), routes,
+    ├── config/     autoload, config, database, migration (version 17), routes,
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
     ├── core/
     │   ├── MY_Controller.php        Auth_Controller (+ _send_file, _store_upload), Admin_/Lecturer_/Student_Controller
@@ -137,27 +140,30 @@ theological_portal/
     ├── models/       Course_model, Course_lecturer_model, Enrollment_model, Payment_model,
     │                 Material_model, Notification_model, User_model, Dashboard_model,
     │                 Error_model, Receipt_model, Assignment_model (assignments + submissions),
-    │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity)
+    │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity),
+    │                 Result_model (weighting, calculation, grades, publishing, statement tokens)
     ├── libraries/    Audit.php, Notifier.php, Settings.php
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
-    ├── migrations/   001–016 (see §7)
+    ├── migrations/   001–017 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
-        ├── partials/   id_card.php
+        ├── partials/   id_card.php, result_breakdown.php
         ├── dashboard/  admin, student, lecturer, _announcements, _checklist
         ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
-        │               announcements, errors, error_view, audit, settings
+        │               announcements, errors, error_view, audit, settings, results, results_course
         ├── student/    courses, upload_payment, payments, materials_index, materials_course,
-        │               assignments_index, assignment_view, exams_index, exam_view, exam_take, exam_blocked
+        │               assignments_index, assignment_view, exams_index, exam_view, exam_take, exam_blocked,
+        │               results, results_statement
         ├── lecturer/   materials_index, materials_course, assignments_index, assignment_form,
         │               assignment_view, exams_index, exam_form, exam_view, exam_question_form,
-        │               exam_invigilate, _invigilate_rows (refreshed via AJAX), exam_attempt, dashboard (legacy)
+        │               exam_invigilate, _invigilate_rows (refreshed via AJAX), exam_attempt, results_index,
+        │               results_course, dashboard (legacy)
         ├── profile/    index, _about_form
         ├── payments/   receipt
         ├── support/    help, report, forgot
         ├── notifications/ index
-        ├── verify/     index   (standalone public page, no app shell)
+        ├── verify/     index (ID card), results (statement of results)   (standalone public pages, no app shell)
         ├── auth/       login, register
         └── errors/html/ _portal_error (shared branded page), error_404, error_general, error_db,
                          error_exception (dev; shows error reference), error_php (CI default)
@@ -179,6 +185,10 @@ theological_portal/
 | `Student_assignments` | Student_Controller | `index` (to hand in / done), `view/{id}`, `submit/{id}` (POST), `attachment/{id}`, `my_file/{id}`; `has_active_access()` on everything |
 | `Lecturer_exams` | Lecturer_Controller | `index`, `create/{course}`, `edit/{id}`, `view/{id}` (questions + students + results), `question/{exam}[/{q}]`, `delete_question`, `move_question/{q}/up\|down`, `publish`, `unpublish`, `delete` (last three POST; unpublish/delete only before anyone starts), `invigilate/{id}`, `live/{id}` (HTML fragment polled every 10 s), `reset_device/{attempt}`, `attempt/{attempt}` (script, marking, activity log), `release/{id}` |
 | `Student_exams` | Student_Controller | `index`, `view/{id}` (rules + pledge / continue / waiting / result), `start/{id}` (POST), `take/{id}`, AJAX POST `save/{attempt}` `ping/{attempt}` `event/{attempt}` (JSON), `submit/{attempt}` (POST) |
+| `Lecturer_results` | Lecturer_Controller | `index`, `course/{id}` (weighting + everyone's calculated result + remarks), POST `weights/{course}`, `publish/{course}` (ticked students), `withdraw/{result}` |
+| `Student_results` | Student_Controller | `index` (published results with breakdown), `statement` (printable, QR) |
+| `Admin_results` | Admin_Controller | `index` (per-course overview), `course/{id}`, `export[/{course}]` (CSV) |
+| `Result_verify` | CI_Controller (public) | `/results/verify/{token}` (route): the statement's QR page, lists currently published results |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
 | `Photo` | Auth_Controller | `view/{id}` (permission-checked), `upload`, `remove`, `upload_for/{id}` (admin) |
@@ -194,7 +204,8 @@ theological_portal/
 | `Migrate` | CI_Controller | visit `/migrate` to run pending migrations. **Delete after use; keep a copy outside the project** |
 | `Lecturer_dashboard`, `Welcome` | legacy | unused leftovers, safe to delete |
 
-Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcuts, `verify/(:any) → verify/index/$1`.
+Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcuts, `verify/(:any) → verify/index/$1`,
+`results/verify/(:any) → result_verify/index/$1`.
 
 ---
 
@@ -227,7 +238,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - Variables passed to one view *are* cached for later partials (e.g. `$checklist` reaches `_checklist.php`).
 - **Menus** are defined once in `nav_items($role)` (`ui_helper`). Fields: `key, label, url, icon, section,
   mobile` (shown in phone bottom bar), `badge`, `exact` (for controllers shared by two pages),
-  `soon` (greyed "coming soon"). For Stage 6, change the students' `results` item from `soon` to a real link.
+  `soon` (greyed "coming soon"). No `soon` items remain since v8 (Results is live for all three roles).
   Badge keys (computed in `layout_context()`): `notifications, payments, errors, resets` (admin),
   `marking` (lecturer: submissions to mark), `assignments` (student: to do + overdue), `exam_marking` (lecturer:
   exam scripts to mark), `exams` (student: open to start or in progress). Phone bottom bar fits **5 items** (+ "More");
@@ -260,7 +271,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
 ### Cache busting
-- CSS/JS links carry a version: `app.css?v=6` (header + verify page), `app.js?v=6` (footer), `exam.js?v=2`
+- CSS/JS links carry a version: `app.css?v=7` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`
   (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
   (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
 
@@ -276,12 +287,14 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - Schema changes **only via numbered migrations** in `application/migrations/` (sequential type).
   Bump `$config['migration_version']` in `config/migration.php`, then the user visits `/migrate`.
 - Code that touches new tables should guard with `$this->db->table_exists()` or `field_exists()`
-  so pages don't crash before the user migrates (this happened with `photo_path`/`id_number` notices).
+  so pages don't crash before the user migrates (this happened with `photo_path`/`id_number` notices; v8's
+  results controllers redirect to the dashboard with "needs a database update" until `course_results` exists).
+  To test that state in the sandbox, `RENAME TABLE` the new table away and back (`/migrate` can't go down).
 - The user once installed code **without backing up**. Always remind them: phpMyAdmin → Export → Go first.
 
 ---
 
-## 7. Database (migration 15)
+## 7. Database (migration 17)
 
 | Table | Key columns / notes |
 |---|---|
@@ -304,16 +317,20 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `exam_attempts` | exam_id + student_id (**unique pair** = one attempt), question_ids (JSON, this student's questions in order), option_orders (JSON {qid: [display order]}), **session_token** (device lock; NULL = next device takes over), pledge_at, started_at, **deadline_at** = min(start + duration, closes_at), submitted_at, submit_reason enum(student, time_up), max_score, auto_score (MCQ), total_score (set when fully marked), feedback, graded_by/at, flag_count, away_seconds, ip_address, user_agent, last_seen_at |
 | `exam_answers` | attempt_id + question_id (unique), answer (option index or text), is_correct, marks_awarded |
 | `exam_events` | attempt_id, type (started, left, returned, paste, bulk_insert, copy, device_blocked, device_reset, network_changed, offline, submitted), detail, seconds, created_at. **Flags** = left, paste, bulk_insert, device_blocked |
-| `migrations` | version = 16 |
+| `course_grading` | course_id (PK), assignment_weight, exam_weight (sum 100; default 40/60 when no row) |
+| `course_results` | enrollment_id (**unique**), course_id, student_id, assignment_pct, exam_pct (NULL = none counted), assignment_weight, exam_weight (snapshotted), final_pct, grade, remarks, breakdown (JSON list of every item that counted, with mark and %), status enum(published, withdrawn), published_by/at |
+| `users.results_token` | 20-char secret in the statement-of-results QR, created on first publish (separate from `verify_token`, so reissuing an ID card doesn't break statements) |
+| `migrations` | version = 17 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
 010 audit_log · 011 announcements · 012 last_login/reset_requested · 013 id_number + photos (backfills IDs) ·
 014 settings + user_profiles + verify_token (backfills tokens, carries over `portal.php` payment details) ·
 015 assignments + assignment_submissions · 016 exams, exam_questions, exam_attempts, exam_answers, exam_events
-(+ appends an exam-monitoring paragraph to the `privacy_notice` setting).
+(+ appends an exam-monitoring paragraph to the `privacy_notice` setting) · 017 course_grading, course_results,
+users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `grade_pass` (50), `statement_note`.
 
-**Stage 6 will start at migration 017.**
+**The next schema change is migration 018.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -325,6 +342,14 @@ exam page is opened (no cron needed). The device lock is PHP session userdata `e
 `exam_attempts.session_token`: a student who logs out or clears cookies mid-exam is locked out of their own
 attempt until the lecturer presses **New device** (menus are hidden in exam mode, so logging out is unlikely).
 Questions lock once any attempt exists. Correct answers are never sent to the browser before results are released.
+
+**Result rules** (`Result_model::compute_for_course`): assignment % = mean of per-assignment % over assignments whose
+due date has passed (not handed in = 0); exam % = mean of per-exam % over published exams that have closed (not sat = 0);
+final = weighted (a missing part → the other counts 100%); grade from settings. **Blockers** (row can't be published):
+handed-in-but-unmarked assignment, exam attempt not fully marked or exam results not released, or nothing finished yet.
+Publishing snapshots the numbers + breakdown; the lecturer page flags rows whose live calculation now differs and
+pre-ticks them (never pre-ticks withdrawn ones). Publishing does **not** set the enrollment to `completed`: that would
+fail `has_active_access()` and lock the student out of materials.
 
 ---
 
@@ -384,6 +409,15 @@ and any non-composition `insertText` ≥ 40 chars are cancelled; the `input` han
 jump of ≥ 40 characters that isn't phone voice/IME composition (flag `bulk_insert`, detail shows the attempted text);
 drop and the right-click menu are blocked in the paper; question text can't be selected or copied; result page with %, feedback and a per-question breakdown with correct
 answers. Dashboard cards for both roles.
+
+**Results (v8):** lecturers set the assignment/exam weighting per course (slider), see every student's calculated
+assignment %, exam %, final % and grade with the reasons any result isn't ready, expand the marks each result is based
+on, add remarks, and publish the ticked ones (students notified; re-publishing notifies "updated"; withdraw hides it and
+tells the student it's under review). Students: **Results** page (score circle, grade, parts and weights, remarks,
+breakdown) and a printable **statement of results** (letterhead, student details, all courses, QR → public
+`/results/verify/{token}` page showing what is published *now*). Admins: overview per course (students, published,
+average, last published), per-course list, CSV export; grade boundaries + statement note under **Settings → Results**
+(kept in order: Distinction ≥ Merit ≥ Pass).
 
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
 internal broken links (404s with an internal referer only, to ignore bots), and JavaScript errors
@@ -450,19 +484,25 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       **policy for flagged attempts** (suggested: lecturer reviews, may call the student for a short oral check).
 - [ ] Changing an exam's closing time doesn't move the deadline of students already writing (their deadline was
       fixed when they started). Fine in practice; mention it if the user asks about extending time.
+- [ ] Possible Stage 6 extras: mark an enrollment "completed" / archive a course without locking materials (needs
+      `has_active_access` to accept `completed` for read-only access), per-assignment weights, a combined transcript
+      across years, certificates. Not built.
+- [ ] The user may circle back to the exams guide doc ("Online Exams: How They Work", a Claude Doc) with changes.
 
 ---
 
-## 11. Stage 6 (Results): suggested starting point
+## 11. Ezra (AI assistant): agreed starting point
 
-Goal: one place where students see all their marks per course, and admins/lecturers can publish an overall result.
-Data already there: `assignment_submissions.score` / `assignments.max_score`, `exam_attempts.total_score` /
-`max_score` (only when `exams.results_released`).
-Suggested shape (adapt as needed):
-- Per-course weighting set by the lecturer (e.g. assignments 40%, exams 60%), stored per course.
-- `course_results`: enrollment_id (unique), assignment_pct, exam_pct, final_pct, grade (e.g. Distinction/Merit/Pass/Fail,
-  thresholds in `settings`), remarks, published_at, published_by.
-- Student "Results" page (replace the `soon` nav item) + printable **statement of results / transcript** in the style
-  of the receipt and ID card (org letterhead from `settings`, QR verification like the ID card).
-- Admin: results overview per course, publish/unpublish, CSV export. Marking an enrollment `completed` when a result is published.
-- Then remind the user about **Ezra** (§9, item 14) as they asked.
+The user asked to be reminded to start Ezra once Stage 6 was done (reminded at the end of v8). Before building,
+confirm with them (and the Center) the open decisions: **doctrinal voice / statement of faith** Ezra must follow,
+**monthly spend cap**, and which roles get Ezra first (suggested: students, then lecturers).
+
+Agreed shape (§9 item 14):
+- A chat panel in the app shell (phone-friendly, like the Ctrl+K palette), answering from the logged-in user's
+  **own data only**: the server gathers it (courses, materials titles, assignments due, exam dates, released
+  results) and sends it with the question. **Read-only** at first: Ezra explains and guides, it never changes data.
+- Server-side PHP calls the AI API with cURL (PHP 7.3); the API key lives in a config file outside git, never in
+  the browser. Log each call (tokens, cost) in a table; stop answering when the month's cap is reached.
+- **Disabled while the student has an exam attempt in progress** (and the exam page never loads it).
+- Messages and answers stored per user (retention decided by the Center); an admin usage page with cost per month.
+- Read the Claude API skill/docs before writing the integration (current model IDs, pricing, prompt caching).
