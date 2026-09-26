@@ -69,7 +69,7 @@
                                    value="<?= html_escape($val('question_count', $editing && $e['question_count'] ? $e['question_count'] : '')) ?>" <?= ! empty($locked) ? 'disabled' : '' ?>>
                         </div>
                         <div class="col-sm-6 d-flex align-items-end">
-                            <small class="text-muted">Write more questions than this and each student gets a random selection: a question pool.</small>
+                            <small class="text-muted">Leave empty to give everyone all the questions. Or enter a number (e.g. 10) and write more questions than that (e.g. 20): each student then gets a different random 10. Give those questions equal marks so every paper is equally fair.</small>
                         </div>
                     </div>
 
