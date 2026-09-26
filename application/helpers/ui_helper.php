@@ -1,0 +1,330 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/**
+ * Small inline SVG icons (Feather-style, MIT). Inline so they work offline
+ * with no icon font to download.
+ */
+if (! function_exists('icon')) {
+    function icon($name, $size = 20)
+    {
+        $paths = [
+            'grid'    => '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+            'book'    => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+            'folder'  => '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+            'bell'    => '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+            'card'    => '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+            'users'   => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+            'layers'  => '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+            'logout'  => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+            'file'    => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+            'dollar'  => '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+            'clock'   => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+            'check'   => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+            'edit'    => '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+            'award'   => '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+            'plus'    => '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+            'arrow'   => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+            'user'    => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+            'eye'     => '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+            'eye-off' => '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
+            'upload'  => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+            'x'       => '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+            'alert'   => '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+            'lock'    => '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+            'sun'     => '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+            'moon'    => '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+            'monitor' => '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+            'search'  => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+            'sidebar' => '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>',
+            'phone'   => '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+            'camera'  => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+            'id-card' => '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><line x1="13" y1="10" x2="19" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/>',
+            'shield'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+            'image'   => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+        ];
+
+        $inner = isset($paths[$name]) ? $paths[$name] : $paths['grid'];
+
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="' . (int) $size . '" height="' . (int) $size
+            . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+            . ' stroke-linejoin="round" class="icon" aria-hidden="true">' . $inner . '</svg>';
+    }
+}
+
+/**
+ * Menu items per role. key = first URL segment, used to highlight the
+ * active item. 'soon' items show greyed out in the sidebar only, as a
+ * preview of Stages 4-6.
+ */
+if (! function_exists('nav_items')) {
+    function nav_items($role)
+    {
+        // section: sidebar group heading. mobile: shown in the phone tab bar.
+        // exact: only highlight on this exact URL (for pages sharing a controller).
+        $dashboard = ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => 'dashboard', 'icon' => 'grid', 'section' => 'Menu', 'mobile' => true];
+        $alerts    = ['key' => 'notifications', 'label' => 'Alerts', 'url' => 'notifications', 'icon' => 'bell', 'badge' => 'notifications', 'section' => 'Menu', 'mobile' => true];
+
+        switch ($role) {
+            case 'admin':
+                return [
+                    $dashboard,
+                    ['key' => 'admin_payments', 'label' => 'Payments', 'url' => 'admin_payments', 'icon' => 'card', 'badge' => 'payments', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'admin_users', 'label' => 'Students', 'url' => 'admin_users/students', 'icon' => 'users', 'badge' => 'resets', 'section' => 'Menu', 'mobile' => true, 'exact' => true],
+                    ['key' => 'admin_courses', 'label' => 'Courses', 'url' => 'admin_courses', 'icon' => 'layers', 'section' => 'Menu'],
+                    ['key' => 'admin_users', 'label' => 'Lecturers', 'url' => 'admin_users/lecturers', 'icon' => 'user', 'section' => 'Menu', 'exact' => true],
+                    ['key' => 'admin_announcements', 'label' => 'Announcements', 'url' => 'admin_announcements', 'icon' => 'bell', 'section' => 'Menu'],
+                    $alerts,
+                    ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
+                    ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
+                ];
+
+            case 'lecturer':
+                return [
+                    $dashboard,
+                    ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    $alerts,
+                    ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
+                    ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
+                ];
+
+            default: // student
+                return [
+                    $dashboard,
+                    ['key' => 'courses', 'label' => 'Courses', 'url' => 'courses', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu', 'mobile' => true],
+                    $alerts,
+                    ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
+                    ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
+                    ['key' => 'results', 'label' => 'Results', 'url' => '#', 'icon' => 'award', 'soon' => true],
+                ];
+        }
+    }
+}
+
+if (! function_exists('nav_is_active')) {
+    function nav_is_active(array $item, $uri, $segment)
+    {
+        if (! empty($item['exact'])) {
+            return $uri === $item['url'] || strpos($uri, $item['url'] . '/') === 0;
+        }
+        return $segment === $item['key'];
+    }
+}
+
+/**
+ * Consistent coloured pill for any enrollment/payment status.
+ */
+if (! function_exists('status_badge')) {
+    function status_badge($status)
+    {
+        $map = [
+            'pending_payment' => ['Awaiting payment', 'pill-warning'],
+            'active'          => ['Active', 'pill-success'],
+            'completed'       => ['Completed', 'pill-muted'],
+            'suspended'       => ['Suspended', 'pill-danger'],
+            'pending'         => ['Pending', 'pill-warning'],
+            'approved'        => ['Approved', 'pill-success'],
+            'rejected'        => ['Rejected', 'pill-danger'],
+        ];
+
+        list($label, $class) = isset($map[$status]) ? $map[$status] : [ucfirst((string) $status), 'pill-muted'];
+
+        return '<span class="pill ' . $class . '">' . html_escape($label) . '</span>';
+    }
+}
+
+if (! function_exists('initials')) {
+    function initials($name)
+    {
+        $parts = preg_split('/\s+/', trim((string) $name));
+        $out   = '';
+        foreach (array_slice($parts, 0, 2) as $p) {
+            $out .= strtoupper(substr($p, 0, 1));
+        }
+        return $out !== '' ? $out : '?';
+    }
+}
+
+if (! function_exists('money')) {
+    function money($amount)
+    {
+        return '$' . number_format((float) $amount, 2);
+    }
+}
+
+/**
+ * Everything the layout (header + footer) needs: current user, their menu,
+ * which item is active, and badge counts. Cached so the queries run once
+ * per page even though both header and footer call it.
+ */
+if (! function_exists('layout_context')) {
+    function layout_context()
+    {
+        static $ctx = null;
+        if ($ctx !== null) {
+            return $ctx;
+        }
+
+        $CI =& get_instance();
+
+        $userId = $CI->session->userdata('user_id');
+        $role   = $CI->session->userdata('role');
+
+        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0];
+        if ($userId) {
+            if ($CI->db->table_exists('notifications')) {
+                $badges['notifications'] = $CI->db->where('user_id', $userId)->where('is_read', 0)->count_all_results('notifications');
+            }
+            if ($role === 'admin') {
+                $badges['payments'] = $CI->db->where('status', 'pending')->count_all_results('payments');
+                if ($CI->db->table_exists('error_reports')) {
+                    $badges['errors'] = $CI->db->where('status', 'open')->where_in('severity', ['high', 'critical'])->count_all_results('error_reports');
+                }
+                if ($CI->db->field_exists('reset_requested_at', 'users')) {
+                    $badges['resets'] = $CI->db->where('role !=', 'admin')->where('reset_requested_at IS NOT NULL', null, false)->count_all_results('users');
+                }
+            }
+        }
+
+        $ctx = [
+            'userId'   => $userId,
+            'role'     => $role,
+            'userName' => (string) $CI->session->userdata('name'),
+            'photoVer' => $CI->session->userdata('photo'),
+            'idNumber' => $CI->session->userdata('id_number'),
+            'segment'  => $CI->uri->segment(1) ?: 'dashboard',
+            'uri'      => trim($CI->uri->uri_string(), '/'),
+            'badges'   => $badges,
+            'navItems' => $userId ? nav_items($role) : [],
+        ];
+
+        return $ctx;
+    }
+}
+
+
+/**
+ * "Good morning" / "Good afternoon" / "Good evening" by server time.
+ */
+if (! function_exists('greeting')) {
+    function greeting()
+    {
+        $h = (int) date('G');
+        if ($h < 12) {
+            return 'Good morning';
+        }
+        return $h < 17 ? 'Good afternoon' : 'Good evening';
+    }
+}
+
+/**
+ * First name, skipping titles like "Site" in "Site Administrator" isn't
+ * possible to guess, so admins without a real name get "Administrator".
+ */
+if (! function_exists('display_first_name')) {
+    function display_first_name($name, $role = null)
+    {
+        $name = trim((string) $name);
+        if ($role === 'admin' && stripos($name, 'administrator') !== false) {
+            return 'Administrator';
+        }
+        $first = strtok($name, ' ');
+        return $first !== false ? $first : $name;
+    }
+}
+
+/**
+ * "just now", "5 min ago", "3 hrs ago", "yesterday", "4 days ago", "12 Sep".
+ */
+if (! function_exists('time_ago')) {
+    function time_ago($datetime)
+    {
+        $ts = is_numeric($datetime) ? (int) $datetime : strtotime((string) $datetime);
+        if (! $ts) {
+            return '';
+        }
+        $diff = time() - $ts;
+
+        if ($diff < 60)     return 'just now';
+        if ($diff < 3600)   return floor($diff / 60) . ' min ago';
+        if ($diff < 86400)  { $h = floor($diff / 3600); return $h . ' hr' . ($h == 1 ? '' : 's') . ' ago'; }
+        if ($diff < 172800) return 'yesterday';
+        if ($diff < 604800) return floor($diff / 86400) . ' days ago';
+
+        return date('j M', $ts) . (date('Y', $ts) !== date('Y') ? ' ' . date('Y', $ts) : '');
+    }
+}
+
+
+/**
+ * Entries for the Ctrl+K quick-search palette: every page in the user's
+ * menu plus a few handy shortcuts. Returned as [group, label, url, icon, hint].
+ */
+if (! function_exists('palette_items')) {
+    function palette_items($role)
+    {
+        $items = [];
+        foreach (nav_items($role) as $n) {
+            if (empty($n['soon'])) {
+                $items[] = ['Go to', $n['label'], base_url($n['url']), $n['icon'], ''];
+            }
+        }
+
+        switch ($role) {
+            case 'admin':
+                $items[] = ['Actions', 'Review pending payments', base_url('admin_payments'), 'card', 'Payments'];
+                $items[] = ['Actions', 'Payment history', base_url('admin_payments/history'), 'clock', 'Payments'];
+                $items[] = ['Actions', 'Add a course', base_url('admin_courses'), 'plus', 'Courses'];
+                $items[] = ['Actions', 'Assign a lecturer to a course', base_url('admin_courses'), 'users', 'Courses'];
+                $items[] = ['Actions', 'Create a lecturer account', base_url('admin_users/lecturers'), 'users', 'Lecturers'];
+                $items[] = ['Actions', 'Reset a student\'s password', base_url('admin_users/students'), 'lock', 'Students'];
+                $items[] = ['Actions', 'Post an announcement', base_url('admin_announcements'), 'bell', 'Announcements'];
+                $items[] = ['Actions', 'Export audit trail (CSV)', base_url('admin_audit/export'), 'upload', 'Audit trail'];
+                break;
+            case 'lecturer':
+                $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
+                break;
+            default:
+                $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
+                $items[] = ['Actions', 'Upload proof of payment', base_url('courses'), 'upload', 'Courses'];
+                $items[] = ['Actions', 'Open my materials', base_url('student_materials'), 'folder', 'Materials'];
+                $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
+        }
+
+        $items[] = ['Account', 'My profile', base_url('profile'), 'user', ''];
+        $items[] = ['Account', 'My ID card', base_url('profile') . '#id-card', 'id-card', ''];
+        $items[] = ['Account', 'Change my photo', base_url('profile') . '#photo', 'camera', ''];
+        $items[] = ['Account', 'Change password', base_url('profile') . '#password', 'lock', ''];
+        $items[] = ['Account', 'Toggle dark mode', '#theme', 'moon', 'Appearance'];
+        $items[] = ['Account', 'Report a problem', base_url('support/report'), 'alert', 'Help'];
+        $items[] = ['Account', 'Log out', base_url('auth/logout'), 'logout', ''];
+
+        return $items;
+    }
+}
+
+if (! function_exists('receipt_no')) {
+    function receipt_no($paymentId)
+    {
+        return 'TC-' . str_pad((int) $paymentId, 6, '0', STR_PAD_LEFT);
+    }
+}
+
+/**
+ * A person's avatar: their photo if they have one, otherwise initials.
+ *   $photoVersion - photo_updated_at (string or timestamp), null for none
+ *   $class        - extra classes, e.g. 'avatar-sm', 'avatar-xl'
+ */
+if (! function_exists('avatar_html')) {
+    function avatar_html($name, $userId, $photoVersion = null, $class = '')
+    {
+        if ($photoVersion) {
+            $v = is_numeric($photoVersion) ? (int) $photoVersion : strtotime((string) $photoVersion);
+            return '<img class="avatar avatar-img ' . $class . '" src="' . base_url('photo/view/' . (int) $userId) . '?v=' . $v
+                 . '" alt="' . html_escape($name) . '" loading="lazy">';
+        }
+        return '<span class="avatar ' . $class . '">' . html_escape(initials($name)) . '</span>';
+    }
+}
