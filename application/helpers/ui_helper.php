@@ -42,6 +42,8 @@ if (! function_exists('icon')) {
             'id-card' => '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><line x1="13" y1="10" x2="19" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/>',
             'shield'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
             'image'   => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+            'message' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+            'send'    => '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
         ];
 
         $inner = isset($paths[$name]) ? $paths[$name] : $paths['grid'];
@@ -66,6 +68,15 @@ if (! function_exists('nav_items')) {
         $help      = ['key' => 'support', 'label' => 'Help & contact', 'url' => 'support/help', 'icon' => 'phone', 'section' => 'Support', 'exact' => true];
         $alerts    = ['key' => 'notifications', 'label' => 'Alerts', 'url' => 'notifications', 'icon' => 'bell', 'badge' => 'notifications', 'section' => 'Menu', 'mobile' => true];
 
+        $items = _nav_items_for($role, $dashboard, $help, $alerts);
+        $ezra  = ezra_offered($role);
+        return array_values(array_filter($items, function ($i) use ($ezra) { return empty($i['ezra']) || $ezra; }));
+    }
+}
+
+if (! function_exists('_nav_items_for')) {
+    function _nav_items_for($role, $dashboard, $help, $alerts)
+    {
         switch ($role) {
             case 'admin':
                 return [
@@ -78,6 +89,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'admin_announcements', 'label' => 'Announcements', 'url' => 'admin_announcements', 'icon' => 'bell', 'section' => 'Menu'],
                     $alerts,
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
+                    ['key' => 'admin_ezra', 'label' => 'Ezra (AI)', 'url' => 'admin_ezra', 'icon' => 'message', 'section' => 'System'],
                     ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
                     ['key' => 'admin_settings', 'label' => 'Settings', 'url' => 'admin_settings', 'icon' => 'layers', 'section' => 'System'],
                     ['key' => 'admin_users', 'label' => 'Administrators', 'url' => 'admin_users/admins', 'icon' => 'lock', 'section' => 'System', 'exact' => true],
@@ -91,6 +103,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_results', 'label' => 'Results', 'url' => 'lecturer_results', 'icon' => 'award', 'section' => 'Menu'],
+                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Menu', 'ezra' => true],
                     $alerts,
                     $help,
                 ];
@@ -103,6 +116,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'student_exams', 'label' => 'Exams', 'url' => 'student_exams', 'icon' => 'clock', 'badge' => 'exams', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_results', 'label' => 'Results', 'url' => 'student_results', 'icon' => 'award', 'section' => 'Menu'],
+                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Menu', 'ezra' => true],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
                     $alerts,
                     $help,
@@ -337,6 +351,7 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Export all results (CSV)', base_url('admin_results/export'), 'upload', 'Results'];
                 $items[] = ['Actions', 'Grade boundaries', base_url('admin_settings') . '#set-results', 'award', 'Settings'];
                 $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
+                $items[] = ['Actions', 'Ezra spending and settings', base_url('admin_ezra'), 'message', 'Ezra (AI)'];
                 break;
             case 'lecturer':
                 $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
@@ -359,6 +374,9 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'My course results', base_url('student_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Print my statement of results', base_url('student_results/statement'), 'file', 'Results'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
+                if (ezra_offered($role)) {
+                    $items[] = ['Actions', 'Ask Ezra a question (AI study assistant)', base_url('ezra'), 'message', 'Ezra'];
+                }
         }
 
         $items[] = ['Account', 'My profile', base_url('profile'), 'user', ''];
@@ -532,5 +550,67 @@ if (! function_exists('profile_field_groups')) {
             ]];
         }
         return $groups;
+    }
+}
+
+/**
+ * Is Ezra (the AI assistant) switched on for this role? Cheap: settings are
+ * already loaded for the page. Whether it can answer right now (API key,
+ * limits, exams) is Ezra::availability().
+ */
+if (! function_exists('ezra_offered')) {
+    function ezra_offered($role)
+    {
+        static $cache = [];
+        if (! isset($cache[$role])) {
+            $CI =& get_instance();
+            $cache[$role] = $CI->db->table_exists('ezra_messages') && setting('ezra_enabled', '1') === '1'
+                && in_array($role, array_map('trim', explode(',', setting('ezra_roles', 'student'))), true);
+        }
+        return $cache[$role];
+    }
+}
+
+/**
+ * Ezra's answer as safe HTML: everything is escaped first, then a little of
+ * the Markdown the model uses is turned into formatting (headings, bold,
+ * italics, bullet and numbered lists, paragraphs).
+ */
+if (! function_exists('ezra_format')) {
+    function ezra_format($text)
+    {
+        $lines = preg_split('/\r\n|\r|\n/', html_escape(trim((string) $text)));
+        $html = ''; $list = null; $para = [];
+        $inline = function ($t) {
+            $t = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $t);
+            $t = preg_replace('/(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])/s', '<em>$1</em>', $t);
+            return preg_replace('/`([^`]+)`/', '<code>$1</code>', $t);
+        };
+        $flushPara = function () use (&$para, &$html, $inline) {
+            if ($para) { $html .= '<p>' . $inline(implode('<br>', $para)) . '</p>'; $para = []; }
+        };
+        $flushList = function () use (&$list, &$html) {
+            if ($list) { $html .= '<' . $list[0] . '>' . implode('', $list[1]) . '</' . $list[0] . '>'; $list = null; }
+        };
+        foreach ($lines as $line) {
+            $t = trim($line);
+            $n = [];
+            if ($t === '' || preg_match('/^(-{3,}|\*{3,})$/', $t)) {
+                $flushPara(); $flushList();
+            } elseif (preg_match('/^#{1,6}\s+(.+)$/', $t, $m)) {
+                $flushPara(); $flushList();
+                $html .= '<p class="ezra-h">' . $inline(trim($m[1], '* ')) . '</p>';
+            } elseif (preg_match('/^(?:[-*\x{2022}])\s+(.+)$/u', $t, $m) || preg_match('/^(\d+)[.)]\s+(.+)$/', $t, $n)) {
+                $flushPara();
+                $type = empty($n) ? 'ul' : 'ol';
+                if (! $list || $list[0] !== $type) { $flushList(); $list = [$type, []]; }
+                $list[1][] = '<li>' . $inline(empty($n) ? $m[1] : $n[2]) . '</li>';
+            } else {
+                $flushList();
+                $para[] = $t;
+            }
+        }
+        $flushPara(); $flushList();
+        return $html;
     }
 }

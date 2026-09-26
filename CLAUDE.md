@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 26 September 2026 (after Portal **v8** = Stage 6 Results, database migration **17**).
+Last updated: 26 September 2026 (after Portal **v9** = Ezra AI assistant, database migration **18**).
 
 ---
 
@@ -88,14 +88,16 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 4 | **Assignments**: lecturers set them, students submit, lecturers mark + feedback (+ Administrators screen) | ✅ Done (v6) |
 | 5 | **Online exams**: timed, open/close window, MCQ + short answer, pools/shuffling, device lock, activity flags, live invigilation, marking, release results | ✅ Done (v7) |
 | 6 | **Results**: per-course weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
-| **Next** | **"Ezra" AI assistant** (see §9, §11). The user asked to be reminded once Stage 6 was done: **reminded at the end of v8**. | ⏭️ |
+| 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v7 (Stage 5 exams + paste hardening) is merged into `main` and on the laptop (DB at 16).
-v8 (Stage 6 results) is on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test.
+v8 (Stage 6 results) **and v9 (Ezra)** are on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test
+(v8 was never tested/merged separately; one `/migrate` takes the laptop 16 → 18). For Ezra they also need an Anthropic
+API key in `application/config/ezra.php` (see §11); without it Ezra says "being set up" and everything else works.
 Laptop steps: `git checkout claude/inspiring-ramanujan-y9isjf` → `git pull origin claude/inspiring-ramanujan-y9isjf`
 (the local branch already exists, so **pull is required**; a bare checkout just switches to the stale copy, which
-happened once) → back up DB → `/migrate` (→ 17) → test → merge into `main` (checkout main, pull the branch, push main).
+happened once) → back up DB → `/migrate` (→ 18) → test → merge into `main` (checkout main, pull the branch, push main).
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -121,6 +123,7 @@ theological_portal/
 │   ├── js/app.js              (all UX behaviour, see §6)
 │   ├── js/qr.js               (QR generator, Kazuhiko Arase MIT lib bundled; TCQR.svg())
 │   ├── js/exam.js             (Stage 5 only: question editor toggle, invigilation auto-refresh, exam timer/autosave/monitoring)
+│   ├── js/ezra.js             (Ezra chat page only: fetch, typing dots, Enter to send, suggestion chips)
 │   ├── img/                   (favicon.svg, icon-192/512.png, apple-touch-icon.png)
 │   └── manifest.json          (PWA "Add to Home screen")
 ├── uploads/
@@ -130,7 +133,7 @@ theological_portal/
 │   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
 │   └── photos/     (profile photos; .htaccess deny; served by Photo controller)
 └── application/
-    ├── config/     autoload, config, database, migration (version 17), routes,
+    ├── config/     autoload, config, database, migration (version 18), routes, ezra.sample.php (→ copy to git-ignored ezra.php with the API key),
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
     ├── core/
     │   ├── MY_Controller.php        Auth_Controller (+ _send_file, _store_upload), Admin_/Lecturer_/Student_Controller
@@ -142,16 +145,16 @@ theological_portal/
     │                 Error_model, Receipt_model, Assignment_model (assignments + submissions),
     │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity),
     │                 Result_model (weighting, calculation, grades, publishing, statement tokens)
-    ├── libraries/    Audit.php, Notifier.php, Settings.php
+    ├── libraries/    Audit.php, Notifier.php, Settings.php, Ezra_ai.php (Claude API over cURL, context, limits, cost)
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
-    ├── migrations/   001–017 (see §7)
+    ├── migrations/   001–018 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
         ├── partials/   id_card.php, result_breakdown.php
         ├── dashboard/  admin, student, lecturer, _announcements, _checklist
         ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
-        │               announcements, errors, error_view, audit, settings, results, results_course
+        │               announcements, errors, error_view, audit, settings, results, results_course, ezra
         ├── student/    courses, upload_payment, payments, materials_index, materials_course,
         │               assignments_index, assignment_view, exams_index, exam_view, exam_take, exam_blocked,
         │               results, results_statement
@@ -163,6 +166,7 @@ theological_portal/
         ├── payments/   receipt
         ├── support/    help, report, forgot
         ├── notifications/ index
+        ├── ezra/       index (the chat page)
         ├── verify/     index (ID card), results (statement of results)   (standalone public pages, no app shell)
         ├── auth/       login, register
         └── errors/html/ _portal_error (shared branded page), error_404, error_general, error_db,
@@ -188,6 +192,8 @@ theological_portal/
 | `Lecturer_results` | Lecturer_Controller | `index`, `course/{id}` (weighting + everyone's calculated result + remarks), POST `weights/{course}`, `publish/{course}` (ticked students), `withdraw/{result}` |
 | `Student_results` | Student_Controller | `index` (published results with breakdown), `statement` (printable, QR) |
 | `Admin_results` | Admin_Controller | `index` (per-course overview), `course/{id}`, `export[/{course}]` (CSV) |
+| `Ezra` | Auth_Controller (role must be in `ezra_roles`) | `index` (chat, current conversation, pause reason), POST `ask` (JSON: `{ok,status,html,left}`), POST `new_thread`. Note: the controller is `Ezra`, so the library is **`Ezra_ai`** (same class name would clash) |
+| `Admin_ezra` | Admin_Controller | `index` (spend vs cap, 6-month chart, most active by count only, settings form), POST `save`, `test` (tiny API call), `purge` |
 | `Result_verify` | CI_Controller (public) | `/results/verify/{token}` (route): the statement's QR page, lists currently published results |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
@@ -239,6 +245,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - **Menus** are defined once in `nav_items($role)` (`ui_helper`). Fields: `key, label, url, icon, section,
   mobile` (shown in phone bottom bar), `badge`, `exact` (for controllers shared by two pages),
   `soon` (greyed "coming soon"). No `soon` items remain since v8 (Results is live for all three roles).
+  Items with `'ezra' => true` ("Ask Ezra") are filtered out unless `ezra_offered($role)` (table exists, `ezra_enabled`, role in `ezra_roles`).
   Badge keys (computed in `layout_context()`): `notifications, payments, errors, resets` (admin),
   `marking` (lecturer: submissions to mark), `assignments` (student: to do + overdue), `exam_marking` (lecturer:
   exam scripts to mark), `exams` (student: open to start or in progress). Phone bottom bar fits **5 items** (+ "More");
@@ -271,7 +278,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
 ### Cache busting
-- CSS/JS links carry a version: `app.css?v=7` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`
+- CSS/JS links carry a version: `app.css?v=8` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
   (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
   (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
 
@@ -294,7 +301,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 
 ---
 
-## 7. Database (migration 17)
+## 7. Database (migration 18)
 
 | Table | Key columns / notes |
 |---|---|
@@ -320,7 +327,8 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `course_grading` | course_id (PK), assignment_weight, exam_weight (sum 100; default 40/60 when no row) |
 | `course_results` | enrollment_id (**unique**), course_id, student_id, assignment_pct, exam_pct (NULL = none counted), assignment_weight, exam_weight (snapshotted), final_pct, grade, remarks, breakdown (JSON list of every item that counted, with mark and %), status enum(published, withdrawn), published_by/at |
 | `users.results_token` | 20-char secret in the statement-of-results QR, created on first publish (separate from `verify_token`, so reissuing an ID card doesn't break statements) |
-| `migrations` | version = 17 |
+| `ezra_messages` | user_id (FK cascade), thread_no (conversation), role enum(user, assistant), content (wiped to '' after `ezra_retention_days`; row kept for costs), status enum(ok, refused, error), model (as served), input/cache_write/cache_read/output_tokens, cost_usd DECIMAL(10,6), created_at |
+| `migrations` | version = 18 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
@@ -328,9 +336,12 @@ Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments 
 014 settings + user_profiles + verify_token (backfills tokens, carries over `portal.php` payment details) ·
 015 assignments + assignment_submissions · 016 exams, exam_questions, exam_attempts, exam_answers, exam_events
 (+ appends an exam-monitoring paragraph to the `privacy_notice` setting) · 017 course_grading, course_results,
-users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `grade_pass` (50), `statement_note`.
+users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `grade_pass` (50), `statement_note` ·
+018 ezra_messages + settings `ezra_enabled` (1), `ezra_roles` (student), `ezra_monthly_cap_usd` (50), `ezra_daily_limit` (25),
+`ezra_model` (claude-opus-5), `ezra_effort` (low), `ezra_bible_version` (NKJV), `ezra_retention_days` (365), `ezra_warned_month`,
+`ezra_statement_of_faith` (AG 16 Fundamental Truths summary) (+ appends an Ezra paragraph to `privacy_notice`). `ezra_purged_on` is created on first use.
 
-**The next schema change is migration 018.**
+**The next schema change is migration 019.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -419,6 +430,13 @@ breakdown) and a printable **statement of results** (letterhead, student details
 average, last published), per-course list, CSV export; grade boundaries + statement note under **Settings → Results**
 (kept in order: Distinction ≥ Merit ≥ Pass).
 
+**Ezra (v9):** students get **Ask Ezra** (sidebar + "More" on phones, dashboard card, Ctrl+K). A chat page: greeting, suggestion
+chips, answers formatted (bold, lists, headings; everything escaped first), typing dots, questions left today, "New
+conversation". Ezra knows the student's courses, lecturers, recent material titles, assignments (due, status, marks, feedback),
+exams (window, released results) and published overall results, follows the statement of faith, quotes the chosen Bible
+version, replies in English/Shona/Ndebele, won't write assessed work, can't change anything. Paused during an exam attempt,
+when the month's cap is reached, and at the daily limit. Admins: **System → Ezra (AI)** page.
+
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
 internal broken links (404s with an internal referer only, to ignore bots), and JavaScript errors
 (beacon to `support/js`, capped per page/session). Repeats are grouped by fingerprint; resolved errors
@@ -455,7 +473,8 @@ that recur reopen themselves. Branded error pages show the reference code (techn
     **after Stage 6**, server-side PHP calling an AI API (key never in the browser), **read-only at first**,
     sees only the logged-in user's own data (the server fetches it and passes it to the model),
     **disabled during a student's active exam**, a monthly spend cap, and the Center decides its doctrinal voice.
-    Adds a per-message cost line to the client's running costs.
+    Adds a per-message cost line to the client's running costs. **Built in v9** (§11). The Center is Pentecostal
+    (Assemblies of God); students first; the user had no budget in mind, so Claude suggested $50/month + 25 questions a day.
 
 ---
 
@@ -491,18 +510,39 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 
 ---
 
-## 11. Ezra (AI assistant): agreed starting point
+## 11. Ezra (AI assistant), built in v9
 
-The user asked to be reminded to start Ezra once Stage 6 was done (reminded at the end of v8). Before building,
-confirm with them (and the Center) the open decisions: **doctrinal voice / statement of faith** Ezra must follow,
-**monthly spend cap**, and which roles get Ezra first (suggested: students, then lecturers).
+**Decisions:** the Center is Pentecostal, under the Assemblies of God → default statement of faith = summary of the AG
+16 Fundamental Truths (editable on the admin page; the Center should check it against its own). Students first
+(`ezra_roles`, lecturers can be ticked on; they get `lecturer_context()` and help preparing teaching). Cap suggested for
+<100 students: **$50/month + 25 questions/person/day**, alert to admins at 80%. Model default **Claude Opus 5**
+(`claude-opus-5`, $5/$25 per M tokens), Sonnet 5 (`claude-sonnet-5`, $2/$10) selectable. ~2–4 cents per answer on Opus.
 
-Agreed shape (§9 item 14):
-- A chat panel in the app shell (phone-friendly, like the Ctrl+K palette), answering from the logged-in user's
-  **own data only**: the server gathers it (courses, materials titles, assignments due, exam dates, released
-  results) and sends it with the question. **Read-only** at first: Ezra explains and guides, it never changes data.
-- Server-side PHP calls the AI API with cURL (PHP 7.3); the API key lives in a config file outside git, never in
-  the browser. Log each call (tokens, cost) in a table; stop answering when the month's cap is reached.
-- **Disabled while the student has an exam attempt in progress** (and the exam page never loads it).
-- Messages and answers stored per user (retention decided by the Center); an admin usage page with cost per month.
-- Read the Claude API skill/docs before writing the integration (current model IDs, pricing, prompt caching).
+**How it works (`libraries/Ezra_ai.php`):**
+- Raw cURL to `https://api.anthropic.com/v1/messages` (official PHP SDK needs PHP 8.1+). Headers `x-api-key`,
+  `anthropic-version: 2023-06-01`; on Opus 5 also `fallbacks: "default"` + `anthropic-beta: server-side-fallback-2026-07-01`
+  (a harmless question declined by Opus's safety filter is retried on the recommended model instead of refused).
+- Body: `max_tokens` 16000, `thinking: {type: adaptive}`, `output_config.effort` (setting; low default), two `system`
+  blocks with `cache_control` (1: `instructions()`, identical for everyone; 2: the user's own context), then the last
+  completed turns of the conversation (`HISTORY_MESSAGES` = 12) + the question (max 2000 chars). Not streamed (short answers).
+- Handles curl errors / 401 / 429 / 5xx / 529 / out of credit (friendly text, status `error`, logged), `stop_reason`
+  `refusal` (status `refused`), `max_tokens` (note appended). Errors/refusals are not sent back as history.
+- Cost from `usage`: input × price + cache writes × 1.25 + cache reads × 0.1 + output × out price (`Ezra_ai::cost`).
+- `availability()`: offered to role → configured (key + table + curl) → no exam attempt in progress (`submitted_at` NULL,
+  `deadline_at` > now−60 s) → month cost < cap → today's questions < daily limit.
+- The controller releases the PHP session lock during the API call (`session_write_close`, then reopens) and blocks a
+  second question while one is running (`ezra_busy`).
+- Retention: `maybe_purge()` once a day (when the chat opens) wipes the **text** of old messages; rows/costs stay.
+- Admins see counts and costs only, never conversation text (privacy). Audit actions: `ezra.settings_saved`,
+  `ezra.tested`, `ezra.purged` (questions themselves are not audited).
+
+**Setup on a machine:** console.anthropic.com → add card, buy credit (optionally set a spend limit there too) → create
+an API key → copy `application/config/ezra.sample.php` to `application/config/ezra.php` (git-ignored) and paste the key →
+admin **Ezra (AI)** page → **Test connection**. PHP's cURL extension must be on (XAMPP usually has it).
+
+**Testing in the sandbox:** no real key. Point `ezra_api_url` in a throwaway `ezra.php` at a fake PHP server (e.g.
+`php -S 127.0.0.1:8090`) that records the request and returns canned Messages-API JSON (normal / `refusal` / 529 /
+`max_tokens`). Delete the throwaway `ezra.php` afterwards.
+
+**Possible next steps (not built):** streaming answers, Ezra for lecturers by default, letting Ezra read material
+*contents* (PDF text) rather than titles, a per-course "ask about this material" button, Shona/Ndebele UI text.

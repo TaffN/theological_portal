@@ -36,3 +36,6 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 uploads/*/*
 !uploads/*/index.html
 !uploads/*/.htaccess
+
+# Ezra's API key lives here (copy config/ezra.sample.php). Never commit it.
+application/config/ezra.php
