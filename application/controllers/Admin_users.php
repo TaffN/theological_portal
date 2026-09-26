@@ -55,11 +55,86 @@ class Admin_users extends Admin_Controller
     {
         $user = $this->_managed_user($id);
         $this->load->view('templates/header', ['title' => $user['name']]);
+        $profile = $this->User_model->get_profile($user['id']);
         $this->load->view('admin/user_card', [
             'u'           => $user,
+            'profile'     => $profile,
             'cardCourses' => $this->User_model->card_courses($user),
+            'complete'    => $this->User_model->completeness($user, $profile),
         ]);
         $this->load->view('templates/footer');
+    }
+
+    public function update_account($id)
+    {
+        $user = $this->_managed_user($id);
+        $this->form_validation->set_rules('name', 'Name', 'required|min_length[2]|max_length[150]');
+        $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+        $email = strtolower(trim((string) $this->input->post('email')));
+
+        if (! $this->form_validation->run()) {
+            $this->session->set_flashdata('error', strip_tags(validation_errors()));
+        } elseif ($email !== $user['email'] && $this->db->where('email', $email)->where('id !=', $id)->count_all_results('users') > 0) {
+            $this->session->set_flashdata('error', 'Another account already uses ' . $email . '.');
+        } else {
+            $this->User_model->update($id, ['name' => trim($this->input->post('name')), 'email' => $email, 'phone' => trim((string) $this->input->post('phone'))]);
+            $this->audit->log('user.account_updated', 'user', $id, 'Updated account details of ' . $user['name'] . ' (' . $user['id_number'] . ')'
+                . ($email !== $user['email'] ? ', email ' . $user['email'] . ' -> ' . $email : ''));
+            $this->session->set_flashdata('success', 'Account details saved.');
+        }
+        redirect('admin_users/card/' . $id);
+    }
+
+    public function save_profile($id)
+    {
+        $user = $this->_managed_user($id);
+        $this->User_model->save_profile($id, $this->input->post());
+        $this->audit->log('user.profile_updated', 'user', $id, 'Updated personal details of ' . $user['name'] . ' (' . $user['id_number'] . ')');
+        $this->session->set_flashdata('success', 'Details saved.');
+        redirect('admin_users/card/' . $id . '#details');
+    }
+
+    /** Lost card: issue a new QR code so the old card no longer verifies. */
+    public function reissue_card($id)
+    {
+        $user = $this->_managed_user($id);
+        $this->User_model->new_verify_token($id);
+        $this->audit->log('user.card_reissued', 'user', $id, 'Re-issued ID card for ' . $user['name'] . ' (' . $user['id_number'] . '); old QR code cancelled');
+        $this->session->set_flashdata('success', 'New ID card issued. The old card\'s QR code now shows "Card not recognised". Print the new one.');
+        redirect('admin_users/card/' . $id);
+    }
+
+    /** Everything about every student, for Excel. */
+    public function export_students()
+    {
+        $rows = $this->db->select('users.id_number, users.name, users.email, users.phone, users.status, users.created_at, users.last_login_at, user_profiles.*')
+            ->from('users')->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
+            ->where('users.role', 'student')->order_by('users.id_number', 'ASC')->get()->result_array();
+
+        $this->audit->log('user.students_exported', null, null, 'Exported ' . count($rows) . ' student records to CSV');
+
+        $cols = ['id_number' => 'Student no.', 'name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'alt_phone' => 'Alt. phone',
+            'status' => 'Status', 'date_of_birth' => 'Date of birth', 'gender' => 'Gender', 'national_id' => 'National ID',
+            'address_line1' => 'Address', 'address_line2' => 'Address 2', 'city' => 'City', 'province' => 'Province', 'country' => 'Country', 'postal_code' => 'Postal code',
+            'emergency_name' => 'Emergency contact', 'emergency_relationship' => 'Relationship', 'emergency_phone' => 'Emergency phone',
+            'church_name' => 'Church', 'denomination' => 'Denomination', 'ministry_role' => 'Ministry role',
+            'education_level' => 'Education', 'occupation' => 'Occupation', 'referral_source' => 'Heard about us via',
+            'created_at' => 'Registered', 'last_login_at' => 'Last login'];
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="students-' . date('Y-m-d') . '.csv"');
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, array_values($cols));
+        foreach ($rows as $r) {
+            $line = [];
+            foreach (array_keys($cols) as $k) {
+                $line[] = isset($r[$k]) ? $r[$k] : '';
+            }
+            fputcsv($out, $line);
+        }
+        fclose($out);
+        exit;
     }
 
     public function create_lecturer()

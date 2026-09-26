@@ -275,13 +275,13 @@ class Dashboard_model extends CI_Model
     {
         $admin  = $this->db->where('id', $adminId)->get('users')->row_array();
         $CI     =& get_instance();
-        $CI->config->load('portal', true, true);
-        $portal = (array) $CI->config->item('portal');
-        $payConfigured = ! empty($portal['pay_ecocash_number']) || ! empty($portal['pay_bank_account']);
+        $payConfigured = $CI->settings->get('pay_ecocash_number') !== '' || $CI->settings->get('pay_bank_account') !== '';
+        $orgConfigured = $CI->settings->get('org_phone') !== '' && $CI->settings->get('org_address') !== '';
 
         return [
             ['Change the default admin password', ! password_verify('ChangeMe123!', $admin['password_hash']), base_url('profile') . '#password', 'Still using ChangeMe123!'],
-            ['Add your payment details', $payConfigured, null, 'Edit application/config/portal.php'],
+            ['Add the Center\'s contact details', $orgConfigured, base_url('admin_settings') . '#set-contact', 'Shown on receipts, ID cards and the Help page'],
+            ['Add your payment details', $payConfigured, base_url('admin_settings') . '#set-payments', 'EcoCash number and bank account'],
             ['Create your first course', $this->db->count_all('courses') > 0, base_url('admin_courses'), ''],
             ['Add a lecturer', $this->db->where('role', 'lecturer')->count_all_results('users') > 0, base_url('admin_users/lecturers'), ''],
             ['Assign a lecturer to a course', $this->db->count_all('course_lecturers') > 0, base_url('admin_courses'), ''],
@@ -292,6 +292,9 @@ class Dashboard_model extends CI_Model
     public function student_checklist($userId, array $courses)
     {
         $user = $this->db->where('id', $userId)->get('users')->row_array();
+        $CI =& get_instance();
+        $CI->load->model('User_model');
+        $CI_complete = $CI->User_model->completeness($user, $CI->User_model->get_profile($userId))['percent'];
         $hasPayment = $this->db->from('payments')->join('enrollments', 'enrollments.id = payments.enrollment_id')
             ->where('enrollments.user_id', $userId)->count_all_results() > 0;
         $active = count(array_filter($courses, function ($c) { return $c['enrollment_status'] === 'active'; }));
@@ -300,6 +303,7 @@ class Dashboard_model extends CI_Model
             ['Create your account', true, null, ''],
             ['Add your WhatsApp number', ! empty($user['phone']), base_url('profile'), 'So the Center can reach you'],
             ['Add a profile photo', ! empty($user['photo_path']), base_url('profile') . '#photo', 'Used on your student ID card'],
+            ['Complete your personal details', $CI_complete >= 80, base_url('profile') . '#details', 'Address, emergency contact, church'],
             ['Apply for a course', count($courses) > 0, base_url('courses'), ''],
             ['Upload your proof of payment', $hasPayment, base_url('courses'), ''],
             ['Get approved and start studying', $active > 0, base_url('student_materials'), 'Usually within a day'],

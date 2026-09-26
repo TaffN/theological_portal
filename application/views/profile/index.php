@@ -10,7 +10,14 @@
                 <h1 class="h4 fw-bold mb-1 text-truncate"><?= html_escape($user['name']) ?></h1>
                 <div class="text-muted small"><?= html_escape($user['email']) ?><?= $user['id_number'] ? ' &middot; <strong class="text-body">' . html_escape($user['id_number']) . '</strong>' : '' ?></div>
             </div>
-            <span class="pill pill-muted ms-md-auto mb-1"><?= html_escape(ucfirst($user['role'])) ?> &middot; since <?= html_escape(date('M Y', strtotime($user['created_at']))) ?></span>
+            <div class="ms-md-auto mb-1 d-flex align-items-center gap-3 flex-wrap">
+                <a href="#details" class="completeness" title="<?= $complete['missing'] ? 'Missing: ' . html_escape(implode(', ', $complete['missing'])) : 'All done' ?>">
+                    <span class="ring ring-sm" style="--p: <?= (int) $complete['percent'] ?>"><span><?= (int) $complete['percent'] ?>%</span></span>
+                    <span class="min-w-0"><strong class="d-block"><?= $complete['percent'] >= 100 ? 'Profile complete' : 'Profile ' . (int) $complete['percent'] . '% complete' ?></strong>
+                    <small class="text-muted"><?= $complete['missing'] ? 'Next: ' . html_escape($complete['missing'][0]) : 'Thank you!' ?></small></span>
+                </a>
+                <span class="pill pill-muted"><?= html_escape(ucfirst($user['role'])) ?> &middot; since <?= html_escape(date('M Y', strtotime($user['created_at']))) ?></span>
+            </div>
         </div>
     </div>
 </div>
@@ -52,11 +59,26 @@
     </div>
 </div>
 
+<div class="card mb-3" id="details">
+    <div class="card-body">
+        <div class="card-head">
+            <h5 class="card-heading"><span class="stat-icon stat-icon-sm bg-soft-green"><?= icon('user', 16) ?></span> About you</h5>
+            <span class="card-sub">For enrolment records, your ID card and emergencies</span>
+        </div>
+        <?php $this->load->view('profile/_about_form', [
+            'formRole'    => $user['role'],
+            'formProfile' => $profile,
+            'formAction'  => base_url('profile/save_more'),
+            'formNote'    => 'Only the administrators can see these details.',
+        ]); ?>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-body">
-                <div class="card-head"><h5 class="card-heading"><span class="stat-icon stat-icon-sm bg-soft-navy"><?= icon('user', 16) ?></span> Personal details</h5></div>
+                <div class="card-head"><h5 class="card-heading"><span class="stat-icon stat-icon-sm bg-soft-navy"><?= icon('user', 16) ?></span> Account details</h5></div>
                 <form method="post" action="<?= base_url('profile/update_details') ?>">
                     <div class="mb-3">
                         <label class="form-label" for="p-name">Full name</label>

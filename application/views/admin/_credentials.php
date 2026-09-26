@@ -5,7 +5,7 @@
 
     $digits = preg_replace('/\D+/', '', (string) $cred['phone']);
     if (strpos($digits, '0') === 0) { $digits = '263' . substr($digits, 1); }   // 077... -> 26377...
-    $msg = "Hello {$cred['name']}, here are your Theological Center Portal login details:\n\n"
+    $msg = "Hello {$cred['name']}, here are your " . setting('org_short_name', 'Theological Center') . " portal login details:\n\n"
          . "Login: {$cred['login']}\nEmail: {$cred['email']}\nPassword: {$cred['password']}\n"
          . (! empty($cred['id_number']) ? "Your ID number: {$cred['id_number']}\n" : '') . "\n"
          . "Please change your password after logging in (My Profile > Change password).";

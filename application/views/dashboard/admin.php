@@ -1,8 +1,8 @@
 <div class="welcome-banner mb-4">
     <div class="position-relative">
-        <p class="welcome-kicker mb-1"><?= date('l, j F Y') ?></p>
+        <p class="welcome-kicker mb-1"><?= ! empty($birthday) ? '🎉 Happy birthday! &middot; ' : '' ?><?= date('l, j F Y') ?></p>
         <h2 class="welcome-title"><?= greeting() ?>, <?= html_escape($first_name) ?></h2>
-        <p class="welcome-sub mb-3">Here's what's happening at the Theological Center today.</p>
+        <p class="welcome-sub mb-3">Here's what's happening at <?= html_escape(setting('org_short_name', 'the Center')) ?> today.</p>
         <div class="d-flex flex-wrap gap-2">
             <?php if ($stats['pending_payments'] > 0): ?>
                 <a href="<?= base_url('admin_payments') ?>" class="btn btn-gold btn-sm">

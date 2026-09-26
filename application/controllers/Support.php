@@ -25,6 +25,14 @@ class Support extends CI_Controller
         $this->load->helper('ui');
     }
 
+    /** Help & Contact: the Center's details, a WhatsApp button and FAQs. */
+    public function help()
+    {
+        $this->load->view('templates/header', ['title' => 'Help & contact']);
+        $this->load->view('support/help', ['loggedIn' => (bool) $this->session->userdata('user_id'), 'role' => $this->session->userdata('role')]);
+        $this->load->view('templates/footer');
+    }
+
     public function report()
     {
         $userId = $this->session->userdata('user_id');

@@ -913,3 +913,110 @@ img.avatar.avatar-img { object-fit: cover; background: var(--surface-3); padding
     .id-photo { width: 30%; }
     .id-org-sub { display: none; }
 }
+
+/* ==========================================================================
+   v4.2: QR ID cards, settings, profile details, consent, help, verification
+   ========================================================================== */
+
+/* Two-sided, flippable ID card */
+.id-flip { perspective: 1400px; max-width: 440px; margin: 0 auto; cursor: pointer; outline: none; }
+.id-flip:focus-visible .id-card { box-shadow: 0 0 0 4px var(--ring), 0 18px 40px rgba(15,23,42,.25); }
+.id-flip-inner { display: grid; transition: transform .6s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+.id-flip-inner > .id-face { grid-area: 1 / 1; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.id-card-back { transform: rotateY(180deg); }
+.id-flip.is-flipped .id-flip-inner { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) { .id-flip-inner { transition: none; } }
+.id-flip-hint { display: inline-flex; align-items: center; gap: .25rem; opacity: .9; }
+
+.id-card-back { background: linear-gradient(135deg, #F8F5EA 0%, #FFFFFF 60%); color: #13243F; }
+.id-card-back::before { opacity: .5; background-image: radial-gradient(rgba(19,36,63,.08) 1px, transparent 1px); }
+.id-card-back::after { background: radial-gradient(circle, rgba(201,162,39,.25), rgba(201,162,39,0) 70%); }
+.id-back-body { flex: 1; display: flex; gap: 1rem; align-items: center; padding: 1rem 1rem .5rem; }
+.id-qr-wrap { flex-shrink: 0; text-align: center; }
+.id-qr { width: 118px; height: 118px; padding: 6px; background: #fff; border-radius: 12px; border: 1px solid #E4E8F0; box-shadow: 0 2px 8px rgba(15,23,42,.08); }
+.id-qr svg { width: 100%; height: 100%; display: block; }
+.id-qr-missing { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; color: #836408; font-size: .6rem; text-align: center; }
+.id-qr-caption { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: #836408; margin-top: .35rem; }
+.id-back-org { font-weight: 800; font-size: .95rem; line-height: 1.15; margin-bottom: .35rem; }
+.id-back-line { font-size: .72rem; color: #475569; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; }
+.id-back-note { font-size: .64rem; color: #64748B; line-height: 1.35; margin-top: .45rem; font-style: italic; }
+.id-back-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: .5rem; padding: .5rem 1rem .6rem; font-size: .6rem; color: #64748B; }
+.id-sign { border-top: 1px solid #94A3B8; padding-top: .2rem; min-width: 45%; }
+.id-card-back .id-barcode { color: #13243F; }
+@media (max-width: 575.98px) {
+    .id-qr { width: 96px; height: 96px; }
+    .id-back-body { align-items: flex-start; }
+}
+
+@media print {
+    /* both sides, side by side, real card size */
+    body.print-card .id-flip, body.print-card .id-flip * { visibility: visible !important; }
+    body.print-card .id-flip { position: absolute; left: 0; top: 0; max-width: none; perspective: none; }
+    body.print-card .id-flip-inner { display: flex; gap: 8mm; transform: none !important; }
+    body.print-card .id-flip-inner > .id-face { transform: none; -webkit-backface-visibility: visible; backface-visibility: visible; width: 85.6mm; position: static; }
+    body.print-card #id-card { position: static; }
+    .id-flip-hint { display: none; }
+}
+
+/* Completeness ring (small) */
+.ring-sm { width: 46px; height: 46px; }
+.ring-sm span { width: 36px; height: 36px; font-size: .7rem; }
+.completeness { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: inherit; line-height: 1.2; }
+.completeness strong { font-size: .86rem; color: var(--text-1); }
+.completeness small { font-size: .75rem; }
+
+/* About-you form */
+.about-section { border: 0; padding: 0; margin: 0 0 1.5rem; }
+.about-section + .about-section { border-top: 1px dashed var(--border); padding-top: 1.25rem; }
+.about-section legend { float: none; width: auto; font-size: .92rem; font-weight: 800; color: var(--text-1); display: flex; align-items: center; gap: .5rem; margin-bottom: .85rem; }
+
+/* Settings page */
+.settings-nav { position: sticky; top: 84px; display: grid; gap: 2px; }
+.settings-nav a { display: flex; align-items: center; gap: .6rem; padding: .6rem .8rem; border-radius: 10px; color: var(--text-2); text-decoration: none; font-weight: 600; font-size: .9rem; }
+.settings-nav a:hover { background: var(--surface-1); color: var(--text-1); box-shadow: var(--shadow-sm); }
+.save-bar { position: sticky; bottom: 1rem; z-index: 10; display: flex; align-items: center; gap: 1rem; padding: .75rem 1rem; margin-top: 1rem;
+    background: color-mix(in srgb, var(--surface-1) 90%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-md); }
+@media (max-width: 991.98px) { .save-bar { bottom: calc(5.5rem + env(safe-area-inset-bottom)); } }
+[id^="set-"], #details, #photo, #privacy, #password { scroll-margin-top: 84px; }
+
+/* Registration consent */
+.consent-box { padding: .9rem 1rem; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+.consent-box .form-check { display: flex; gap: .6rem; padding-left: 0; margin: 0; }
+.consent-box .form-check-input { margin: .15rem 0 0; flex-shrink: 0; }
+.consent-box .form-check-label { font-size: .88rem; color: var(--text-2); }
+.consent-details { margin-top: .5rem; margin-left: 1.6rem; font-size: .85rem; }
+.consent-details summary { cursor: pointer; color: var(--link); font-weight: 600; }
+.consent-text, .privacy-text { color: var(--text-2); font-size: .88rem; line-height: 1.6; }
+.consent-text { margin-top: .5rem; max-height: 220px; overflow: auto; padding-right: .25rem; }
+
+/* Help page */
+.contact-list { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; gap: .15rem; }
+.contact-list li { display: flex; gap: .8rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px dashed var(--border); }
+.contact-list li:last-child { border-bottom: 0; }
+.contact-list li > .icon { color: var(--text-3); margin-top: .2rem; }
+.contact-list small { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--text-3); }
+.contact-list a, .contact-list span { color: var(--text-1); font-weight: 600; text-decoration: none; word-break: break-word; }
+.contact-list a:hover { color: var(--link); }
+.faq { display: grid; gap: .5rem; }
+.faq details { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; font-weight: 700; color: var(--text-1); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq-chev { margin-left: auto; color: var(--text-3); transition: transform .2s; display: grid; }
+.faq details[open] .faq-chev { transform: rotate(90deg); }
+.faq details p { margin: 0; padding: 0 1rem 1rem; color: var(--text-2); font-size: .92rem; line-height: 1.6; }
+
+/* Public ID verification page */
+.verify-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; padding: 2rem 1rem; }
+.verify-brand { display: flex; align-items: center; gap: .6rem; color: var(--text-1); }
+.verify-card { width: 100%; max-width: 420px; padding: 2rem 1.5rem; text-align: center; box-shadow: var(--shadow-lg); }
+.verify-status { width: 68px; height: 68px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 1rem; color: #fff; }
+.verify-ok  { background: #2F9E63; box-shadow: 0 0 0 8px var(--soft-green-bg); }
+.verify-bad { background: #E4572E; box-shadow: 0 0 0 8px var(--soft-red-bg); }
+.verify-verdict { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; margin-bottom: 1rem; }
+.verify-photo { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; margin: 0 auto 1rem; display: block; border: 3px solid var(--surface-1); box-shadow: var(--shadow-md); }
+.verify-id { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 800; letter-spacing: .06em; color: var(--text-2); }
+.verify-contact { font-size: .82rem; color: var(--text-3); text-align: center; max-width: 420px; }
+.text-success-soft { color: var(--soft-green-fg) !important; }
+.verify-card .pill { align-self: center; }
+.verify-card h1 { color: var(--text-1) !important; }

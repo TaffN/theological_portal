@@ -83,6 +83,7 @@ class Auth extends CI_Controller
             $this->form_validation->set_rules('password_confirm', 'Confirm password', 'required|matches[password]');
             $this->form_validation->set_message('is_unique', 'An account with that email already exists. Try logging in instead.');
             $this->form_validation->set_message('matches', 'The two passwords do not match.');
+            $this->form_validation->set_rules('consent', 'Privacy notice', 'required', ['required' => 'Please tick the box to agree to the privacy notice.']);
 
             if ($this->form_validation->run()) {
                 $userId = $this->User_model->create([
@@ -98,6 +99,7 @@ class Auth extends CI_Controller
                     ['id' => $userId, 'name' => $this->input->post('name'), 'role' => 'student']);
                 $this->db->where('id', $userId)->update('users', ['last_login_at' => date('Y-m-d H:i:s')]);
                 $this->session->sess_regenerate(true);
+                $this->User_model->record_consent($userId);
                 $newUser = $this->User_model->find($userId);
                 $this->session->set_userdata([
                     'user_id'   => $userId,

@@ -1,6 +1,6 @@
 <div class="welcome-banner mb-4">
     <div class="position-relative">
-        <p class="welcome-kicker mb-1"><?= date('l, j F Y') ?></p>
+        <p class="welcome-kicker mb-1"><?= ! empty($birthday) ? '🎉 Happy birthday! &middot; ' : '' ?><?= date('l, j F Y') ?></p>
         <h2 class="welcome-title"><?= greeting() ?>, <?= html_escape($first_name) ?></h2>
         <?php if ($active_count > 0): ?>
             <p class="welcome-sub mb-3">You're enrolled in <?= (int) $active_count ?> course<?= $active_count == 1 ? '' : 's' ?>. Keep going!</p>

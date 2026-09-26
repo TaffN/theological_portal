@@ -63,7 +63,7 @@
             <div class="card-body">
                 <div class="card-head"><h5 class="card-heading"><?= icon('card', 18) ?> Where to pay</h5></div>
                 <?php if (! $hasEcocash && ! $hasBank): ?>
-                    <p class="text-muted small mb-0">Use the EcoCash number or bank details the Theological Center shared with you, then upload your confirmation here.</p>
+                    <p class="text-muted small mb-0">Use the EcoCash number or bank details <?= html_escape(setting('org_short_name', 'the Center')) ?> shared with you, then upload your confirmation here.</p>
                 <?php endif; ?>
                 <?php if ($hasEcocash): ?>
                     <div class="pay-block">

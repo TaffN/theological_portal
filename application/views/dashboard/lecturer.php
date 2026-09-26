@@ -1,6 +1,6 @@
 <div class="welcome-banner mb-4">
     <div class="position-relative">
-        <p class="welcome-kicker mb-1"><?= date('l, j F Y') ?></p>
+        <p class="welcome-kicker mb-1"><?= ! empty($birthday) ? '🎉 Happy birthday! &middot; ' : '' ?><?= date('l, j F Y') ?></p>
         <h2 class="welcome-title"><?= greeting() ?>, <?= html_escape($first_name) ?></h2>
         <p class="welcome-sub mb-3">Post notes and readings for your classes. Students are notified automatically.</p>
         <a href="<?= base_url('lecturer_materials') ?>" class="btn btn-gold btn-sm"><?= icon('plus', 16) ?> Post material</a>

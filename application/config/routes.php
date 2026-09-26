@@ -60,3 +60,6 @@ $route['logout'] = 'auth/logout';
 $route['register'] = 'auth/register';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+// ID card QR codes: /verify/{token}
+$route['verify/(:any)'] = 'verify/index/$1';

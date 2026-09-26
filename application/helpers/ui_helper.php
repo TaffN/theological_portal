@@ -63,6 +63,7 @@ if (! function_exists('nav_items')) {
         // section: sidebar group heading. mobile: shown in the phone tab bar.
         // exact: only highlight on this exact URL (for pages sharing a controller).
         $dashboard = ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => 'dashboard', 'icon' => 'grid', 'section' => 'Menu', 'mobile' => true];
+        $help      = ['key' => 'support', 'label' => 'Help & contact', 'url' => 'support/help', 'icon' => 'phone', 'section' => 'Support', 'exact' => true];
         $alerts    = ['key' => 'notifications', 'label' => 'Alerts', 'url' => 'notifications', 'icon' => 'bell', 'badge' => 'notifications', 'section' => 'Menu', 'mobile' => true];
 
         switch ($role) {
@@ -77,6 +78,8 @@ if (! function_exists('nav_items')) {
                     $alerts,
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
                     ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
+                    ['key' => 'admin_settings', 'label' => 'Settings', 'url' => 'admin_settings', 'icon' => 'layers', 'section' => 'System'],
+                    $help,
                 ];
 
             case 'lecturer':
@@ -84,6 +87,7 @@ if (! function_exists('nav_items')) {
                     $dashboard,
                     ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
                     $alerts,
+                    $help,
                     ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
                     ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                 ];
@@ -95,6 +99,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu', 'mobile' => true],
                     $alerts,
+                    $help,
                     ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
                     ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                     ['key' => 'results', 'label' => 'Results', 'url' => '#', 'icon' => 'award', 'soon' => true],
@@ -282,6 +287,9 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Reset a student\'s password', base_url('admin_users/students'), 'lock', 'Students'];
                 $items[] = ['Actions', 'Post an announcement', base_url('admin_announcements'), 'bell', 'Announcements'];
                 $items[] = ['Actions', 'Export audit trail (CSV)', base_url('admin_audit/export'), 'upload', 'Audit trail'];
+                $items[] = ['Actions', 'Organisation settings', base_url('admin_settings'), 'layers', 'Settings'];
+                $items[] = ['Actions', 'Payment details shown to students', base_url('admin_settings') . '#set-payments', 'card', 'Settings'];
+                $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
                 break;
             case 'lecturer':
                 $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
@@ -298,6 +306,7 @@ if (! function_exists('palette_items')) {
         $items[] = ['Account', 'Change my photo', base_url('profile') . '#photo', 'camera', ''];
         $items[] = ['Account', 'Change password', base_url('profile') . '#password', 'lock', ''];
         $items[] = ['Account', 'Toggle dark mode', '#theme', 'moon', 'Appearance'];
+        $items[] = ['Account', 'Help & contact the office', base_url('support/help'), 'phone', 'Help'];
         $items[] = ['Account', 'Report a problem', base_url('support/report'), 'alert', 'Help'];
         $items[] = ['Account', 'Log out', base_url('auth/logout'), 'logout', ''];
 
@@ -326,5 +335,93 @@ if (! function_exists('avatar_html')) {
                  . '" alt="' . html_escape($name) . '" loading="lazy">';
         }
         return '<span class="avatar ' . $class . '">' . html_escape(initials($name)) . '</span>';
+    }
+}
+
+if (! function_exists('setting')) {
+    function setting($key, $default = '')
+    {
+        $CI =& get_instance();
+        if (! isset($CI->settings)) {
+            $CI->load->library('settings');
+        }
+        return $CI->settings->get($key, $default);
+    }
+}
+
+/** Digits-only WhatsApp link from a local or international number. */
+if (! function_exists('wa_link')) {
+    function wa_link($phone, $text = '')
+    {
+        $d = preg_replace('/\D+/', '', (string) $phone);
+        if ($d === '') {
+            return '';
+        }
+        if (strpos($d, '0') === 0) {
+            $d = '263' . substr($d, 1);
+        }
+        return 'https://wa.me/' . $d . ($text !== '' ? '?text=' . rawurlencode($text) : '');
+    }
+}
+
+if (! function_exists('tel_link')) {
+    function tel_link($phone)
+    {
+        return 'tel:' . preg_replace('/[^\d+]/', '', (string) $phone);
+    }
+}
+
+/**
+ * Field layout for the "About you" form (My Profile and the admin's
+ * user card). Keys match user_profiles columns / User_model::$profile_fields.
+ * Each field: [label, type, options-or-placeholder, column class]
+ */
+if (! function_exists('profile_field_groups')) {
+    function profile_field_groups($role)
+    {
+        $groups = [
+            'Personal' => ['user', [
+                'title'         => ['Title', 'select', ['', 'Mr', 'Mrs', 'Miss', 'Ms', 'Pastor', 'Rev.', 'Evangelist', 'Bishop', 'Elder', 'Deacon', 'Dr.', 'Prof.'], 'col-md-3'],
+                'gender'        => ['Gender', 'select', ['', 'Female', 'Male', 'Prefer not to say'], 'col-md-3'],
+                'date_of_birth' => ['Date of birth', 'date', '', 'col-md-3'],
+                'national_id'   => ['National ID / passport', 'text', 'e.g. 08-123456-X-08', 'col-md-3'],
+            ]],
+            'Contact & address' => ['phone', [
+                'alt_phone'     => ['Alternative phone', 'tel', '+263 7...', 'col-md-4'],
+                'address_line1' => ['Street address', 'text', 'House number and street', 'col-md-8'],
+                'address_line2' => ['Suburb / area', 'text', '', 'col-md-4'],
+                'city'          => ['City / town', 'text', 'e.g. Bulawayo', 'col-md-4'],
+                'province'      => ['Province', 'select', ['', 'Bulawayo', 'Harare', 'Manicaland', 'Mashonaland Central', 'Mashonaland East', 'Mashonaland West', 'Masvingo', 'Matabeleland North', 'Matabeleland South', 'Midlands', 'Outside Zimbabwe'], 'col-md-4'],
+                'country'       => ['Country', 'text', 'Zimbabwe', 'col-md-6'],
+                'postal_code'   => ['Postal code / P.O. Box', 'text', '', 'col-md-6'],
+            ]],
+            'Church & ministry' => ['book', [
+                'church_name'   => ['Home church / congregation', 'text', '', 'col-md-5'],
+                'denomination'  => ['Denomination', 'text', '', 'col-md-4'],
+                'ministry_role' => ['Role in ministry', 'text', 'e.g. Youth leader', 'col-md-3'],
+            ]],
+            'Education & work' => ['award', [
+                'education_level' => ['Highest education', 'select', ['', 'Primary', 'O Level', 'A Level', 'Certificate', 'Diploma', 'Bachelor\'s degree', 'Master\'s degree', 'Doctorate'], 'col-md-6'],
+                'occupation'      => ['Occupation', 'text', '', 'col-md-6'],
+            ]],
+            'Emergency contact' => ['alert', [
+                'emergency_name'         => ['Full name', 'text', '', 'col-md-5'],
+                'emergency_relationship' => ['Relationship', 'select', ['', 'Spouse', 'Parent', 'Sibling', 'Child', 'Relative', 'Friend', 'Pastor', 'Other'], 'col-md-3'],
+                'emergency_phone'        => ['Phone', 'tel', '+263 7...', 'col-md-4'],
+            ]],
+        ];
+
+        if ($role === 'lecturer') {
+            $groups['Education & work'][1] = [
+                'education_level' => ['Highest education', 'select', ['', 'Diploma', 'Bachelor\'s degree', 'Master\'s degree', 'Doctorate', 'Other'], 'col-md-4'],
+                'qualifications'  => ['Qualifications', 'text', 'e.g. MTh (Biblical Studies), BA Theology', 'col-md-8'],
+                'bio'             => ['Short bio (shown to your students)', 'textarea', 'A few lines about your background and what you teach', 'col-12'],
+            ];
+        } else {
+            $groups['Other'] = ['grid', [
+                'referral_source' => ['How did you hear about us?', 'select', ['', 'Church', 'Friend or family', 'WhatsApp', 'Facebook', 'Radio', 'Website', 'Other'], 'col-md-6'],
+            ]];
+        }
+        return $groups;
     }
 }

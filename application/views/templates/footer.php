@@ -61,7 +61,7 @@
 <?php else: ?>
 
         </main>
-        <p class="auth-footer">&copy; <?= date('Y') ?> Theological Center &middot; Learning Portal &middot; <a href="<?= base_url('support/report') ?>">Report a problem</a></p>
+        <p class="auth-footer">&copy; <?= date('Y') ?> <?= html_escape(setting('org_name', 'Theological Center')) ?> &middot; <a href="<?= base_url('support/report') ?>">Report a problem</a></p>
     </section>
 </div><!-- /.auth-split -->
 
@@ -127,6 +127,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <?php endif; ?>
 <script>window.TC = { base: <?= json_encode(base_url()) ?>, loggedIn: <?= $userId ? 'true' : 'false' ?> };</script>
-<script src="<?= base_url('assets/js/app.js') ?>?v=4"></script>
+<script src="<?= base_url('assets/js/app.js') ?>?v=5"></script>
+<script src="<?= base_url('assets/js/qr.js') ?>?v=1"></script>
 </body>
 </html>

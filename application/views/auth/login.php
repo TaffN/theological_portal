@@ -20,4 +20,4 @@
     <button type="submit" class="btn btn-primary btn-lg w-100">Log in</button>
 </form>
 
-<p class="auth-alt">New to the Theological Center? <a href="<?= base_url('auth/register') ?>">Create an account</a></p>
+<p class="auth-alt">New to <?= html_escape(setting('org_short_name', 'the Center')) ?>? <a href="<?= base_url('auth/register') ?>">Create an account</a></p>

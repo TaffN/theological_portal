@@ -2,7 +2,10 @@
     $CI =& get_instance();
     $CI->load->helper('ui');
     extract(layout_context());
-    $pageTitle = isset($title) ? $title : 'Portal';
+    $pageTitle   = isset($title) ? $title : 'Portal';
+    $orgShort    = setting('org_short_name', 'Theological Center');
+    $orgInitials = setting('org_initials', 'TC');
+    $orgTagline  = setting('org_tagline', 'Learning Portal');
 ?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
@@ -10,7 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#F5F7FB" id="themeColorMeta">
-    <title><?= html_escape($pageTitle) ?> &middot; Theological Center Portal</title>
+    <title><?= html_escape($pageTitle) ?> &middot; <?= html_escape($orgShort) ?></title>
 
     <script>
         // Runs before anything paints, so dark mode never flashes white.
@@ -42,7 +45,7 @@
     <link rel="apple-touch-icon" href="<?= base_url('assets/img/apple-touch-icon.png') ?>">
     <link rel="manifest" href="<?= base_url('assets/manifest.json') ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="TC Portal">
+    <meta name="apple-mobile-web-app-title" content="<?= html_escape($orgInitials) ?> Portal">
     <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body class="<?= $userId ? 'app-body' : 'auth-body' ?>">
@@ -57,8 +60,8 @@
     <aside class="app-sidebar d-none d-lg-flex" aria-label="Main menu">
         <div class="sidebar-top">
             <a href="<?= base_url('dashboard') ?>" class="sidebar-brand">
-                <span class="brand-mark">TC</span>
-                <span class="brand-text">Theological Center<small>Learning Portal</small></span>
+                <span class="brand-mark"><?= html_escape($orgInitials) ?></span>
+                <span class="brand-text"><?= html_escape($orgShort) ?><small><?= html_escape($orgTagline) ?></small></span>
             </a>
         </div>
 
@@ -102,7 +105,7 @@
             <button type="button" class="icon-btn ghost d-none d-lg-inline-grid" data-sidebar-toggle title="Collapse / expand menu" aria-label="Toggle menu">
                 <?= icon('sidebar', 19) ?>
             </button>
-            <a href="<?= base_url('dashboard') ?>" class="brand-mark brand-mark-sm d-lg-none" aria-label="Dashboard">TC</a>
+            <a href="<?= base_url('dashboard') ?>" class="brand-mark brand-mark-sm d-lg-none" aria-label="Dashboard"><?= html_escape($orgInitials) ?></a>
 
             <div class="crumbs min-w-0">
                 <span class="crumb-root d-none d-sm-inline">Portal</span>
@@ -164,8 +167,8 @@
 <div class="auth-split">
     <aside class="auth-hero">
         <a href="<?= base_url() ?>" class="auth-brand">
-            <span class="brand-mark">TC</span>
-            <span class="brand-text">Theological Center<small>Learning Portal</small></span>
+            <span class="brand-mark"><?= html_escape($orgInitials) ?></span>
+            <span class="brand-text"><?= html_escape($orgShort) ?><small><?= html_escape($orgTagline) ?></small></span>
         </a>
 
         <div>
@@ -186,8 +189,8 @@
     <section class="auth-panel">
         <div class="auth-panel-top">
             <a href="<?= base_url() ?>" class="auth-brand">
-                <span class="brand-mark brand-mark-sm">TC</span>
-                <span class="brand-text">Theological Center<small>Learning Portal</small></span>
+                <span class="brand-mark brand-mark-sm"><?= html_escape($orgInitials) ?></span>
+                <span class="brand-text"><?= html_escape($orgShort) ?><small><?= html_escape($orgTagline) ?></small></span>
             </a>
             <button type="button" class="icon-btn theme-toggle" data-theme-toggle title="Switch light / dark" aria-label="Switch light or dark mode">
                 <span class="i-moon"><?= icon('moon', 18) ?></span>

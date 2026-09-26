@@ -17,10 +17,13 @@ class Profile extends Auth_Controller
     {
         $this->load->view('templates/header', ['title' => 'My Profile']);
         $user = $this->User_model->find($this->current_user_id);
+        $profile = $this->User_model->get_profile($user['id']);
         $this->load->view('profile/index', [
             'user'        => $user,
             'u'           => $user,
+            'profile'     => $profile,
             'cardCourses' => $this->User_model->card_courses($user),
+            'complete'    => $this->User_model->completeness($user, $profile),
         ]);
         $this->load->view('templates/footer');
     }
@@ -45,6 +48,18 @@ class Profile extends Auth_Controller
 
         $this->session->set_flashdata('success', 'Your details have been updated.');
         redirect('profile');
+    }
+
+    public function save_more()
+    {
+        $input = $this->input->post();
+        if ($this->current_role !== 'lecturer') {
+            unset($input['qualifications'], $input['bio']);
+        }
+        $this->User_model->save_profile($this->current_user_id, $input);
+        $this->audit->log('profile.details_updated', 'user', $this->current_user_id, $this->session->userdata('name') . ' updated their personal details');
+        $this->session->set_flashdata('success', 'Your details have been saved.');
+        redirect('profile#details');
     }
 
     public function change_password()

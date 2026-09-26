@@ -596,3 +596,18 @@
     });
     window.addEventListener('afterprint', function () { document.body.classList.remove('print-card'); });
 })();
+
+/* ID card: tap / click / Enter to flip between front and back */
+(function () {
+    'use strict';
+    document.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-id-flip]');
+        if (card) { card.classList.toggle('is-flipped'); }
+    });
+    document.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-id-flip]')) {
+            e.preventDefault();
+            e.target.classList.toggle('is-flipped');
+        }
+    });
+})();

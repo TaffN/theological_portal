@@ -32,6 +32,13 @@ class Dashboard extends Auth_Controller
         $data['first_name'] = display_first_name($this->session->userdata('name'), $this->current_role);
         $data['announcements'] = $this->Dashboard_model->announcements_for($this->current_role);
 
+        // A small touch: greet people on their birthday.
+        $data['birthday'] = false;
+        if ($this->db->table_exists('user_profiles')) {
+            $p = $this->db->select('date_of_birth')->where('user_id', $this->current_user_id)->get('user_profiles')->row_array();
+            $data['birthday'] = $p && $p['date_of_birth'] && date('m-d', strtotime($p['date_of_birth'])) === date('m-d');
+        }
+
         $this->load->view('templates/header', ['title' => 'Dashboard']);
         $this->load->view($view, $data);
         $this->load->view('templates/footer');

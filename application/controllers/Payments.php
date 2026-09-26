@@ -131,8 +131,6 @@ class Payments extends Student_Controller
 
     private function _payment_details()
     {
-        $this->config->load('portal', true, true);
-        $cfg = $this->config->item('portal');
-        return is_array($cfg) ? $cfg : [];
+        return $this->settings->all();
     }
 }

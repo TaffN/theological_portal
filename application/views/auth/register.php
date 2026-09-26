@@ -30,7 +30,17 @@
             <input type="password" id="password_confirm" name="password_confirm" class="form-control" minlength="6" autocomplete="new-password" required>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+    <div class="consent-box mb-4">
+    <label class="form-check">
+        <input class="form-check-input" type="checkbox" name="consent" value="1" required <?= set_checkbox('consent', '1') ?>>
+        <span class="form-check-label">I agree to <?= html_escape(setting('org_short_name', 'the Center')) ?> keeping my details as described in the privacy notice.</span>
+    </label>
+    <details class="consent-details">
+        <summary>Read the privacy notice</summary>
+        <div class="consent-text"><?= nl2br(html_escape(setting('privacy_notice', 'Your details are used only to run your studies and are never sold or shared.'))) ?></div>
+    </details>
+</div>
+<button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
 </form>
 
 <p class="auth-alt">Already have an account? <a href="<?= base_url('auth/login') ?>">Log in</a></p>

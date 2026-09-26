@@ -45,6 +45,9 @@ class User_model extends CI_Model
         if ($id && isset($data['role']) && $this->db->field_exists('id_number', $this->table)) {
             $this->assign_id_number($id, $data['role']);
         }
+        if ($id && $this->db->field_exists('verify_token', $this->table)) {
+            $this->new_verify_token($id);
+        }
         return $id;
     }
 
@@ -118,5 +121,117 @@ class User_model extends CI_Model
             $rows = [];
         }
         return array_column($rows, 'name');
+    }
+
+    /* ------------------------------------------------ extended profile */
+
+    /** Fields a user (or an admin) may fill in on the profile form. */
+    public static $profile_fields = [
+        'title', 'date_of_birth', 'gender', 'national_id', 'alt_phone',
+        'address_line1', 'address_line2', 'city', 'province', 'country', 'postal_code',
+        'emergency_name', 'emergency_relationship', 'emergency_phone',
+        'church_name', 'denomination', 'ministry_role', 'education_level', 'occupation', 'referral_source',
+        'qualifications', 'bio',
+    ];
+
+    public function get_profile($userId)
+    {
+        if (! $this->db->table_exists('user_profiles')) {
+            return array_fill_keys(self::$profile_fields, null);
+        }
+        $row = $this->db->where('user_id', $userId)->get('user_profiles')->row_array();
+        return $row ?: array_fill_keys(self::$profile_fields, null);
+    }
+
+    public function save_profile($userId, array $input)
+    {
+        $data = [];
+        foreach (self::$profile_fields as $f) {
+            if (array_key_exists($f, $input)) {
+                $v = trim((string) $input[$f]);
+                $data[$f] = $v === '' ? null : mb_substr($v, 0, $f === 'bio' || $f === 'qualifications' ? 2000 : 150);
+            }
+        }
+        if (isset($data['date_of_birth']) && ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date_of_birth'])) {
+            $data['date_of_birth'] = null;
+        }
+        $data['updated_at'] = date('Y-m-d H:i:s');
+
+        if ($this->db->where('user_id', $userId)->count_all_results('user_profiles') > 0) {
+            return $this->db->where('user_id', $userId)->update('user_profiles', $data);
+        }
+        $data['user_id'] = $userId;
+        return $this->db->insert('user_profiles', $data);
+    }
+
+    /**
+     * How complete someone's details are, as a percentage, plus what's missing.
+     * Only counts the fields that matter for their role.
+     */
+    public function completeness(array $user, array $profile)
+    {
+        $checks = [
+            'Phone number'      => $user['phone'],
+            'Profile photo'     => $user['photo_path'],
+            'Date of birth'     => $profile['date_of_birth'],
+            'Gender'            => $profile['gender'],
+            'Home address'      => $profile['address_line1'],
+            'City / town'       => $profile['city'],
+        ];
+        if ($user['role'] === 'student') {
+            $checks += [
+                'National ID'       => $profile['national_id'],
+                'Emergency contact' => $profile['emergency_phone'],
+                'Church'            => $profile['church_name'],
+                'Education level'   => $profile['education_level'],
+            ];
+        } elseif ($user['role'] === 'lecturer') {
+            $checks += [
+                'Title'          => $profile['title'],
+                'Qualifications' => $profile['qualifications'],
+                'Short bio'      => $profile['bio'],
+            ];
+        }
+        $missing = array_keys(array_filter($checks, function ($v) { return $v === null || $v === ''; }));
+        $pct = (int) round((count($checks) - count($missing)) / count($checks) * 100);
+        return ['percent' => $pct, 'missing' => $missing];
+    }
+
+    /** New secret for the ID card QR code; the old card's QR stops working. */
+    public function new_verify_token($userId)
+    {
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $t = '';
+            for ($i = 0; $i < 20; $i++) {
+                $t .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+            if ($this->db->where('verify_token', $t)->count_all_results($this->table) === 0) {
+                $this->db->where('id', $userId)->update($this->table, ['verify_token' => $t]);
+                return $t;
+            }
+        }
+        return null;
+    }
+
+    public function find_by_token($token)
+    {
+        if (! preg_match('/^[A-Za-z0-9]{10,32}$/', (string) $token)) {
+            return null;
+        }
+        return $this->db->where('verify_token', $token)->get($this->table)->row_array();
+    }
+
+    /** Records that the user agreed to the privacy notice (at registration). */
+    public function record_consent($userId)
+    {
+        if (! $this->db->table_exists('user_profiles')) {
+            return false;
+        }
+        $now = date('Y-m-d H:i:s');
+        if ($this->db->where('user_id', $userId)->count_all_results('user_profiles') > 0) {
+            return $this->db->where('user_id', $userId)->update('user_profiles', ['privacy_consent_at' => $now]);
+        }
+        return $this->db->insert('user_profiles', ['user_id' => $userId, 'privacy_consent_at' => $now, 'updated_at' => $now]);
     }
 }
