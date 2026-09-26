@@ -1020,3 +1020,48 @@ img.avatar.avatar-img { object-fit: cover; background: var(--surface-3); padding
 .text-success-soft { color: var(--soft-green-fg) !important; }
 .verify-card .pill { align-self: center; }
 .verify-card h1 { color: var(--text-1) !important; }
+
+/* ---------------------------------------------------------------- Stage 4: Assignments */
+.course-dot-sm { width: 30px; height: 30px; border-radius: 9px; font-size: .68rem; display: inline-grid; margin-right: .35rem; vertical-align: middle; }
+.stat-of { font-size: .95rem; font-weight: 700; color: var(--text-3); margin-left: .1rem; }
+.prose { color: var(--text-2); font-size: .94rem; line-height: 1.65; overflow-wrap: anywhere; }
+
+/* A file link shown as a row: icon, name, action */
+.attach-row { display: flex; align-items: center; gap: .6rem; padding: .7rem .85rem; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface-2); color: var(--text-1); text-decoration: none; font-weight: 600; font-size: .9rem; min-width: 0; }
+a.attach-row:hover { border-color: var(--border-strong); background: var(--surface-3); color: var(--text-1); }
+.attach-row .icon { color: var(--soft-navy-fg); flex-shrink: 0; }
+
+/* Marking sheet */
+.submission-list { list-style: none; margin: 0; padding: 0; }
+.submission-list > li + li { border-top: 1px solid var(--border); }
+.submission-list > li:target { background: var(--accent-soft); }
+.submission-row { display: flex; align-items: center; gap: .75rem; padding: .8rem 1.1rem; }
+.submission-detail { padding: .25rem 1.1rem 1.1rem calc(1.1rem + 34px + .75rem); }
+@media (max-width: 575.98px) {
+    .submission-row { flex-wrap: wrap; }
+    .submission-row > .flex-shrink-0 { width: 100%; justify-content: flex-end; }
+    .submission-detail { padding-left: 1.1rem; }
+}
+.answer-box, .feedback-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: .85rem 1rem;
+    color: var(--text-1); font-size: .92rem; line-height: 1.6; max-height: 420px; overflow: auto; overflow-wrap: anywhere; }
+.feedback-box { background: var(--soft-green-bg); border-color: transparent; }
+.score-chip { font-weight: 800; font-size: .85rem; font-variant-numeric: tabular-nums; padding: .22rem .6rem; border-radius: 999px;
+    background: var(--soft-green-bg); color: var(--soft-green-fg); white-space: nowrap; }
+
+/* Student's mark */
+.result-card { border-color: color-mix(in srgb, var(--soft-green-fg) 30%, var(--border)); }
+.result-score { width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; display: grid; place-content: center; text-align: center;
+    background: var(--soft-green-bg); color: var(--soft-green-fg); line-height: 1; }
+.result-score span { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.result-score small { font-size: .78rem; font-weight: 700; opacity: .8; }
+
+/* Dashboard: upcoming work */
+.due-list { list-style: none; margin: 0; padding: 0; }
+.due-list li { display: flex; align-items: center; gap: .75rem; padding: .7rem 0; border-bottom: 1px solid var(--border); }
+.due-list li:last-child { border-bottom: 0; }
+.due-date { width: 46px; flex-shrink: 0; text-align: center; border-radius: 10px; background: var(--surface-3); padding: .3rem 0; line-height: 1.05; }
+.due-date strong { display: block; font-size: 1.05rem; color: var(--text-1); }
+.due-date small { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); }
+.due-date.is-overdue { background: var(--soft-red-bg); }
+.due-date.is-overdue strong, .due-date.is-overdue small { color: var(--soft-red-fg); }

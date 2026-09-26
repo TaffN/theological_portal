@@ -79,6 +79,7 @@ if (! function_exists('nav_items')) {
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
                     ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
                     ['key' => 'admin_settings', 'label' => 'Settings', 'url' => 'admin_settings', 'icon' => 'layers', 'section' => 'System'],
+                    ['key' => 'admin_users', 'label' => 'Administrators', 'url' => 'admin_users/admins', 'icon' => 'lock', 'section' => 'System', 'exact' => true],
                     $help,
                 ];
 
@@ -86,9 +87,9 @@ if (! function_exists('nav_items')) {
                 return [
                     $dashboard,
                     ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
                     $alerts,
                     $help,
-                    ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
                     ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                 ];
 
@@ -96,11 +97,11 @@ if (! function_exists('nav_items')) {
                 return [
                     $dashboard,
                     ['key' => 'courses', 'label' => 'Courses', 'url' => 'courses', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'student_assignments', 'label' => 'Assignments', 'url' => 'student_assignments', 'icon' => 'edit', 'badge' => 'assignments', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
-                    ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
                     $alerts,
                     $help,
-                    ['key' => 'assignments', 'label' => 'Assignments', 'url' => '#', 'icon' => 'edit', 'soon' => true],
                     ['key' => 'exams', 'label' => 'Exams', 'url' => '#', 'icon' => 'clock', 'soon' => true],
                     ['key' => 'results', 'label' => 'Results', 'url' => '#', 'icon' => 'award', 'soon' => true],
                 ];
@@ -132,6 +133,14 @@ if (! function_exists('status_badge')) {
             'pending'         => ['Pending', 'pill-warning'],
             'approved'        => ['Approved', 'pill-success'],
             'rejected'        => ['Rejected', 'pill-danger'],
+            // assignments (Assignment_model::student_state)
+            'todo'            => ['To do', 'pill-warning'],
+            'overdue'         => ['Overdue', 'pill-danger'],
+            'missed'          => ['Missed', 'pill-danger'],
+            'submitted'       => ['Handed in', 'pill-muted'],
+            'graded'          => ['Marked', 'pill-success'],
+            'late'            => ['Late', 'pill-warning'],
+            'to_mark'         => ['To mark', 'pill-warning'],
         ];
 
         list($label, $class) = isset($map[$status]) ? $map[$status] : [ucfirst((string) $status), 'pill-muted'];
@@ -177,10 +186,18 @@ if (! function_exists('layout_context')) {
         $userId = $CI->session->userdata('user_id');
         $role   = $CI->session->userdata('role');
 
-        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0];
+        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0, 'marking' => 0, 'assignments' => 0];
         if ($userId) {
             if ($CI->db->table_exists('notifications')) {
                 $badges['notifications'] = $CI->db->where('user_id', $userId)->where('is_read', 0)->count_all_results('notifications');
+            }
+            if ($role !== 'admin' && $CI->db->table_exists('assignments')) {
+                $CI->load->model('Assignment_model');
+                if ($role === 'lecturer') {
+                    $badges['marking'] = $CI->Assignment_model->to_mark_count($userId);
+                } else {
+                    $badges['assignments'] = count($CI->Assignment_model->student_outstanding($userId));
+                }
             }
             if ($role === 'admin') {
                 $badges['payments'] = $CI->db->where('status', 'pending')->count_all_results('payments');
@@ -289,15 +306,21 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Export audit trail (CSV)', base_url('admin_audit/export'), 'upload', 'Audit trail'];
                 $items[] = ['Actions', 'Organisation settings', base_url('admin_settings'), 'layers', 'Settings'];
                 $items[] = ['Actions', 'Payment details shown to students', base_url('admin_settings') . '#set-payments', 'card', 'Settings'];
+                $items[] = ['Actions', 'Add another administrator', base_url('admin_users/admins'), 'lock', 'Administrators'];
+                $items[] = ['Actions', 'Change my login email', base_url('admin_users/admins'), 'edit', 'Administrators'];
                 $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
                 break;
             case 'lecturer':
                 $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
+                $items[] = ['Actions', 'Set a new assignment', base_url('lecturer_assignments'), 'plus', 'Assignments'];
+                $items[] = ['Actions', 'Mark handed-in work', base_url('lecturer_assignments'), 'check', 'Assignments'];
                 break;
             default:
                 $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
                 $items[] = ['Actions', 'Upload proof of payment', base_url('courses'), 'upload', 'Courses'];
                 $items[] = ['Actions', 'Open my materials', base_url('student_materials'), 'folder', 'Materials'];
+                $items[] = ['Actions', 'Hand in an assignment', base_url('student_assignments'), 'upload', 'Assignments'];
+                $items[] = ['Actions', 'See my marks and feedback', base_url('student_assignments'), 'award', 'Assignments'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
         }
 
@@ -311,6 +334,38 @@ if (! function_exists('palette_items')) {
         $items[] = ['Account', 'Log out', base_url('auth/logout'), 'logout', ''];
 
         return $items;
+    }
+}
+
+/** A mark without pointless decimals: 15, 15.5, 15.25. */
+if (! function_exists('score_fmt')) {
+    function score_fmt($score)
+    {
+        return rtrim(rtrim(number_format((float) $score, 2, '.', ''), '0'), '.');
+    }
+}
+
+/**
+ * Due date in words, from the reader's point of view:
+ * "in 3 days", "in 5 hrs", "today 17:00", "2 days ago".
+ */
+if (! function_exists('due_in')) {
+    function due_in($datetime)
+    {
+        $ts = strtotime((string) $datetime);
+        if (! $ts) {
+            return '';
+        }
+        $diff = $ts - time();
+        if ($diff < 0) {
+            return time_ago($ts);
+        }
+        if ($diff < 3600)  return 'in ' . max(1, floor($diff / 60)) . ' min';
+        if (date('Y-m-d', $ts) === date('Y-m-d')) return 'today ' . date('H:i', $ts);
+        if ($diff < 86400) return 'in ' . floor($diff / 3600) . ' hrs';
+        if (date('Y-m-d', $ts) === date('Y-m-d', strtotime('+1 day'))) return 'tomorrow ' . date('H:i', $ts);
+        $days = (int) ceil($diff / 86400);
+        return 'in ' . $days . ' day' . ($days == 1 ? '' : 's');
     }
 }
 

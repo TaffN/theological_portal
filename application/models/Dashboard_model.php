@@ -280,6 +280,8 @@ class Dashboard_model extends CI_Model
 
         return [
             ['Change the default admin password', ! password_verify('ChangeMe123!', $admin['password_hash']), base_url('profile') . '#password', 'Still using ChangeMe123!'],
+            ['Use your real email to log in', $admin['email'] !== 'admin@example.com', base_url('admin_users/admins'), 'Still admin@example.com'],
+            ['Add a second administrator', $this->db->where('role', 'admin')->where('status', 'active')->count_all_results('users') > 1, base_url('admin_users/admins'), 'So someone can reset your password if you forget it'],
             ['Add the Center\'s contact details', $orgConfigured, base_url('admin_settings') . '#set-contact', 'Shown on receipts, ID cards and the Help page'],
             ['Add your payment details', $payConfigured, base_url('admin_settings') . '#set-payments', 'EcoCash number and bank account'],
             ['Create your first course', $this->db->count_all('courses') > 0, base_url('admin_courses'), ''],

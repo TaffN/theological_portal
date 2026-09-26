@@ -30,3 +30,9 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 *.sublime-project
 /tests/tests/
 /tests/results/
+
+# Files people upload (proofs, photos, materials, assignments) belong to the
+# live site, not the code. Keep the folders and their protection files only.
+uploads/*/*
+!uploads/*/index.html
+!uploads/*/.htaccess

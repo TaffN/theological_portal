@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 26 September 2026 (after Portal **v5**, database migration **14**).
+Last updated: 26 September 2026 (after Portal **v6** = Stage 4 Assignments + Administrators screen, database migration **15**).
 
 ---
 
@@ -53,19 +53,27 @@ Word document.
 - `index.php` has one added line before CodeIgniter boots:
   `require_once APPPATH.'core/Portal_error_handlers.php';` (custom uncaught-exception handler).
 
-### Testing limitation
+### Testing in Claude's sandbox
 
-Claude's sandbox **has no PHP**, so the code can't be executed there. Past sessions compensated by:
-- structural checks (bracket balance, `if/endif`/`foreach/endforeach` pairs, PHP tag pairs) on every file,
-- cross-checking every `base_url('controller/method')` against real controller methods,
-- `node --check` on JS files,
-- rendering static HTML mocks with the real `app.css` in headless Chromium (Playwright at
-  `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, with a Bootstrap 5.3.2 copy from
-  `/usr/local/lib/python3.12/dist-packages/mkdocs/themes/mkdocs/css/bootstrap.min.css`),
-- decoding generated QR codes with OpenCV (`cv2.QRCodeDetector`).
+Older sandboxes had no PHP. The v6 session's sandbox had **PHP 8.4 + (apt-installed) MariaDB 10.11**, which
+allowed a real run of the whole app. Recipe (all throwaway, nothing committed):
+- `apt-get install -y mariadb-server`, start `mariadbd --user=root &`, create DB `theological_portal`, make root
+  use `mysql_native_password` with an empty password.
+- `php -d mysqli.default_socket=/run/mysqld/mysqld.sock -S 127.0.0.1:8080 router.php`, where the router strips the
+  `/theological_portal` prefix (base_url hard-codes it), serves static files, sets `$_SERVER['CI_ENV'] = 'testing'`
+  (CI3 on PHP 8.4 floods the page with deprecation notices in development mode; the laptop's PHP 7.3 doesn't)
+  and `require`s `index.php`. Visit `/migrate`, then drive it with `curl` cookie jars (log in via POST `/login`).
+- After each run, `SELECT * FROM error_reports`: MY_Exceptions records every PHP/DB error there.
+- Screenshots: global Node Playwright (`require(npm root -g + '/playwright')`). Bootstrap isn't in the repo
+  (the user's copy is local), so `npm pack bootstrap@5.3.3` into the scratchpad and `context.route()` the jsdelivr
+  URLs to it; abort Google Fonts.
+- **PHP 8.4 is not the target.** Still write PHP 7.3 code, and grep changed files for `fn(`, `??=`, `match(`,
+  `str_contains`, typed properties, `?->` before committing.
 
-The user's laptop is the first real run, so expect them to report PHP notices or errors
-and fix them quickly.
+If PHP isn't available, fall back to structural checks (bracket/`endif` balance), cross-checking every
+`base_url('controller/method')` against real methods, `node --check` on JS, and static HTML mocks.
+
+The user's laptop is still the first *real* run, so expect them to report PHP notices or errors and fix them quickly.
 
 ---
 
@@ -77,16 +85,16 @@ and fix them quickly.
 | 2 | Fees & access gating: proof-of-payment upload, admin approve/reject | ✅ Done |
 | 3 | Course materials + notifications (in-app, optional email) | ✅ Done |
 | (extras) | Admin screens, dashboards + charts, modern UI + dark mode, error reporting, audit trail, IDs, photos, QR ID cards, org settings, extended profiles, help page | ✅ Done (v4/v5) |
-| **4** | **Assignments**: lecturers set them, students submit, lecturers mark + feedback | ⏭️ **NEXT** |
-| 5 | Online exams: timed, open/close window, MCQ + short answer | ⏳ |
+| 4 | **Assignments**: lecturers set them, students submit, lecturers mark + feedback (+ Administrators screen) | ✅ Done (v6) |
+| **5** | **Online exams**: timed, open/close window, MCQ + short answer | ⏭️ **NEXT** |
 | 6 | Results: publish assignment/exam results per enrollment | ⏳ |
 | After 6 | **"Ezra" AI assistant** (see §9). **Remind the user to start Ezra once Stage 6 is done**; they asked for this reminder. | ⏳ |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
-**Current state:** v5 is installed on the laptop, DB at **migration 14**. The user lost the
-admin password; a one-time `reset_admin.php` recovery script was given (resets
-`admin@example.com` to `Recover-2026!` using PHP's own `password_hash`, clears the lockout).
-**Confirm they got back in and deleted `reset_admin.php`** before starting Stage 4.
+**Current state:** v6 pushed to branch `claude/inspiring-ramanujan-y9isjf` (not yet on the laptop when written).
+The laptop needs: copy the files, **back up the DB first**, visit `/migrate` (→ 15), then delete `Migrate.php` again.
+Admin login was recovered with `reset_admin.php`; the file was removed from the repo in v6, but the user said the
+**laptop copy still existed: confirm they deleted it** from `C:\xampp\htdocs\theological_portal`.
 
 ---
 
@@ -108,30 +116,34 @@ theological_portal/
 ├── uploads/
 │   ├── proofs/     (payment proof files; .htaccess "Require all denied", served by controller)
 │   ├── materials/  (lecturer uploads)
+│   ├── assignments/ (lecturer question papers; denied, served by the assignments controllers)
+│   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
 │   └── photos/     (profile photos; .htaccess deny; served by Photo controller)
 └── application/
-    ├── config/     autoload, config, database, migration (version 14), routes,
+    ├── config/     autoload, config, database, migration (version 15), routes,
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
     ├── core/
-    │   ├── MY_Controller.php        Auth_Controller, Admin_Controller, Lecturer_Controller, Student_Controller
+    │   ├── MY_Controller.php        Auth_Controller (+ _send_file, _store_upload), Admin_/Lecturer_/Student_Controller
     │   ├── MY_Exceptions.php        routes PHP errors / exceptions / DB errors / internal 404s into error_reports
     │   └── Portal_error_handlers.php  replacement _exception_handler (friendly 500 + reference code)
     ├── controllers/  (see §5)
     ├── models/       Course_model, Course_lecturer_model, Enrollment_model, Payment_model,
     │                 Material_model, Notification_model, User_model, Dashboard_model,
-    │                 Error_model, Receipt_model
+    │                 Error_model, Receipt_model, Assignment_model (assignments + submissions)
     ├── libraries/    Audit.php, Notifier.php, Settings.php
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
-    ├── migrations/   001–014 (see §7)
+    ├── migrations/   001–015 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
         ├── partials/   id_card.php
         ├── dashboard/  admin, student, lecturer, _announcements, _checklist
-        ├── admin/      payments_pending, courses, students, lecturers, user_card, _credentials,
+        ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
         │               announcements, errors, error_view, audit, settings
-        ├── student/    courses, upload_payment, payments, materials_index, materials_course
-        ├── lecturer/   materials_index, materials_course, dashboard (legacy)
+        ├── student/    courses, upload_payment, payments, materials_index, materials_course,
+        │               assignments_index, assignment_view
+        ├── lecturer/   materials_index, materials_course, assignments_index, assignment_form,
+        │               assignment_view, dashboard (legacy)
         ├── profile/    index, _about_form
         ├── payments/   receipt
         ├── support/    help, report, forgot
@@ -154,6 +166,8 @@ theological_portal/
 | `Payments` | Student_Controller | `upload/{enrollment_id}`, `index` (My Payments), `receipt/{id}` |
 | `Student_materials` | Student_Controller | `course/{id}`, `download/{id}`; both re-check `has_active_access()` |
 | `Lecturer_materials` | Lecturer_Controller | post/delete materials; `is_assigned()` guard; notifies students |
+| `Lecturer_assignments` | Lecturer_Controller | `index`, `create/{course}`, `edit/{id}`, `delete/{id}` (POST, only with no submissions), `view/{id}` (marking sheet), `grade/{submission}` (POST), `submission_file/{submission}`, `attachment/{id}`; `is_assigned()` on everything |
+| `Student_assignments` | Student_Controller | `index` (to hand in / done), `view/{id}`, `submit/{id}` (POST), `attachment/{id}`, `my_file/{id}`; `has_active_access()` on everything |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
 | `Photo` | Auth_Controller | `view/{id}` (permission-checked), `upload`, `remove`, `upload_for/{id}` (admin) |
@@ -161,7 +175,7 @@ theological_portal/
 | `Verify` | CI_Controller (public) | `/verify/{token}`: ID-card QR verification page |
 | `Admin_payments` | Admin_Controller | pending cards (inline proof preview), `history`, `approve`, `reject` (reason), `view_proof`, `receipt` |
 | `Admin_courses` | Admin_Controller | create course, assign/unassign lecturers |
-| `Admin_users` | Admin_Controller | `students`, `lecturers`, `card/{id}`, `update_account`, `save_profile`, `reissue_card`, `export_students` (CSV), `create_lecturer`, `reset_password`, `toggle_status` |
+| `Admin_users` | Admin_Controller | `students`, `lecturers`, `card/{id}`, `update_account`, `save_profile`, `reissue_card`, `export_students` (CSV), `create_lecturer`, `reset_password`, `toggle_status`; **admins**: `admins`, `create_admin`, `update_admin/{id}` (name/email/phone, self allowed), `reset_admin_password/{id}`, `toggle_admin_status/{id}` (POST only, never on yourself, so there's always an admin left) |
 | `Admin_announcements` | Admin_Controller | create / toggle / delete |
 | `Admin_errors` | Admin_Controller | list (tabs open/resolved/ignored, source filter), `view/{id}`, `update/{id}` |
 | `Admin_audit` | Admin_Controller | filterable timeline + `export` (CSV) |
@@ -202,7 +216,10 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - Variables passed to one view *are* cached for later partials (e.g. `$checklist` reaches `_checklist.php`).
 - **Menus** are defined once in `nav_items($role)` (`ui_helper`). Fields: `key, label, url, icon, section,
   mobile` (shown in phone bottom bar), `badge`, `exact` (for controllers shared by two pages),
-  `soon` (greyed "coming soon"). For Stage 4, change the `assignments` items from `soon` to real links.
+  `soon` (greyed "coming soon"). For Stage 5, change the `exams` items from `soon` to real links.
+  Badge keys (computed in `layout_context()`): `notifications, payments, errors, resets` (admin),
+  `marking` (lecturer: submissions to mark), `assignments` (student: to do + overdue). Phone bottom bar fits
+  **5 items** (+ "More" if anything is left over); students' Payments was moved off it to make room for Assignments.
 - The **Ctrl+K quick-search palette** entries come from `palette_items($role)`. Add new pages and actions there.
 - Page structure: `.page-head` > `.page-title` + `.page-sub`; cards with `.card-head` / `.card-heading`;
   lists `.people-list` / `.issue-list`; status via `status_badge($status)` → `.pill`.
@@ -210,9 +227,18 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `greeting()`, `initials()`, `receipt_no()`, `wa_link($phone, $text)` (normalises `07…` → `2637…`),
   `status_badge()`, `svg_bar_chart()`, `svg_donut_chart()`.
 
+### Private files
+- Save uploads with `$this->_store_upload($field, $folder, $types, $maxKb, $error)` (Auth_Controller): returns
+  `['path','name']`, `null` (no file chosen) or `false` (+ `$error`). Folder goes under `uploads/`, add a deny `.htaccess`.
+- Serve them with `$this->_send_file($path, $friendlyName)` **after** the access check. Images/PDF open inline,
+  the rest download; names are cleaned for Windows.
+- `uploads/*/*` is git-ignored (except `index.html` / `.htaccess`). Older proofs/photos committed in the
+  initial commit are still tracked: don't `git rm` them (a pull would delete them from the laptop).
+
 ### Forms and feedback
 - Set flashdata, then **`redirect()`**. Flashdata only shows on the *next* request (this was a real bug
-  twice). Validation errors re-rendered in the same request show automatically via the header.
+  twice, and nearly a third time in v6: if you re-render a form in the same request, pass the error to the view). Validation errors re-rendered in the same request show automatically via the header.
+- CI's `decimal` rule rejects whole numbers ("50"); use `numeric` (fixed for course fees in v6).
 - JS adds these to **every POST form** automatically: busy spinner + double-submit lock.
   `data-confirm="..."` (+ `data-confirm-ok`, `data-confirm-danger`) gives a styled confirm modal on forms or links.
 - Other data-attributes: `data-copy`, `data-table-filter="#table"`, `data-report-open`, `data-palette-open`,
@@ -236,7 +262,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 
 ---
 
-## 7. Database (migration 14)
+## 7. Database (migration 15)
 
 | Table | Key columns / notes |
 |---|---|
@@ -252,14 +278,20 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `audit_log` | user_id, user_name, role, action, entity_type, entity_id, description, meta (JSON), ip_address, user_agent, created_at. Failed logins use `entity_type = 'email:<address>'` for lockout counting |
 | `announcements` | title, body, audience enum(all, student, lecturer), tone enum(info, success, warning), is_active, expires_at, created_by |
 | `settings` | setting_key (PK), setting_value, updated_at. Org name/short name/initials/tagline/registration no., phone, WhatsApp, email, website, office hours, address fields, **payment details** (`pay_*`), receipt footer, ID-card validity/note, privacy notice |
-| `migrations` | version = 14 |
+| `assignments` | course_id, lecturer_id (who set it; any lecturer on the course can manage it), title, instructions, attachment_path/name, **due_at**, max_score (default 100), allow_late (1 = a *first* submission is still accepted after the due date, flagged late) |
+| `assignment_submissions` | assignment_id + student_id (**unique pair**; resubmitting replaces the row and old file, `attempts`++), file_path, original_name, answer_text (typed answer), submitted_at, is_late, score DECIMAL(6,2), feedback, graded_by, graded_at (NULL = waiting to be marked) |
+| `migrations` | version = 15 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
 010 audit_log · 011 announcements · 012 last_login/reset_requested · 013 id_number + photos (backfills IDs) ·
-014 settings + user_profiles + verify_token (backfills tokens, carries over `portal.php` payment details).
+014 settings + user_profiles + verify_token (backfills tokens, carries over `portal.php` payment details) ·
+015 assignments + assignment_submissions.
 
-**Stage 4 will start at migration 015.**
+**Stage 5 will start at migration 016.**
+
+Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
+graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
 
 ---
 
@@ -282,17 +314,25 @@ Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments 
 
 **Students:** apply for courses (multiple courses allowed), drag-and-drop proof upload with preview and
 size check, see rejection reasons and re-upload, My Payments with printable **receipts** (`TC-000012`),
-materials per paid course, onboarding checklist.
+materials per paid course, onboarding checklist. **Assignments** page (to hand in / handed in & marked) with a
+nav badge; hand in a document (up to 10MB) and/or a typed answer; replace it until the due date; late hand-in if
+allowed; mark + % + feedback once marked. Dashboard "Assignments due" card lists what's outstanding.
 
-**Lecturers:** dashboard (courses, students-per-course chart, recent posts), post/delete materials (file
-and/or link), which notifies students.
+**Lecturers:** dashboard (courses, students-per-course chart, recent posts, **work to mark**), post/delete
+materials (file and/or link), which notifies students. **Assignments:** set work per course (instructions,
+optional question paper, due date/time, marks out of, accept-late switch), which notifies paid-up students;
+changing the due date notifies them again. Marking sheet per assignment: every student on the course (not yet
+marked first), open their file or typed answer, give a mark + feedback (student notified; re-marking allowed and
+logged with the old mark), **WhatsApp "Remind"** button for students who haven't handed in, stats (handed in,
+to mark, average). Can't delete an assignment once anyone has handed in.
 
 **Admins:** dashboard (fees-per-month bar chart, enrollments-by-course donut, pipeline, recent payments,
-newest students, **setup checklist** that flags the default password, **Recent activity**, **System
+newest students, **setup checklist** that flags the default password, `admin@example.com` and a missing second admin, **Recent activity**, **System
 health**); payments (cards with inline proof images, approve, reject with reason, history, receipts);
 courses and lecturer assignment; **Students** list (search, last seen, reset requests highlighted, reset
 password, deactivate, CSV export); lecturers (auto-generated temp passwords like `Cedar-4827`, one-time
-credentials card with **Send on WhatsApp**); user card pages (photo upload, full profile edit, reissue ID
+credentials card with **Send on WhatsApp**); **Administrators** page (add admins with the same temp-password
+card, edit any admin's name/login email/phone including your own, reset or deactivate *other* admins); user card pages (photo upload, full profile edit, reissue ID
 card); announcements; **Error reports**; **Audit trail** (+ CSV); organisation **Settings**.
 
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
@@ -337,36 +377,42 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 
 ## 10. Open items and go-live checklist
 
-- [ ] Confirm the admin login is recovered; **delete `reset_admin.php`**; change the admin password and set a
-      real email instead of `admin@example.com`.
-- [ ] **Screen to add a second admin account** (promised; do it at the start of Stage 4). There's currently no UI for adding admins.
+- [ ] Confirm the laptop copy of **`reset_admin.php` is deleted** (removed from the repo in v6). Change the admin
+      password, and set a real login email on **Administrators → Edit** (no longer stuck on `admin@example.com`).
+- [x] ~~Screen to add a second admin account~~ (done in v6: Administrators page). Encourage the user to add one.
 - [ ] Fill in **Settings** (org details, payment details) and post a welcome announcement.
 - [ ] Delete `Migrate.php` after each migration run (keep a copy outside the project); delete the unused `Welcome.php` and `Lecturer_dashboard.php`.
-- [ ] SMTP in `config/email.php` (`smtp_configured = true`) for email notifications.
+- [ ] Real people's payment proofs and photos were committed in the initial commit (`uploads/proofs`, `uploads/photos`).
+      New uploads are git-ignored now; consider making the GitHub repo private (if it isn't) rather than rewriting history.
+- [ ] SMTP in `config/email.php` (`smtp_configured = true`) for email notifications. (`Notifier` email subject still says "Theological Center".)
 - [ ] Go-live: hosting (shared plan to start), domain, **HTTPS** (needed for the PWA install prompt and secure
       cookies), set `ENVIRONMENT` to `production`, consider enabling CI's **CSRF protection** (currently off;
-      AJAX and beacon endpoints would need exceptions), set `cookie_secure`, and test file-upload limits in `php.ini`.
+      AJAX and beacon endpoints would need exceptions), set `cookie_secure`, and test file-upload limits in `php.ini`
+      (`upload_max_filesize` / `post_max_size` must be ≥ 20M for lecturer attachments, 10M for submissions).
+- [ ] Several older admin/lecturer actions (e.g. `toggle_status`, `courses/apply`) still work via plain GET links;
+      new code requires POST for changes. Tighten the old ones together with CSRF at go-live.
 - [ ] To test ID-card QR codes from a phone locally, open the portal via the laptop's LAN IP (e.g.
       `http://192.168.x.x/theological_portal`); a QR made while on `localhost` isn't reachable from a phone.
+- [ ] Possible Stage 4 extras if the user asks: "download all submissions as ZIP", returning work for a redo,
+      plagiarism notes. Not built.
 
 ---
 
-## 11. Stage 4 (Assignments): suggested starting point
+## 11. Stage 5 (Online exams): suggested starting point
 
-Originally planned tables (adapt to current conventions):
-- `assignments`: course_id, lecturer_id, title, instructions, due_date, (max_score, allow_late, attachment)
-- `assignment_submissions`: assignment_id, student_id, file_path, submitted_at, grade, feedback, graded_at
-  (unique per assignment + student; allow resubmission before the due date)
+Requirements from the roadmap: timed, open/close window, MCQ + short answer. Suggested shape (adapt as needed):
+- `exams`: course_id, lecturer_id, title, instructions, opens_at, closes_at, duration_minutes, max attempts (1),
+  show_results (after close / never / immediately), status (draft/published)
+- `exam_questions`: exam_id, position, type enum(mcq, short), prompt, options (JSON for MCQ), correct_option, marks
+- `exam_attempts`: exam_id, student_id (unique pair), started_at, **deadline_at** (min(started + duration, closes_at),
+  enforced **server-side**), submitted_at, auto_score, manual_score, graded_at
+- `exam_answers`: attempt_id, question_id, answer, is_correct, marks_awarded
 
-Wire-up checklist:
-- migration **015**
-- lecturer screens: create/edit, submissions list, grade + feedback
-- student screens: list, due dates, upload (reuse the dropzone), view grade and feedback
-- `has_active_access` / `is_assigned` guards on everything
-- `Notifier` for new assignment and graded submission
-- `audit->log` for every action
-- nav items (remove `soon`) and palette entries
-- replace the "Assignments due" placeholder card on the student dashboard
-- lecturer dashboard counts
-- submissions served through a controller from a denied `uploads/submissions/` folder
-- dark-mode-safe CSS tokens only
+Wire-up checklist (same pattern as Stage 4):
+- migration **016**; `has_active_access` / `is_assigned` guards; `Notifier` when an exam is published and when results
+  are released; `audit->log` (`exam.*`, `attempt.*`); nav `exams` items (remove `soon`) + badges + palette entries;
+  replace the "Upcoming exams" placeholder card on the student dashboard; lecturer dashboard counts.
+- Phones on weak data: autosave answers (small AJAX POST per answer), a visible countdown, and accept the final
+  submit even if the page reloads; the server's `deadline_at` is the only clock that counts.
+- MCQ auto-marked on submit; short answers marked by the lecturer on a sheet like the assignments one.
+- Stage 6 (Results) will combine `assignment_submissions.score` and exam scores per enrollment.

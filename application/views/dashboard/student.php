@@ -123,13 +123,30 @@
 
 <div class="row g-3">
     <div class="col-md-6">
-        <div class="card h-100 card-soon">
+        <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
                     <h5 class="card-heading"><?= icon('edit', 18) ?> Assignments due</h5>
-                    <span class="pill pill-muted">Coming soon</span>
+                    <a href="<?= base_url('student_assignments') ?>" class="card-link-sm">All assignments <?= icon('arrow', 14) ?></a>
                 </div>
-                <div class="empty-state">Assignments from your lecturers, with due dates, will appear here.</div>
+                <?php if (empty($due)): ?>
+                    <div class="empty-state"><?= $active_count > 0 ? 'Nothing to hand in right now.' : 'Assignments from your lecturers, with due dates, will appear here.' ?></div>
+                <?php else: ?>
+                    <ul class="due-list">
+                    <?php foreach ($due as $d): ?>
+                        <li>
+                            <div class="due-date <?= $d['state'] === 'overdue' ? 'is-overdue' : '' ?>">
+                                <strong><?= date('j', strtotime($d['due_at'])) ?></strong><small><?= date('M', strtotime($d['due_at'])) ?></small>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <a href="<?= base_url('student_assignments/view/' . $d['id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none"><?= html_escape($d['title']) ?></a>
+                                <small class="text-muted"><?= html_escape($d['course_name']) ?> &middot; <?= $d['state'] === 'overdue' ? 'was due ' : 'due ' ?><?= html_escape(due_in($d['due_at'])) ?></small>
+                            </div>
+                            <a href="<?= base_url('student_assignments/view/' . $d['id']) ?>" class="btn btn-sm <?= $d['state'] === 'overdue' ? 'btn-outline-danger' : 'btn-outline-primary' ?>">Open</a>
+                        </li>
+                    <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </div>
         </div>
     </div>

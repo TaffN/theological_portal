@@ -86,6 +86,7 @@ class Dashboard extends Auth_Controller
             'unread'         => $this->Dashboard_model->unread_notifications($uid),
             'materials'      => $this->Dashboard_model->student_recent_materials($uid, 5),
             'checklist'      => $this->Dashboard_model->student_checklist($uid, $courses),
+            'due'            => $this->_assignments() ? array_slice($this->Assignment_model->student_outstanding($uid), 0, 5) : [],
         ];
     }
 
@@ -100,6 +101,17 @@ class Dashboard extends Auth_Controller
             'material_count' => $this->Dashboard_model->lecturer_materials_count($uid),
             'materials'      => $this->Dashboard_model->lecturer_recent_materials($uid, 5),
             'unread'         => $this->Dashboard_model->unread_notifications($uid),
+            'to_mark'        => $this->_assignments() ? $this->Assignment_model->to_mark_count($uid) : 0,
         ];
+    }
+
+    /** Loads the assignments model, once migration 015 has been run. */
+    private function _assignments()
+    {
+        if (! $this->db->table_exists('assignments')) {
+            return false;
+        }
+        $this->load->model('Assignment_model');
+        return true;
     }
 }

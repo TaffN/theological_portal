@@ -30,7 +30,7 @@ class Admin_courses extends Admin_Controller
     public function create_course()
     {
         $this->form_validation->set_rules('name', 'Course name', 'required|max_length[200]');
-        $this->form_validation->set_rules('fee_amount', 'Fee', 'required|decimal');
+        $this->form_validation->set_rules('fee_amount', 'Fee', 'required|numeric|greater_than_equal_to[0]');
 
         if ($this->form_validation->run()) {
             $courseId = $this->Course_model->create([
@@ -58,7 +58,7 @@ class Admin_courses extends Admin_Controller
 
         if ($this->input->method() === 'post') {
             $this->form_validation->set_rules('name', 'Course name', 'required|max_length[200]');
-            $this->form_validation->set_rules('fee_amount', 'Fee', 'required|decimal');
+            $this->form_validation->set_rules('fee_amount', 'Fee', 'required|numeric|greater_than_equal_to[0]');
             if ($this->form_validation->run()) {
                 $data = [
                     'name'          => $this->input->post('name'),

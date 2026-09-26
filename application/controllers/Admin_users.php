@@ -3,7 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Students + lecturers: list, search, create lecturers, reset passwords,
- * activate / deactivate. Admin accounts are never touched from here.
+ * activate / deactivate. Administrators have their own page (admins()),
+ * where nobody can lock themselves out or deactivate the last admin.
  */
 class Admin_users extends Admin_Controller
 {
@@ -191,6 +192,92 @@ class Admin_users extends Admin_Controller
         redirect($user['role'] === 'lecturer' ? 'admin_users/lecturers' : 'admin_users/students');
     }
 
+    /* ------------------------------------------------------ ADMINS */
+
+    public function admins()
+    {
+        $admins = $this->db->where('role', 'admin')->order_by('name', 'ASC')->get('users')->result_array();
+
+        $this->load->view('templates/header', ['title' => 'Administrators']);
+        $this->load->view('admin/admins', ['admins' => $admins, 'me' => (int) $this->current_user_id]);
+        $this->load->view('templates/footer');
+    }
+
+    public function create_admin()
+    {
+        $this->form_validation->set_rules('name', 'Name', 'required|min_length[2]|max_length[150]');
+        $this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]');
+        $this->form_validation->set_message('is_unique', 'An account with that email already exists.');
+
+        if (! $this->form_validation->run()) {
+            $this->session->set_flashdata('error', strip_tags(validation_errors()));
+            return redirect('admin_users/admins');
+        }
+
+        $temp = $this->_temp_password();
+        $id = $this->User_model->create([
+            'name'          => trim($this->input->post('name')),
+            'email'         => strtolower(trim($this->input->post('email'))),
+            'phone'         => trim((string) $this->input->post('phone')),
+            'password_hash' => password_hash($temp, PASSWORD_DEFAULT),
+            'role'          => 'admin',
+            'status'        => 'active',
+        ]);
+
+        $this->audit->log('user.admin_created', 'user', $id, 'Created administrator account for ' . trim($this->input->post('name')));
+        $this->_flash_credentials($id, $temp, 'Administrator account created.');
+        redirect('admin_users/admins');
+    }
+
+    /** Name, email and phone of any admin, including yourself. */
+    public function update_admin($id)
+    {
+        $admin = $this->_admin_account($id, true);
+        $this->form_validation->set_rules('name', 'Name', 'required|min_length[2]|max_length[150]');
+        $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+        $email = strtolower(trim((string) $this->input->post('email')));
+
+        if (! $this->form_validation->run()) {
+            $this->session->set_flashdata('error', strip_tags(validation_errors()));
+        } elseif ($email !== $admin['email'] && $this->db->where('email', $email)->where('id !=', $id)->count_all_results('users') > 0) {
+            $this->session->set_flashdata('error', 'Another account already uses ' . $email . '.');
+        } else {
+            $name = trim($this->input->post('name'));
+            $this->User_model->update($id, ['name' => $name, 'email' => $email, 'phone' => trim((string) $this->input->post('phone'))]);
+            if ((int) $id === (int) $this->current_user_id) {
+                $this->session->set_userdata('name', $name);   // top bar shows the new name straight away
+            }
+            $this->audit->log('user.account_updated', 'user', $id, 'Updated administrator details of ' . $admin['name']
+                . ($email !== $admin['email'] ? ', email ' . $admin['email'] . ' -> ' . $email : ''));
+            $this->session->set_flashdata('success', 'Details saved.' . ($email !== $admin['email'] ? ' Log in with ' . $email . ' from now on.' : ''));
+        }
+        redirect('admin_users/admins');
+    }
+
+    public function reset_admin_password($id)
+    {
+        $admin = $this->_admin_account($id);
+        $temp  = $this->_temp_password();
+
+        $this->User_model->update($id, ['password_hash' => password_hash($temp, PASSWORD_DEFAULT), 'reset_requested_at' => null]);
+        $this->audit->log('user.password_reset', 'user', $id, 'Reset password for administrator ' . $admin['name']);
+        $this->_flash_credentials($id, $temp, 'Password reset for ' . $admin['name'] . '.');
+        redirect('admin_users/admins');
+    }
+
+    public function toggle_admin_status($id)
+    {
+        $admin  = $this->_admin_account($id);
+        $status = $admin['status'] === 'active' ? 'inactive' : 'active';
+
+        $this->User_model->update($id, ['status' => $status]);
+        $this->audit->log('user.' . ($status === 'active' ? 'activated' : 'deactivated'), 'user', $id,
+            ($status === 'active' ? 'Re-activated administrator ' : 'Deactivated administrator ') . $admin['name']);
+
+        $this->session->set_flashdata('success', $admin['name'] . ($status === 'active' ? ' can log in again.' : ' can no longer log in.'));
+        redirect('admin_users/admins');
+    }
+
     /* ------------------------------------------------------------ */
 
     private function _managed_user($id)
@@ -198,6 +285,24 @@ class Admin_users extends Admin_Controller
         $user = $this->User_model->find($id);
         if (! $user || ! in_array($user['role'], ['student', 'lecturer'], true)) {
             show_404();
+        }
+        return $user;
+    }
+
+    /**
+     * An administrator account. Passwords and status can only be changed for
+     * *other* admins (your own password is changed on My Profile), so you
+     * can never lock yourself out, and there is always one admin left.
+     */
+    private function _admin_account($id, $allowSelf = false)
+    {
+        $user = $this->User_model->find($id);
+        if (! $user || $user['role'] !== 'admin' || $this->input->method() !== 'post') {
+            show_404();   // admin accounts only change through the buttons on the page (POST), never a plain link
+        }
+        if (! $allowSelf && (int) $user['id'] === (int) $this->current_user_id) {
+            $this->session->set_flashdata('error', 'You can\'t do that to your own account. Change your password on My Profile.');
+            redirect('admin_users/admins');   // redirect() stops the request here
         }
         return $user;
     }
