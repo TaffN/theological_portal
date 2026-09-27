@@ -566,9 +566,9 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       across years, certificates. Not built.
 - [ ] Possible v10 extras (not built): iCal/Google Calendar feed, attendance tied to calendar classes or QR self check-in,
       editing posts and attachments in Discussions, tracking borrowed physical books in the Library. **The user manuals (v1.0)
-      don't cover v10/v11 yet**: manuals v2.0 add them.
+      cover v10/v11 since v2.0**.
 - [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
-      (Markdown + `images/`, README with change log; v1.0 = commit `a56c06b`). The editing copies are Claude Docs
+      (Markdown + `images/`, README with change log; v1.0 = `a56c06b`, v2.0 (v10 + v11) = `70be078`). The editing copies are Claude Docs
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
       so rewrite the .md with `images/...` links), bump the version in each header + README table + change log,
       commit to `docs/user-manuals` with the version in the message (this sandbox can't push git tags). Retake screenshots (sandbox, made-up data, never the real
