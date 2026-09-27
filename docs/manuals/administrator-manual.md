@@ -1,6 +1,6 @@
 # Administrator User Manual
 
-**Version 1.0** · 27 September 2026 · for Portal v9 (Results and Ezra)
+**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents, Reports)
 
 ## Welcome
 
@@ -35,8 +35,12 @@ After logging in you see the admin dashboard: payments waiting, fees collected p
 | Courses | Create courses and assign lecturers |
 | Lecturers | Create lecturer accounts |
 | Results | Overview of published results, export to Excel |
+| Attendance | Attendance rate per course, export to Excel |
+| Documents | Verify ID copies and qualifications; required documents; who is missing one |
+| Reports | Pass rates by province, grades, students, attendance, fees, documents (charts, print, CSV) |
 | Announcements | Messages on everyone's dashboard |
 | Alerts | Your own notifications |
+| Calendar, Discussions, Library | The Campus pages (section 7) |
 | Error reports | Problems the portal caught or users reported |
 | Ezra (AI) | The AI assistant's spending and settings |
 | Audit trail | Who did what, and when |
@@ -197,7 +201,82 @@ You get an alert when 80% of the monthly limit is used. At 100%, Ezra pauses for
 
 **Remove old conversations now** deletes the text of conversations older than the retention period straight away.
 
-## 5. System health and troubleshooting
+## 5. Documents (ID copies and qualifications)
+
+Students and lecturers upload copies of their National ID, qualifications and certificates under **My documents**. You verify each one against their details.
+
+### Verify or reject documents
+
+1. Click **Documents** (the number shows how many are waiting). The **To verify** tab shows each document with a preview.
+2. Click the preview to open the full file. Compare the name, ID number and photo with the person's card (click their name).
+3. If it is correct, click **Verify**. The person is told.
+4. If not, type the reason (for example "Photo is blurred") and click **Reject**. The reason is required; the person sees it and can upload a new copy.
+5. The **Verified** and **Rejected** tabs keep the history. Use the filter for students or lecturers, or search by name or ID number.
+
+Each student's and lecturer's card also has a **Documents** section where you can open, verify or reject their documents.
+
+![Documents to verify](images/a-documents.png)
+
+### Choose which documents are required
+
+1. On the Documents page, click **Required documents**.
+2. Tick what **Students must provide** and what **Lecturers must provide** (by default: National ID for students; National ID and a qualification for lecturers).
+3. Click **Save required documents**. People see the list on their My documents page, with a red number on their menu until they upload.
+
+### Chase missing documents
+
+1. Click the **Missing** tab. It lists everyone still missing a required document (or whose copy was rejected).
+2. Click **Remind** to send a ready-written WhatsApp message.
+
+![Missing documents](images/a-documents-missing.png)
+
+Opening someone's document is recorded in the audit trail. Documents are private: only the owner and administrators can open them.
+
+## 6. Reports
+
+Click **Reports** for figures for the board, churches and partners. Every report can be printed (or saved as PDF) with **Print / PDF**, and downloaded for Excel with **Export CSV**.
+
+![Reports overview](images/a-reports.png)
+
+### Pass rates by province
+
+1. Click **Reports**, then **Pass rates by region**.
+2. The **pie chart** shows where the passes come from (each province's share of all passes). The **bars** show each province's pass rate: passed out of results published.
+3. The table gives the numbers: results, passed, failed, pass rate and average mark per province.
+4. Use **Group by** to see the same by gender, city, denomination, education or ministry role; **Course** and **Year** to narrow it down.
+
+The province comes from each student's profile (My profile → About you). "Not given" means the student hasn't filled it in. A pass is a published result graded Pass, Merit or Distinction. Small groups swing a lot, so read the percentages together with the numbers.
+
+![Pass rates by province](images/a-pass-rates.png)
+
+### The other reports
+
+| Report | What it shows |
+| --- | --- |
+| Grades | How many Distinctions, Merits, Passes and Fails (donut), and each course's pass rate and average |
+| Students | Students by province, gender, city, denomination, education or ministry role (pie + table); paid-up students or all accounts |
+| Attendance | Attendance rate per course from the lecturers' registers |
+| Fees | Fees collected per month (last 12 months or a chosen year), per course, and proofs still to check |
+| Documents | Verified, waiting and rejected documents, and how many people are missing one |
+
+![Grades report](images/a-grades.png)
+
+![Students by province](images/a-students-report.png)
+
+## 7. Calendar, attendance, discussions and library
+
+- **Calendar**: click **Add event** to add college-wide events and holidays (choose **The whole college** under **For**), or events for any course. Tick **All day** and set **Until** for a holiday week.
+- **Attendance**: every course's attendance rate at a glance. Click a course to see each student and every register, and **Export CSV** for Excel. Lecturers take the registers.
+- **Discussions**: you can read, pin, close and delete posts on every board, including **General**.
+- **Library**: add books, commentaries, sermons and recordings (file up to 20 MB, or a link) and remove any item.
+
+![College calendar](images/a-calendar.png)
+
+![Attendance per course](images/a-attendance.png)
+
+![The library](images/a-library.png)
+
+## 8. System health and troubleshooting
 
 ### Error reports
 

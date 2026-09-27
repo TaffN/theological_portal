@@ -1,6 +1,6 @@
 # Lecturer User Manual
 
-**Version 1.0** · 27 September 2026 · for Portal v9 (Results and Ezra)
+**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents)
 
 ## Welcome
 
@@ -188,7 +188,81 @@ The portal works out each student's final result from their marks; you choose th
 
 **To take a result back,** click **Withdraw this result** under the student and confirm. The student can no longer see it and is told it is under review.
 
-## 5. Profile, help and troubleshooting
+## 5. Attendance
+
+Take a register for each class. Students see their own attendance, and the office sees every course.
+
+![Attendance: your courses](images/l-attendance.png)
+
+### Take the register
+
+1. Click **Attendance**, then **Take register** on the course.
+2. Check the **Date of the class** and type the **Topic** (optional).
+3. Everyone starts as **Present**. Click **Late**, **Absent** or **Excused** for the others. Add a **Note** if useful (for example "hospital").
+4. **All present** and **All absent** set everyone at once; the line above the list counts each mark.
+5. Click **Save register**.
+
+![Taking the register](images/l-attendance-take.png)
+
+### See who is falling behind
+
+1. Click **Attendance**, then **View** on the course.
+2. **Students** lists everyone's rate, lowest first: present + late out of the classes they were marked for (excused absences don't count).
+3. Students below 75% get a WhatsApp button so you can check in on them.
+4. **Registers** lists every class. Click **Edit** to correct a register, or delete it from there.
+
+![Attendance for a course](images/l-attendance-course.png)
+
+## 6. Calendar, discussions and library
+
+### Add a class or event to the calendar
+
+Assignment due dates and exam times appear on the calendar by themselves. Add your classes and other events:
+
+1. Click **Calendar**, then **Add event** (or click an empty day).
+2. Type a **Title** and choose the **Kind** (Class, Event, Holiday, Deadline, Other) and the course.
+3. Set the **Date**, the **Starts** and **Ends** times, or tick **All day**. Use **Until** for events that last several days.
+4. Add **Where** (for example "Main hall" or "Online") and an **Online meeting link** (Google Meet, Zoom, WhatsApp) if the class is online. Students get a **Join online** button.
+5. Click **Add to calendar**. Students on the course are alerted, and again if you change the time.
+
+To change or remove an event, click **Edit** next to it in the day-by-day list.
+
+![The calendar](images/l-calendar.png)
+
+![Adding an event](images/l-event-form.png)
+
+### Run your course discussions
+
+1. Click **Discussions**. Each course has a board; **General** is for the whole college.
+2. You get an alert when a student asks a question on your course board. The dashboard lists **Questions waiting for a reply**.
+3. Open a topic and reply. Your posts carry a **Lecturer** tag.
+4. On your courses' boards (and General) you can **Pin** a topic to the top, **Close replies**, or delete a topic or reply.
+5. When you start a topic on a course board, every student on the course is alerted, which is useful for announcements and discussion questions.
+
+![Discussions](images/l-discussions.png)
+
+### Add to the library
+
+1. Click **Library**, then **Add to library**.
+2. Type the **Title**, **Author / speaker**, choose a **Category**, and optionally the course it is **Recommended for**.
+3. Choose a **File** (PDF, Word, PowerPoint, EPUB, audio or video, up to 20 MB) or paste a link.
+4. Click **Add to library**. Only share material the Center is allowed to share.
+
+You can remove items you added (the **×** on the card).
+
+![The library](images/l-library.png)
+
+## 7. My documents
+
+The office asks lecturers for a copy of their **National ID** and **qualifications**.
+
+1. Click **My documents** (a red number means something is still needed).
+2. Choose what the document is, add a description (for example "Master of Divinity, 2015"), choose the file (PDF, JPG or PNG, up to 5 MB) and click **Send to the office**.
+3. You are alerted when it is verified, or told why it wasn't accepted so you can upload a new copy.
+
+![My documents](images/l-documents.png)
+
+## 8. Profile, help and troubleshooting
 
 ### Your profile and staff ID card
 

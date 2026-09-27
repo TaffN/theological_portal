@@ -1,6 +1,6 @@
 # Student User Manual
 
-**Version 1.0** · 27 September 2026 · for Portal v9 (Results and Ezra)
+**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents)
 
 ## Welcome
 
@@ -228,7 +228,74 @@ Good to know:
 
 ![My profile](images/s-profile.png)
 
-## 5. Getting help
+## 5. Calendar, discussions, library and attendance
+
+These four pages are in the **Campus** part of the menu (on a phone: tap **More**). Attendance is in the main menu.
+
+### See what's on: the Calendar
+
+The calendar shows your classes, college events and holidays, plus your assignment due dates and exam times (added automatically).
+
+1. Tap **More**, then **Calendar**.
+2. The month shows coloured dots on busy days. Tap a day, or scroll down to the day-by-day list.
+3. Tap an assignment or exam in the list to open it. Online classes have a **Join online** button.
+4. Use the arrows to see the previous or next month.
+
+You get an alert when your lecturer adds a class or moves its time. The dashboard's **Coming up** card shows the next two weeks.
+
+![The calendar on a phone](images/s-calendar.png)
+
+### Ask and answer: Discussions
+
+Each of your courses has its own board, and **General** is for the whole college.
+
+1. Tap **More**, then **Discussions**.
+2. Tap a board at the top (**All**, **General** or a course), or search for a topic.
+3. Tap a topic to read it, type in **Your reply**, and tap **Reply**.
+4. To ask something new, tap **New topic**, choose the board, write a title and your message, and tap **Post topic**.
+
+You get an alert when someone replies to your topic. Lecturers' posts carry a **Lecturer** tag. Be kind and respectful; lecturers can close or remove posts.
+
+![Discussion boards](images/s-discussions.png)
+
+![A discussion with replies](images/s-discussion-view.png)
+
+### Read and listen: the Library
+
+The library holds books, commentaries, articles, sermons and recordings for every student. (Your course notes stay under **Materials**.)
+
+1. Tap **More**, then **Library**.
+2. Tap a category (Books, Sermons...), choose a course, or search by title or author.
+3. Tap **Open** to read or download a file, or **Open link** for an online item.
+
+Tip: ask Ezra "Is there a book in the library about the Holy Spirit?" and it will suggest titles.
+
+![The library](images/s-library.png)
+
+### Check your attendance
+
+1. Tap **More**, then **Attendance**.
+2. Each course shows your attendance rate and every class: **Present**, **Late**, **Absent** or **Excused**.
+
+Your rate counts present and late as attended. Excused absences don't count against you. If a mark looks wrong, speak to your lecturer.
+
+![My attendance](images/s-attendance.png)
+
+## 6. My documents (ID and qualifications)
+
+The Center asks for a copy of your **National ID** (and sometimes other documents) to confirm who you are. Only you and the office can open them.
+
+1. Tap **More**, then **My documents**. A red number on the menu means something is still needed.
+2. **What the Center needs** shows each required document: **Verified**, **Waiting for the office**, **Not accepted** or **Not uploaded yet**.
+3. Under **Upload a document**, choose what it is (for example **National ID**), add a description if you like, and choose the file. On a phone you can take a photo.
+4. Make sure every word is readable and nothing is cut off, then tap **Send to the office**.
+5. You get an alert when the office verifies it. If it isn't accepted, the reason is shown: upload a new copy.
+
+You can remove a document until it is verified. Files can be PDF, JPG or PNG, up to 5 MB.
+
+![My documents](images/s-documents.png)
+
+## 7. Getting help
 
 ### Contact the office
 
