@@ -506,6 +506,12 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 - [ ] Possible Stage 6 extras: mark an enrollment "completed" / archive a course without locking materials (needs
       `has_active_access` to accept `completed` for read-only access), per-assignment weights, a combined transcript
       across years, certificates. Not built.
+- [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
+      (Markdown + `images/`, README with change log; tag `manuals-v1.0`). The editing copies are Claude Docs
+      (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
+      so rewrite the .md with `images/...` links), bump the version in each header + README table + change log,
+      commit to `docs/user-manuals`, tag `manuals-vX.Y`. Retake screenshots (sandbox, made-up data, never the real
+      proofs/photos) when pages change. Built from `main`, so it merges into `main` cleanly on its own.
 - [ ] The user may circle back to the exams guide doc ("Online Exams: How They Work", a Claude Doc) with changes.
 
 ---
