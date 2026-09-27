@@ -98,6 +98,7 @@ return array(
 	'text'	=>	'text/plain',
 	'log'	=>	array('text/plain', 'text/x-log'),
 	'rtx'	=>	'text/richtext',
+	'epub'	=>	array('application/epub+zip', 'application/zip', 'application/octet-stream'),
 	'rtf'	=>	'text/rtf',
 	'xml'	=>	array('application/xml', 'text/xml', 'text/plain'),
 	'xsl'	=>	array('application/xml', 'text/xsl', 'text/xml'),

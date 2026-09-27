@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 26 September 2026 (after Portal **v9** = Ezra AI assistant, database migration **18**).
+Last updated: 27 September 2026 (after Portal **v10** = discussions, calendar, library, attendance; database migration **19**).
 
 ---
 
@@ -89,6 +89,7 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 5 | **Online exams**: timed, open/close window, MCQ + short answer, pools/shuffling, device lock, activity flags, live invigilation, marking, release results | ✅ Done (v7) |
 | 6 | **Results**: per-course weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
+| 8 | **Campus modules** (v10): Discussions (course boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -96,6 +97,8 @@ at the user's request). The laptop still has to pull `main`, back up the DB and 
 For Ezra they also need an Anthropic API key in `application/config/ezra.php` (see §11); without it Ezra says
 "being set up" and everything else works. Laptop steps: `git checkout main` → `git pull origin main` → back up DB →
 `/migrate` (→ 18) → test. New work goes on a fresh branch again.
+**v10 (the four campus modules, migration 19)** is on branch `claude/inspiring-ramanujan-y9isjf` (restarted from `main`), waiting for the
+user to test: checkout + pull the branch → back up DB → `/migrate` (→ 19) → test → merge into `main`.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -122,6 +125,7 @@ theological_portal/
 │   ├── js/qr.js               (QR generator, Kazuhiko Arase MIT lib bundled; TCQR.svg())
 │   ├── js/exam.js             (Stage 5 only: question editor toggle, invigilation auto-refresh, exam timer/autosave/monitoring)
 │   ├── js/ezra.js             (Ezra chat page only: fetch, typing dots, Enter to send, suggestion chips)
+│   (the attendance register's "All present" + live count is a small inline script in attendance/take.php)
 │   ├── img/                   (favicon.svg, icon-192/512.png, apple-touch-icon.png)
 │   └── manifest.json          (PWA "Add to Home screen")
 ├── uploads/
@@ -129,7 +133,8 @@ theological_portal/
 │   ├── materials/  (lecturer uploads)
 │   ├── assignments/ (lecturer question papers; denied, served by the assignments controllers)
 │   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
-│   └── photos/     (profile photos; .htaccess deny; served by Photo controller)
+│   ├── photos/     (profile photos; .htaccess deny; served by Photo controller)
+│   └── library/    (college library files; deny; served by Library/open after the access check)
 └── application/
     ├── config/     autoload, config, database, migration (version 18), routes, ezra.sample.php (→ copy to git-ignored ezra.php with the API key),
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
@@ -142,15 +147,16 @@ theological_portal/
     │                 Material_model, Notification_model, User_model, Dashboard_model,
     │                 Error_model, Receipt_model, Assignment_model (assignments + submissions),
     │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity),
-    │                 Result_model (weighting, calculation, grades, publishing, statement tokens)
+    │                 Result_model (weighting, calculation, grades, publishing, statement tokens),
+    │                 Discussion_model, Calendar_model (events + auto items), Library_model, Attendance_model (registers, rates)
     ├── libraries/    Audit.php, Notifier.php, Settings.php, Ezra_ai.php (Claude API over cURL, context, limits, cost)
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
-    ├── migrations/   001–018 (see §7)
+    ├── migrations/   001–019 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
         ├── partials/   id_card.php, result_breakdown.php
-        ├── dashboard/  admin, student, lecturer, _announcements, _checklist
+        ├── dashboard/  admin, student, lecturer, _announcements, _checklist, _campus (v10: coming up + discussions)
         ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
         │               announcements, errors, error_view, audit, settings, results, results_course, ezra
         ├── student/    courses, upload_payment, payments, materials_index, materials_course,
@@ -165,6 +171,10 @@ theological_portal/
         ├── support/    help, report, forgot
         ├── notifications/ index
         ├── ezra/       index (the chat page)
+        ├── discussions/ index (boards, search, new topic), view (thread, replies, moderation)
+        ├── calendar/   index (month grid + day-by-day list), form (add/edit event)
+        ├── library/    index (categories, search, add form, cards)
+        ├── attendance/ lecturer_index, course (shared with admin), take (register), student, admin_index
         ├── verify/     index (ID card), results (statement of results)   (standalone public pages, no app shell)
         ├── auth/       login, register
         └── errors/html/ _portal_error (shared branded page), error_404, error_general, error_db,
@@ -192,6 +202,12 @@ theological_portal/
 | `Admin_results` | Admin_Controller | `index` (per-course overview), `course/{id}`, `export[/{course}]` (CSV) |
 | `Ezra` | Auth_Controller (role must be in `ezra_roles`) | `index` (chat, current conversation, pause reason), POST `ask` (JSON: `{ok,status,html,left}`), POST `new_thread`. Note: the controller is `Ezra`, so the library is **`Ezra_ai`** (same class name would clash) |
 | `Admin_ezra` | Admin_Controller | `index` (spend vs cap, 6-month chart, most active by count only, settings form), POST `save`, `test` (tiny API call), `purge` |
+| `Discussions` | Auth_Controller (all roles) | `index` (?board=general\|{course}, ?q=), POST `create`, `view/{id}`, POST `reply/{id}`, `delete/{id}`, `delete_reply/{reply}`, `pin/{id}`, `lock/{id}`. Students: General (once ≥1 paid-up course) + paid-up courses; lecturers moderate their courses + General; admins everything. Topic by staff → notify_course; by student → course lecturers; reply → all participants |
+| `Calendar` | Auth_Controller (all roles) | `index` (?m=YYYY-MM), `add` (?date=), `edit/{id}`, POST `save[/{id}]`, `delete/{id}`. Lecturers: events on their courses; admins: any course or whole college (course_id NULL). New/moved course events notify students |
+| `Library` | Auth_Controller (all roles) | `index` (?q=, ?category=, ?course=), POST `upload` (staff; file ≤ 20 MB and/or link), `open/{id}` (counts downloads; file or redirect), POST `delete/{id}` (uploader or admin). Students need ≥1 paid-up course |
+| `Lecturer_attendance` | Lecturer_Controller | `index`, `course/{id}`, `take/{course}[/{session}]` (GET form, POST save), POST `delete/{session}`; `is_assigned()` |
+| `Student_attendance` | Student_Controller | `index` (rate + every mark per paid-up course) |
+| `Admin_attendance` | Admin_Controller | `index` (per course), `course/{id}` (read-only), `export/{course}` (CSV) |
 | `Result_verify` | CI_Controller (public) | `/results/verify/{token}` (route): the statement's QR page, lists currently published results |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
@@ -244,6 +260,9 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   mobile` (shown in phone bottom bar), `badge`, `exact` (for controllers shared by two pages),
   `soon` (greyed "coming soon"). No `soon` items remain since v8 (Results is live for all three roles).
   Items with `'ezra' => true` ("Ask Ezra") are filtered out unless `ezra_offered($role)` (table exists, `ezra_enabled`, role in `ezra_roles`).
+  Since v10 the menus are built in `_nav_items_for()` and have a **Campus** section (Calendar, Discussions, Library, + Ask Ezra) for every role;
+  Attendance sits in each role's Menu section. Shared-module access goes through `Course_model::for_user / ids_for_user / user_can_see /
+  user_can_manage($courseId, $userId, $role)` (student = active enrollments, lecturer = assigned, admin = all).
   Badge keys (computed in `layout_context()`): `notifications, payments, errors, resets` (admin),
   `marking` (lecturer: submissions to mark), `assignments` (student: to do + overdue), `exam_marking` (lecturer:
   exam scripts to mark), `exams` (student: open to start or in progress). Phone bottom bar fits **5 items** (+ "More");
@@ -253,7 +272,8 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   lists `.people-list` / `.issue-list`; status via `status_badge($status)` → `.pill`.
 - Helpers: `icon($name, $size)` (inline SVG, Feather style), `avatar_html(...)`, `money()`, `time_ago()`,
   `greeting()`, `initials()`, `receipt_no()`, `wa_link($phone, $text)` (normalises `07…` → `2637…`),
-  `status_badge()`, `svg_bar_chart()`, `svg_donut_chart()`.
+  `status_badge()`, `svg_bar_chart()`, `svg_donut_chart()`, v10: `post_format()` (escape + clickable links + line breaks),
+  `bytes_fmt()`, `rate_tone()` (attendance colour class). New icons: calendar, library, chat, check-square, pin, download, link, map-pin, headphones, video.
 
 ### Private files
 - Save uploads with `$this->_store_upload($field, $folder, $types, $maxKb, $error)` (Auth_Controller): returns
@@ -276,7 +296,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
 ### Cache busting
-- CSS/JS links carry a version: `app.css?v=8` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
+- CSS/JS links carry a version: `app.css?v=9` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
   (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
   (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
 
@@ -299,7 +319,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 
 ---
 
-## 7. Database (migration 18)
+## 7. Database (migration 19)
 
 | Table | Key columns / notes |
 |---|---|
@@ -326,7 +346,13 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `course_results` | enrollment_id (**unique**), course_id, student_id, assignment_pct, exam_pct (NULL = none counted), assignment_weight, exam_weight (snapshotted), final_pct, grade, remarks, breakdown (JSON list of every item that counted, with mark and %), status enum(published, withdrawn), published_by/at |
 | `users.results_token` | 20-char secret in the statement-of-results QR, created on first publish (separate from `verify_token`, so reissuing an ID card doesn't break statements) |
 | `ezra_messages` | user_id (FK cascade), thread_no (conversation), role enum(user, assistant), content (wiped to '' after `ezra_retention_days`; row kept for costs), status enum(ok, refused, error), model (as served), input/cache_write/cache_read/output_tokens, cost_usd DECIMAL(10,6), created_at |
-| `migrations` | version = 18 |
+| `discussions` | course_id (NULL = General board, FK cascade), user_id, title, body, is_pinned, is_locked, reply_count (kept by `recount()`), last_activity_at |
+| `discussion_replies` | discussion_id (FK cascade), user_id, body, created_at |
+| `calendar_events` | course_id (NULL = whole college), title, description, event_type enum(class, event, holiday, deadline, other), location, meeting_link, starts_at, ends_at (NULL = no end), all_day, created_by. Assignment due dates and exam windows are **not** stored here: `Calendar_model::items()` reads them live |
+| `library_files` | title, author, category (Books, Articles, Commentaries, Sermons, Theses, Audio, Video, Other), description, course_id (optional "recommended for", SET NULL), file_path/original_name/file_size and/or external_link, downloads, uploaded_by |
+| `attendance_sessions` | course_id, session_date, topic, taken_by (one register) |
+| `attendance` | session_id + student_id (**unique**), status enum(present, late, absent, excused), note, marked_at. Rate = (present + late) / (present + late + absent) |
+| `migrations` | version = 19 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
@@ -337,9 +363,10 @@ Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments 
 users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `grade_pass` (50), `statement_note` ·
 018 ezra_messages + settings `ezra_enabled` (1), `ezra_roles` (student), `ezra_monthly_cap_usd` (50), `ezra_daily_limit` (25),
 `ezra_model` (claude-opus-5), `ezra_effort` (low), `ezra_bible_version` (NKJV), `ezra_retention_days` (365), `ezra_warned_month`,
-`ezra_statement_of_faith` (AG 16 Fundamental Truths summary) (+ appends an Ezra paragraph to `privacy_notice`). `ezra_purged_on` is created on first use.
+`ezra_statement_of_faith` (AG 16 Fundamental Truths summary) (+ appends an Ezra paragraph to `privacy_notice`). `ezra_purged_on` is created on first use ·
+019 discussions, discussion_replies, calendar_events, library_files, attendance_sessions, attendance (also `epub` added to config/mimes.php).
 
-**The next schema change is migration 019.**
+**The next schema change is migration 020.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -435,6 +462,15 @@ exams (window, released results) and published overall results, follows the stat
 version, replies in English/Shona/Ndebele, won't write assessed work, can't change anything. Paused during an exam attempt,
 when the month's cap is reached, and at the daily limit. Admins: **System → Ezra (AI)** page.
 
+**Campus modules (v10):** **Discussions**: a board per course + General; start topics, reply (links clickable), search; lecturers/admins pin, close,
+delete; authors delete their own posts; notifications for new topics (to the course or its lecturers) and replies (to participants).
+**Calendar**: month grid (dots on phones) + day-by-day list; staff add classes/events/holidays (all-day, multi-day, place, online Join link);
+assignment due dates and exam open/close times appear automatically; students notified of new/moved course events.
+**Library**: college-wide books/articles/commentaries/sermons/theses/audio/video (file ≤ 20 MB or link), category tabs with counts, course filter,
+search, download counter. **Attendance**: lecturer register (everyone starts present; tap Late/Absent/Excused; notes; All present/All absent;
+correct or delete later), per-student rate with a WhatsApp check-in button under 75%; students see their rate and every mark; admins see every
+course and export CSV. Student and lecturer dashboards get a **Coming up** + **Latest discussions / Questions waiting for a reply** row.
+
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
 internal broken links (404s with an internal referer only, to ignore bots), and JavaScript errors
 (beacon to `support/js`, capped per page/session). Repeats are grouped by fingerprint; resolved errors
@@ -504,6 +540,9 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 - [ ] Possible Stage 6 extras: mark an enrollment "completed" / archive a course without locking materials (needs
       `has_active_access` to accept `completed` for read-only access), per-assignment weights, a combined transcript
       across years, certificates. Not built.
+- [ ] Possible v10 extras (not built): iCal/Google Calendar feed, attendance tied to calendar classes or QR self check-in,
+      editing posts and attachments in Discussions, tracking borrowed physical books in the Library. **The user manuals (v1.0)
+      don't cover the four v10 modules yet**: add them (manuals v2.0) once v10 is tested.
 - [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
       (Markdown + `images/`, README with change log; v1.0 = commit `a56c06b`). The editing copies are Claude Docs
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
@@ -547,6 +586,11 @@ admin **Ezra (AI)** page → **Test connection**. PHP's cURL extension must be o
 **Testing in the sandbox:** no real key. Point `ezra_api_url` in a throwaway `ezra.php` at a fake PHP server (e.g.
 `php -S 127.0.0.1:8090`) that records the request and returns canned Messages-API JSON (normal / `refusal` / 529 /
 `max_tokens`). Delete the throwaway `ezra.php` afterwards.
+
+**v10 knowledge:** `instructions()` now ends with `portal_guide()`: how every page works (incl. the four campus modules) + the **library
+catalogue** (80 newest items, shared, so it's cached). Each user's context adds, per course, attendance (student: rate + recent absences;
+lecturer: registers + students under 75%) and recent discussion topics, then the next 30 days of calendar events (multi-day events once, "until"),
+the General board, the user's own topics and (lecturers) unanswered questions.
 
 **Possible next steps (not built):** streaming answers, Ezra for lecturers by default, letting Ezra read material
 *contents* (PDF text) rather than titles, a per-course "ask about this material" button, Shona/Ndebele UI text.

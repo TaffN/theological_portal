@@ -44,6 +44,16 @@ if (! function_exists('icon')) {
             'image'   => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
             'message' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
             'send'    => '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+            'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+            'library' => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+            'chat'    => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+            'check-square' => '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+            'pin'     => '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/>',
+            'download' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+            'link'    => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+            'map-pin' => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            'headphones' => '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+            'video'   => '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
         ];
 
         $inner = isset($paths[$name]) ? $paths[$name] : $paths['grid'];
@@ -77,6 +87,11 @@ if (! function_exists('nav_items')) {
 if (! function_exists('_nav_items_for')) {
     function _nav_items_for($role, $dashboard, $help, $alerts)
     {
+        // Shared by all three roles (v10).
+        $calendar    = ['key' => 'calendar', 'label' => 'Calendar', 'url' => 'calendar', 'icon' => 'calendar', 'section' => 'Campus'];
+        $discussions = ['key' => 'discussions', 'label' => 'Discussions', 'url' => 'discussions', 'icon' => 'chat', 'section' => 'Campus'];
+        $library     = ['key' => 'library', 'label' => 'Library', 'url' => 'library', 'icon' => 'library', 'section' => 'Campus'];
+
         switch ($role) {
             case 'admin':
                 return [
@@ -86,8 +101,10 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'admin_courses', 'label' => 'Courses', 'url' => 'admin_courses', 'icon' => 'layers', 'section' => 'Menu'],
                     ['key' => 'admin_users', 'label' => 'Lecturers', 'url' => 'admin_users/lecturers', 'icon' => 'user', 'section' => 'Menu', 'exact' => true],
                     ['key' => 'admin_results', 'label' => 'Results', 'url' => 'admin_results', 'icon' => 'award', 'section' => 'Menu'],
+                    ['key' => 'admin_attendance', 'label' => 'Attendance', 'url' => 'admin_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
                     ['key' => 'admin_announcements', 'label' => 'Announcements', 'url' => 'admin_announcements', 'icon' => 'bell', 'section' => 'Menu'],
                     $alerts,
+                    $calendar, $discussions, $library,
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
                     ['key' => 'admin_ezra', 'label' => 'Ezra (AI)', 'url' => 'admin_ezra', 'icon' => 'message', 'section' => 'System'],
                     ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
@@ -102,9 +119,11 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'lecturer_attendance', 'label' => 'Attendance', 'url' => 'lecturer_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
                     ['key' => 'lecturer_results', 'label' => 'Results', 'url' => 'lecturer_results', 'icon' => 'award', 'section' => 'Menu'],
-                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Menu', 'ezra' => true],
                     $alerts,
+                    $calendar, $discussions, $library,
+                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
                     $help,
                 ];
 
@@ -116,9 +135,11 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'student_exams', 'label' => 'Exams', 'url' => 'student_exams', 'icon' => 'clock', 'badge' => 'exams', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_results', 'label' => 'Results', 'url' => 'student_results', 'icon' => 'award', 'section' => 'Menu'],
-                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Menu', 'ezra' => true],
+                    ['key' => 'student_attendance', 'label' => 'Attendance', 'url' => 'student_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
                     $alerts,
+                    $calendar, $discussions, $library,
+                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
                     $help,
                 ];
         }
@@ -351,6 +372,9 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Export all results (CSV)', base_url('admin_results/export'), 'upload', 'Results'];
                 $items[] = ['Actions', 'Grade boundaries', base_url('admin_settings') . '#set-results', 'award', 'Settings'];
                 $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
+                $items[] = ['Actions', 'Add a college event or holiday', base_url('calendar/add'), 'calendar', 'Calendar'];
+                $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
+                $items[] = ['Actions', 'Attendance per course (CSV)', base_url('admin_attendance'), 'check-square', 'Attendance'];
                 $items[] = ['Actions', 'Ezra spending and settings', base_url('admin_ezra'), 'message', 'Ezra (AI)'];
                 break;
             case 'lecturer':
@@ -362,6 +386,10 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Mark exam scripts / release results', base_url('lecturer_exams'), 'award', 'Exams'];
                 $items[] = ['Actions', 'Publish course results', base_url('lecturer_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Change assignment / exam weighting', base_url('lecturer_results'), 'layers', 'Results'];
+                $items[] = ['Actions', 'Take the register', base_url('lecturer_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'Add a class or event to the calendar', base_url('calendar/add'), 'calendar', 'Calendar'];
+                $items[] = ['Actions', 'Start a discussion', base_url('discussions'), 'chat', 'Discussions'];
+                $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
                 break;
             default:
                 $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
@@ -374,6 +402,10 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'My course results', base_url('student_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Print my statement of results', base_url('student_results/statement'), 'file', 'Results'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
+                $items[] = ['Actions', 'See my attendance', base_url('student_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'What\'s on this month', base_url('calendar'), 'calendar', 'Calendar'];
+                $items[] = ['Actions', 'Ask a question in Discussions', base_url('discussions'), 'chat', 'Discussions'];
+                $items[] = ['Actions', 'Find a book in the library', base_url('library'), 'library', 'Library'];
                 if (ezra_offered($role)) {
                     $items[] = ['Actions', 'Ask Ezra a question (AI study assistant)', base_url('ezra'), 'message', 'Ezra'];
                 }
@@ -612,5 +644,38 @@ if (! function_exists('ezra_format')) {
         }
         $flushPara(); $flushList();
         return $html;
+    }
+}
+
+/** A forum post or event note as safe HTML: escaped, links clickable, line breaks kept. */
+if (! function_exists('post_format')) {
+    function post_format($text)
+    {
+        $html = html_escape(trim((string) $text));
+        $html = preg_replace('~(https?://[^\s<]+[^\s<.,;:!?)\]\'"])~i', '<a href="$1" target="_blank" rel="noopener nofollow">$1</a>', $html);
+        return nl2br($html, false);
+    }
+}
+
+/** 1536 -> "1.5 KB". */
+if (! function_exists('bytes_fmt')) {
+    function bytes_fmt($bytes)
+    {
+        $bytes = (int) $bytes;
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 1) . ' MB';
+        }
+        return max(1, round($bytes / 1024)) . ' KB';
+    }
+}
+
+/** CSS tone for an attendance rate: good (80%+), fair (60-79%), low, or none. */
+if (! function_exists('rate_tone')) {
+    function rate_tone($rate)
+    {
+        if ($rate === null) {
+            return 'tone-none';
+        }
+        return $rate >= 80 ? 'tone-good' : ($rate >= 60 ? 'tone-fair' : 'tone-low');
     }
 }

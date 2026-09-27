@@ -5,7 +5,8 @@
         'Explain the Trinity in simple words',
         'What is the baptism in the Holy Spirit?',
         'How do I approach my next assignment?',
-        'Explain my lecturer\'s feedback to me',
+        'What\'s on the calendar this week?',
+        'Is there a book in the library on the Holy Spirit?',
     ];
 ?>
 <div class="page-head ezra-head">

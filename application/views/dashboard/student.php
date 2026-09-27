@@ -195,3 +195,5 @@
         </div>
     </div>
 </div>
+
+<?php $this->load->view('dashboard/_campus'); ?>
