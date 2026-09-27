@@ -565,8 +565,10 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       `has_active_access` to accept `completed` for read-only access), per-assignment weights, a combined transcript
       across years, certificates. Not built.
 - [ ] Possible v10 extras (not built): iCal/Google Calendar feed, attendance tied to calendar classes or QR self check-in,
-      editing posts and attachments in Discussions, tracking borrowed physical books in the Library. **The user manuals (v1.0)
-      cover v10/v11 since v2.0**.
+      editing posts and attachments in Discussions, tracking borrowed physical books in the Library. The user manuals
+      cover v10 and v11 since manuals v2.0.
+- [ ] Possible v11 extras (not built): document expiry dates / renewal reminders, reports over time (pass-rate trends by year),
+      a map of provinces, scheduled report emails to the board.
 - [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
       (Markdown + `images/`, README with change log; v1.0 = `a56c06b`, v2.0 (v10 + v11) = `70be078`). The editing copies are Claude Docs
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
