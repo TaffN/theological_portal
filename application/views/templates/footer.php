@@ -129,5 +129,6 @@
 <script>window.TC = { base: <?= json_encode(base_url()) ?>, loggedIn: <?= $userId ? 'true' : 'false' ?> };</script>
 <script src="<?= base_url('assets/js/app.js') ?>?v=6"></script>
 <script src="<?= base_url('assets/js/qr.js') ?>?v=1"></script>
+<?php if ($userId) { $this->load->view('partials/ezra_widget'); } /* Ezra's floating chat button: signed-in pages only */ ?>
 </body>
 </html>

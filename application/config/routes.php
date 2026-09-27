@@ -64,3 +64,4 @@ $route['translate_uri_dashes'] = FALSE;
 // ID card QR codes: /verify/{token}
 $route['verify/(:any)'] = 'verify/index/$1';
 $route['results/verify/(:any)'] = 'result_verify/index/$1';
+$route['api/ezra_chat'] = 'ezra/chat';   // the floating Ezra chat widget

@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 27 September 2026 (after Portal **v11** = documents + admin reports; database migration **20**).
+Last updated: 27 September 2026 (after Portal **v12** = Ezra as a floating widget on local Ollama; database migration **20**, unchanged).
 
 ---
 
@@ -91,6 +91,7 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
 | 8 | **Campus modules** (v10): Discussions (course boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
 | 9 | **Documents + Reports** (v11): students/lecturers upload ID copies and qualifications, admins verify/reject, required documents per role; admin Reports (pass rates by province with pie + bars, grades, students by region/gender/…, attendance, fees, documents; print + CSV) | ✅ Built (v11) |
+| 10 | **Ezra widget on a local model** (v12): Ezra removed from all menus; floating green chat button on every signed-in page; `askEzra()` abstraction (`ai_provider` = local Ollama or the old Claude code); knowledge base of how-to guides in English/Shona/Ndebele with a no-AI fallback; Tip of the Day on the student dashboard (see §11) | ✅ Built (v12), on the branch, **not merged** |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -101,6 +102,7 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 **v10 (the four campus modules, migration 19)** was tested by the user and **merged into `main`** (27 Sep 2026).
 **v11 (documents + reports, migration 20)** was tested by the user and **merged into `main`** (27 Sep 2026). `main` is now at
 migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
+**v12 (Ezra floating widget + local Ollama, no migration)** is on `claude/inspiring-ramanujan-y9isjf` waiting for the user to test (needs Ollama + `ollama pull llama3.2` on the laptop for real AI answers; without it Ezra answers from its guides). The manuals' Ezra sections still describe the old Ask Ezra page: update them when v12 is merged.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -126,7 +128,8 @@ theological_portal/
 │   ├── js/app.js              (all UX behaviour, see §6)
 │   ├── js/qr.js               (QR generator, Kazuhiko Arase MIT lib bundled; TCQR.svg())
 │   ├── js/exam.js             (Stage 5 only: question editor toggle, invigilation auto-refresh, exam timer/autosave/monitoring)
-│   ├── js/ezra.js             (Ezra chat page only: fetch, typing dots, Enter to send, suggestion chips)
+│   ├── js/ezra.js             (the old Claude-mode Ezra chat page only)
+│   ├── js/ezra-widget.js      (v12 floating Ezra widget: open/close, fetch api/ezra_chat, typing dots, chat kept in localStorage `ezra-chat-{userId}`, open state in sessionStorage)
 │   (the attendance register's "All present" + live count is a small inline script in attendance/take.php)
 │   ├── img/                   (favicon.svg, icon-192/512.png, apple-touch-icon.png)
 │   └── manifest.json          (PWA "Add to Home screen")
@@ -139,7 +142,8 @@ theological_portal/
 │   ├── library/    (college library files; deny; served by Library/open after the access check)
 │   └── documents/  (ID copies/qualifications; deny; served by Documents/file to the owner or an admin)
 └── application/
-    ├── config/     autoload, config, database, migration (version 18), routes, ezra.sample.php (→ copy to git-ignored ezra.php with the API key),
+    ├── config/     autoload, config, database, migration (version 20), routes, ai_config.php (v12: ai_provider local|claude, ai_model, ai_endpoint, ai_timeout),
+    │               ezra.sample.php (→ copy to git-ignored ezra.php with the API key, Claude mode only),
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
     ├── core/
     │   ├── MY_Controller.php        Auth_Controller (+ _send_file, _store_upload), Admin_/Lecturer_/Student_Controller
@@ -153,13 +157,14 @@ theological_portal/
     │                 Result_model (weighting, calculation, grades, publishing, statement tokens),
     │                 Discussion_model, Calendar_model (events + auto items), Library_model, Attendance_model (registers, rates),
     │                 Document_model (types, checklist, missing, queue), Report_model (pass rates, grades, students_by, fees, documents)
-    ├── libraries/    Audit.php, Notifier.php, Settings.php, Ezra_ai.php (Claude API over cURL, context, limits, cost)
+    ├── libraries/    Audit.php, Notifier.php, Settings.php, Ezra_ai.php (Claude API over cURL, context, limits, cost),
+    │                 Ai_provider.php (v12: askEzra() → Ollama or Ezra_ai), Ezra_knowledge.php (v12: guides per role in en/sn/nd, Bible notes, tips, language detection, fallback)
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
     ├── migrations/   001–020 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
-        ├── partials/   id_card.php, result_breakdown.php
+        ├── partials/   id_card.php, result_breakdown.php, ezra_widget.php (v12, loaded by footer.php when signed in)
         ├── dashboard/  admin, student, lecturer, _announcements, _checklist, _campus (v10: coming up + discussions)
         ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
         │               announcements, errors, error_view, audit, settings, results, results_course, ezra
@@ -207,8 +212,8 @@ theological_portal/
 | `Lecturer_results` | Lecturer_Controller | `index`, `course/{id}` (weighting + everyone's calculated result + remarks), POST `weights/{course}`, `publish/{course}` (ticked students), `withdraw/{result}` |
 | `Student_results` | Student_Controller | `index` (published results with breakdown), `statement` (printable, QR) |
 | `Admin_results` | Admin_Controller | `index` (per-course overview), `course/{id}`, `export[/{course}]` (CSV) |
-| `Ezra` | Auth_Controller (role must be in `ezra_roles`) | `index` (chat, current conversation, pause reason), POST `ask` (JSON: `{ok,status,html,left}`), POST `new_thread`. Note: the controller is `Ezra`, so the library is **`Ezra_ai`** (same class name would clash) |
-| `Admin_ezra` | Admin_Controller | `index` (spend vs cap, 6-month chart, most active by count only, settings form), POST `save`, `test` (tiny API call), `purge` |
+| `Ezra` | Auth_Controller (all roles) | v12: POST `chat` (route **`api/ezra_chat`**; JSON body `{message, history}` or form `message`; returns `{reply, html, status}` with status ok\|guide\|paused\|busy\|refused). Claude mode only (`ai_provider = 'claude'`, else redirect to the dashboard): `index` (the old chat page), POST `ask`, POST `new_thread`. Note: the controller is `Ezra`, so the library is **`Ezra_ai`** (same class name would clash) |
+| `Admin_ezra` | Admin_Controller (no menu item since v12; reach it by URL when using Claude) | `index` (spend vs cap, 6-month chart, most active by count only, settings form), POST `save`, `test` (tiny API call), `purge` |
 | `Discussions` | Auth_Controller (all roles) | `index` (?board=general\|{course}, ?q=), POST `create`, `view/{id}`, POST `reply/{id}`, `delete/{id}`, `delete_reply/{reply}`, `pin/{id}`, `lock/{id}`. Students: General (once ≥1 paid-up course) + paid-up courses; lecturers moderate their courses + General; admins everything. Topic by staff → notify_course; by student → course lecturers; reply → all participants |
 | `Calendar` | Auth_Controller (all roles) | `index` (?m=YYYY-MM), `add` (?date=), `edit/{id}`, POST `save[/{id}]`, `delete/{id}`. Lecturers: events on their courses; admins: any course or whole college (course_id NULL). New/moved course events notify students |
 | `Library` | Auth_Controller (all roles) | `index` (?q=, ?category=, ?course=), POST `upload` (staff; file ≤ 20 MB and/or link), `open/{id}` (counts downloads; file or redirect), POST `delete/{id}` (uploader or admin). Students need ≥1 paid-up course |
@@ -235,7 +240,7 @@ theological_portal/
 | `Lecturer_dashboard`, `Welcome` | legacy | unused leftovers, safe to delete |
 
 Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcuts, `verify/(:any) → verify/index/$1`,
-`results/verify/(:any) → result_verify/index/$1`.
+`results/verify/(:any) → result_verify/index/$1`, `api/ezra_chat → ezra/chat`.
 
 ---
 
@@ -269,7 +274,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - **Menus** are defined once in `nav_items($role)` (`ui_helper`). Fields: `key, label, url, icon, section,
   mobile` (shown in phone bottom bar), `badge`, `exact` (for controllers shared by two pages),
   `soon` (greyed "coming soon"). No `soon` items remain since v8 (Results is live for all three roles).
-  Items with `'ezra' => true` ("Ask Ezra") are filtered out unless `ezra_offered($role)` (table exists, `ezra_enabled`, role in `ezra_roles`).
+  Items with `'ezra' => true` are filtered out unless `ezra_offered($role)`. **Since v12 there are no Ezra menu or palette items** ("Ask Ezra" and admin "Ezra (AI)" were removed at the user's request); Ezra is the floating widget. The filter is kept for a possible return.
   Since v10 the menus are built in `_nav_items_for()` and have a **Campus** section (Calendar, Discussions, Library, + Ask Ezra) for every role;
   Attendance sits in each role's Menu section. Shared-module access goes through `Course_model::for_user / ids_for_user / user_can_see /
   user_can_manage($courseId, $userId, $role)` (student = active enrollments, lecturer = assigned, admin = all).
@@ -310,7 +315,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
 ### Cache busting
-- CSS/JS links carry a version: `app.css?v=10` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
+- CSS/JS links carry a version: `app.css?v=11` (header + both verify pages), `app.js?v=6` (footer), `ezra-widget.js?v=1` (partials/ezra_widget.php), `exam.js?v=2`, `ezra.js?v=1`
   (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
   (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
 
@@ -319,6 +324,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   (`--surface-0..3`, `--text-1..3`, `--border`, `--accent`, `--soft-*-bg/fg`, chart `--c0..c7`).
   **Never hard-code colours in new components**, or dark mode breaks.
 - Brand: navy `#1F3864` + gold `#C9A227` (matches the client report).
+- Exception (v12, the user's explicit spec): the Ezra widget and the Tip of the Day card are **always dark** (#1a1d23 / #22262f / #2a2f3a, green #10b981→#059669). The widget's colours are scoped tokens on `.ezw` (`--ezw-*`), not theme tokens. Hidden under `.exam-mode` and in print.
 - Charts are **server-rendered SVG** (no JS chart library) so they work offline and re-colour with the theme.
 - Mobile-first: sidebar on desktop (collapsible to an icon rail), floating bottom tab bar on phones.
 
@@ -471,6 +477,8 @@ breakdown) and a printable **statement of results** (letterhead, student details
 average, last published), per-course list, CSV export; grade boundaries + statement note under **Settings → Results**
 (kept in order: Distinction ≥ Merit ≥ Pass).
 
+**Ezra (v12):** a green floating chat button (bottom right, above the phone tab bar) on every signed-in page for all roles, answering from a local Ollama model plus built-in how-to guides (works without the model); students' dashboard has an **Ezra tip of the day** card instead of the Ask Ezra card. The v9 description below applies in Claude mode.
+
 **Ezra (v9):** students get **Ask Ezra** (sidebar + "More" on phones, dashboard card, Ctrl+K). A chat page: greeting, suggestion
 chips, answers formatted (bold, lists, headings; everything escaped first), typing dots, questions left today, "New
 conversation". Ezra knows the student's courses, lecturers, recent material titles, assignments (due, status, marks, feedback),
@@ -579,7 +587,33 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 
 ---
 
-## 11. Ezra (AI assistant), built in v9
+## 11. Ezra (AI assistant), built in v9, turned into a floating widget in v12
+
+**v12 (the user sidelined the paid Claude API while the college tests the portal):**
+- `config/ai_config.php`: `ai_provider` = `'local'` (default) or `'claude'`; `ai_model` = `'llama3.2'` (the user also named `lugha-llama`,
+  which isn't in Ollama's library and must be imported from a GGUF first, so it's a commented option); `ai_endpoint` =
+  `http://localhost:11434/api/generate`; `ai_timeout` 120. The user asked for PHP constants; it's a CI config array (same idea, CI style).
+- `Ai_provider::askEzra($prompt, $user, $question)`: local → Ollama `{model, prompt, stream:false, options:{temperature 0.3, num_ctx 4096,
+  num_predict 500}}`, reads `response`; errors `offline` (connect fails, 3 s connect timeout), `no_model` (404 / "not found"), `failed`.
+  Claude → `Ezra_ai::availability()` + `Ezra_ai::ask()` exactly as in v9 (cap, daily limit, stored history, costs). Nothing Claude was deleted.
+- `Ezra::chat()` (`api/ezra_chat`): any signed-in role; refuses during a student's exam attempt (`Ezra_ai::exam_in_progress`); one question at
+  a time (`ezra_busy`, session released during the call). Local prompt = "You are Ezra, theological college helper…" + role ("steps that apply
+  to a student/lecturer/administrator") + answer language + short statement of faith (whole lines ≤ 700 chars) + `Knowledge:` (matching guides,
+  in English and the user's language, a Bible note, list of other guides) + the user's own context (`student_context`/`lecturer_context`,
+  ≤ 2500 chars; none for admins) + last 6 turns sent by the widget + `Question: …\nEzra:`. If the AI fails → `Ezra_knowledge::fallback()`
+  (best guide / Bible note / list of topics; status `guide`); admins also get a hint (Ollama not running / `ollama pull <model>`).
+- Role comes from the session `role` (set at login). Language: `detect_language()` scores Shona/Ndebele marker words + prefixes (needs ≥ 3).
+  The Shona/Ndebele guide text is simple and **should be checked by a native speaker** (told to the user).
+- Guides (`Ezra_knowledge::$guides`, 16): pay (student), approve payments (admin), enrol, check marks, hand in, set an assignment (lecturer),
+  create an exam (lecturer), how exams are created (admin: lecturers write them; assign a lecturer first), write an exam, upload ID/documents
+  (student + lecturer), verify documents (admin), results/statement, take attendance (lecturer), my attendance, calendar, password.
+  Plus `$bible` notes (Romans 8, John 3, Psalm 23, Ephesians 2, Matthew 28, Acts 2) and 14 `$tips`; `tip_of_the_day()` = date-seeded random.
+- Widget chips: 📅 Exams ("When are my exams, and how do I write one?"), 🪪 Upload ID, 📖 Romans 8 (fill the input and send).
+- Sandbox test: a fake Ollama (`php -S 127.0.0.1:8091` returning `{"response": …}` and saving the request) and a throwaway
+  `application/config/testing/ai_config.php` (CI loads `config/<ENVIRONMENT>/` after the base file and it overrides; the router sets `testing`)
+  with `ai_endpoint` / `ai_provider` overrides. Delete it afterwards.
+
+### The v9 Claude design (still used when `ai_provider = 'claude'`)
 
 **Decisions:** the Center is Pentecostal, under the Assemblies of God → default statement of faith = summary of the AG
 16 Fundamental Truths (editable on the admin page; the Center should check it against its own). Students first

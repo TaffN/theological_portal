@@ -44,6 +44,8 @@ if (! function_exists('icon')) {
             'image'   => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
             'message' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
             'send'    => '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+            'bulb'    => '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/>',
+            'arrow-up' => '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
             'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
             'library' => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
             'chat'    => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
@@ -109,7 +111,6 @@ if (! function_exists('_nav_items_for')) {
                     $alerts,
                     $calendar, $discussions, $library,
                     ['key' => 'admin_errors', 'label' => 'Error reports', 'url' => 'admin_errors', 'icon' => 'alert', 'badge' => 'errors', 'section' => 'System'],
-                    ['key' => 'admin_ezra', 'label' => 'Ezra (AI)', 'url' => 'admin_ezra', 'icon' => 'message', 'section' => 'System'],
                     ['key' => 'admin_audit', 'label' => 'Audit trail', 'url' => 'admin_audit', 'icon' => 'shield', 'section' => 'System'],
                     ['key' => 'admin_settings', 'label' => 'Settings', 'url' => 'admin_settings', 'icon' => 'layers', 'section' => 'System'],
                     ['key' => 'admin_users', 'label' => 'Administrators', 'url' => 'admin_users/admins', 'icon' => 'lock', 'section' => 'System', 'exact' => true],
@@ -127,7 +128,6 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'documents', 'label' => 'My documents', 'url' => 'documents', 'icon' => 'file', 'badge' => 'docs_todo', 'section' => 'Menu'],
                     $alerts,
                     $calendar, $discussions, $library,
-                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
                     $help,
                 ];
 
@@ -144,7 +144,6 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'documents', 'label' => 'My documents', 'url' => 'documents', 'icon' => 'file', 'badge' => 'docs_todo', 'section' => 'Menu'],
                     $alerts,
                     $calendar, $discussions, $library,
-                    ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
                     $help,
                 ];
         }
@@ -396,7 +395,6 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Students by province / gender', base_url('admin_reports/students'), 'chart', 'Reports'];
                 $items[] = ['Actions', 'Grades report', base_url('admin_reports/grades'), 'chart', 'Reports'];
                 $items[] = ['Actions', 'Fees report', base_url('admin_reports/fees'), 'chart', 'Reports'];
-                $items[] = ['Actions', 'Ezra spending and settings', base_url('admin_ezra'), 'message', 'Ezra (AI)'];
                 break;
             case 'lecturer':
                 $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
@@ -429,9 +427,6 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'What\'s on this month', base_url('calendar'), 'calendar', 'Calendar'];
                 $items[] = ['Actions', 'Ask a question in Discussions', base_url('discussions'), 'chat', 'Discussions'];
                 $items[] = ['Actions', 'Find a book in the library', base_url('library'), 'library', 'Library'];
-                if (ezra_offered($role)) {
-                    $items[] = ['Actions', 'Ask Ezra a question (AI study assistant)', base_url('ezra'), 'message', 'Ezra'];
-                }
         }
 
         $items[] = ['Account', 'My profile', base_url('profile'), 'user', ''];

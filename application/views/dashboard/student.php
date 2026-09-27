@@ -12,21 +12,18 @@
     </div>
 </div>
 
+<?php $CI =& get_instance(); $CI->load->library('ezra_knowledge'); ?>
+<div class="ezra-tip mb-4">
+    <span class="ezra-tip-icon" aria-hidden="true"><?= icon('bulb', 22) ?></span>
+    <div class="min-w-0">
+        <div class="ezra-tip-kicker">Ezra tip of the day</div>
+        <div class="ezra-tip-text"><?= ezra_format($CI->ezra_knowledge->tip_of_the_day()) ?></div>
+    </div>
+</div>
+
 <?php $this->load->view('dashboard/_announcements'); ?>
 <?php $this->load->view('dashboard/_checklist', ['heading' => 'Getting started']); ?>
 
-<?php if (ezra_offered('student')): ?>
-    <a href="<?= base_url('ezra') ?>" class="card stat-link mb-4 text-reset text-decoration-none">
-        <div class="card-body ezra-dash">
-            <span class="ezra-avatar" aria-hidden="true">E</span>
-            <div class="flex-grow-1 min-w-0">
-                <div class="fw-bold">Ask Ezra, your study assistant</div>
-                <small class="text-muted">Stuck on a Bible passage, a doctrine or what's due next? Ezra knows your courses and deadlines.</small>
-            </div>
-            <span class="btn btn-primary btn-sm d-none d-sm-inline-flex"><?= icon('message', 16) ?> Ask a question</span>
-        </div>
-    </a>
-<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
