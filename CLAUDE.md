@@ -91,7 +91,7 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
 | 8 | **Campus modules** (v10): Discussions (course boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
 | 9 | **Documents + Reports** (v11): students/lecturers upload ID copies and qualifications, admins verify/reject, required documents per role; admin Reports (pass rates by province with pie + bars, grades, students by region/gender/…, attendance, fees, documents; print + CSV) | ✅ Built (v11) |
-| 10 | **Ezra widget on a local model** (v12): Ezra removed from all menus; floating green chat button on every signed-in page; `askEzra()` abstraction (`ai_provider` = local Ollama or the old Claude code); knowledge base of how-to guides in English/Shona/Ndebele with a no-AI fallback; Tip of the Day on the student dashboard (see §11) | ✅ Built (v12), on the branch, **not merged** |
+| 10 | **Ezra widget on a local model** (v12): Ezra removed from all menus; floating green chat button on every signed-in page; `askEzra()` abstraction (`ai_provider` = local Ollama or the old Claude code); knowledge base of how-to guides in English/Shona/Ndebele with a no-AI fallback; Tip of the Day on the student dashboard (see §11) | ✅ Built (v12), merged |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -102,7 +102,7 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 **v10 (the four campus modules, migration 19)** was tested by the user and **merged into `main`** (27 Sep 2026).
 **v11 (documents + reports, migration 20)** was tested by the user and **merged into `main`** (27 Sep 2026). `main` is now at
 migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
-**v12 (Ezra floating widget + local Ollama, no migration)** is on `claude/inspiring-ramanujan-y9isjf` waiting for the user to test (needs Ollama + `ollama pull llama3.2` on the laptop for real AI answers; without it Ezra answers from its guides). The manuals' Ezra sections still describe the old Ask Ezra page: update them when v12 is merged.
+**v12 (Ezra floating widget + local Ollama, no migration)** was tested by the user (without Ollama, guides only) and **merged into `main`** (27 Sep 2026). Laptop: `git checkout main` → `git pull origin main` (no `/migrate`). Real AI answers need Ollama + `ollama pull llama3.2` (the user will install it on WiFi). **To do:** the manuals' Ezra sections still describe the old Ask Ezra page; update them (manuals v2.1) on `docs/user-manuals`. Lesson from v12 testing: the user's laptop already had the branch from earlier rounds, so `git checkout` alone gave them old code; always include `git pull origin <branch>` in test steps.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
