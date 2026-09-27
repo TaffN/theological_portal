@@ -1,0 +1,33 @@
+[Sun Sep 27 04:18:31 2026] PHP 8.4.19 Development Server (http://127.0.0.1:8080) started
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37020 Accepted
+[Sun Sep 27 04:18:32 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37020 Closing
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37024 Accepted
+[Sun Sep 27 04:18:32 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37024 Closing
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37030 Accepted
+[Sun Sep 27 04:18:32 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37030 Closing
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37036 Accepted
+[Sun Sep 27 04:18:32 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37036 Closing
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37044 Accepted
+[Sun Sep 27 04:18:32 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:32 2026] 127.0.0.1:37044 Closing
+[Sun Sep 27 04:18:49 2026] 127.0.0.1:32806 Accepted
+[Sun Sep 27 04:18:49 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:49 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:49 2026] 127.0.0.1:32806 Closing
+[Sun Sep 27 04:18:49 2026] 127.0.0.1:32810 Accepted
+[Sun Sep 27 04:18:49 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:49 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:49 2026] 127.0.0.1:32810 Closing
+[Sun Sep 27 04:18:55 2026] 127.0.0.1:32822 Accepted
+[Sun Sep 27 04:18:55 2026] PHP Warning:  Unknown: Failed to open stream: No such file or directory in Unknown on line 0
+[Sun Sep 27 04:18:55 2026] PHP Fatal error:  Failed opening required '/home/user/theological_portal/router.php' (include_path='.:/usr/share/php') in Unknown on line 0
+[Sun Sep 27 04:18:55 2026] 127.0.0.1:32822 Closing

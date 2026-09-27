@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 27 September 2026 (after Portal **v10** = discussions, calendar, library, attendance; database migration **19**).
+Last updated: 27 September 2026 (after Portal **v11** = documents + admin reports; database migration **20**).
 
 ---
 
@@ -90,6 +90,7 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 6 | **Results**: per-course weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
 | 8 | **Campus modules** (v10): Discussions (course boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
+| 9 | **Documents + Reports** (v11): students/lecturers upload ID copies and qualifications, admins verify/reject, required documents per role; admin Reports (pass rates by province with pie + bars, grades, students by region/gender/…, attendance, fees, documents; print + CSV) | ✅ Built (v11) |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -97,8 +98,9 @@ at the user's request). The laptop still has to pull `main`, back up the DB and 
 For Ezra they also need an Anthropic API key in `application/config/ezra.php` (see §11); without it Ezra says
 "being set up" and everything else works. Laptop steps: `git checkout main` → `git pull origin main` → back up DB →
 `/migrate` (→ 18) → test. New work goes on a fresh branch again.
-**v10 (the four campus modules, migration 19)** is on branch `claude/inspiring-ramanujan-y9isjf` (restarted from `main`), waiting for the
-user to test: checkout + pull the branch → back up DB → `/migrate` (→ 19) → test → merge into `main`.
+**v10 (the four campus modules, migration 19)** was tested by the user and **merged into `main`** (27 Sep 2026).
+**v11 (documents + reports, migration 20)** is on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test:
+checkout + pull the branch → back up DB → `/migrate` (→ 20) → test → merge into `main`. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -134,7 +136,8 @@ theological_portal/
 │   ├── assignments/ (lecturer question papers; denied, served by the assignments controllers)
 │   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
 │   ├── photos/     (profile photos; .htaccess deny; served by Photo controller)
-│   └── library/    (college library files; deny; served by Library/open after the access check)
+│   ├── library/    (college library files; deny; served by Library/open after the access check)
+│   └── documents/  (ID copies/qualifications; deny; served by Documents/file to the owner or an admin)
 └── application/
     ├── config/     autoload, config, database, migration (version 18), routes, ezra.sample.php (→ copy to git-ignored ezra.php with the API key),
     │               email.php (SMTP, off by default), portal.php (legacy; replaced by settings table)
@@ -148,11 +151,12 @@ theological_portal/
     │                 Error_model, Receipt_model, Assignment_model (assignments + submissions),
     │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity),
     │                 Result_model (weighting, calculation, grades, publishing, statement tokens),
-    │                 Discussion_model, Calendar_model (events + auto items), Library_model, Attendance_model (registers, rates)
+    │                 Discussion_model, Calendar_model (events + auto items), Library_model, Attendance_model (registers, rates),
+    │                 Document_model (types, checklist, missing, queue), Report_model (pass rates, grades, students_by, fees, documents)
     ├── libraries/    Audit.php, Notifier.php, Settings.php, Ezra_ai.php (Claude API over cURL, context, limits, cost)
     ├── helpers/      ui_helper.php (icons, nav, badges, avatars, settings, time_ago...),
     │                 chart_helper.php (server-side SVG bar + donut charts)
-    ├── migrations/   001–019 (see §7)
+    ├── migrations/   001–020 (see §7)
     └── views/
         ├── templates/  header.php, footer.php   (the whole app shell)
         ├── partials/   id_card.php, result_breakdown.php
@@ -175,6 +179,9 @@ theological_portal/
         ├── calendar/   index (month grid + day-by-day list), form (add/edit event)
         ├── library/    index (categories, search, add form, cards)
         ├── attendance/ lecturer_index, course (shared with admin), take (register), student, admin_index
+        ├── documents/  index (My documents: required checklist, upload, list)
+        ├── admin/reports/ _nav (tabs + print/CSV), _filters, index, pass_rates, grades, students, attendance, fees, documents
+        │   (+ admin/documents.php review queue, partials/user_documents.php on the admin user card)
         ├── verify/     index (ID card), results (statement of results)   (standalone public pages, no app shell)
         ├── auth/       login, register
         └── errors/html/ _portal_error (shared branded page), error_404, error_general, error_db,
@@ -208,6 +215,9 @@ theological_portal/
 | `Lecturer_attendance` | Lecturer_Controller | `index`, `course/{id}`, `take/{course}[/{session}]` (GET form, POST save), POST `delete/{session}`; `is_assigned()` |
 | `Student_attendance` | Student_Controller | `index` (rate + every mark per paid-up course) |
 | `Admin_attendance` | Admin_Controller | `index` (per course), `course/{id}` (read-only), `export/{course}` (CSV) |
+| `Documents` | Auth_Controller | `index` (My documents; admins → admin_documents), POST `upload` (pdf/jpg/png ≤ 5 MB; notifies admins), `file/{id}` (owner or admin; admin opens are audited), POST `delete/{id}` (owner unless verified; admins any) |
+| `Admin_documents` | Admin_Controller | `index` (?tab=pending\|verified\|rejected\|missing, ?role=, ?q=), POST `review/{id}` (action=verify\|reject, note required to reject, back=card), POST `required` (settings `docs_required_student/lecturer`) |
+| `Admin_reports` | Admin_Controller | `index`, `pass_rates` (?by=province\|gender\|city\|denomination\|education_level\|ministry_role, ?course=, ?year=), `grades`, `students` (?by, ?course, ?scope=enrolled\|all), `attendance`, `fees` (?year), `documents`, `export/{report}` (CSV, same filters) |
 | `Result_verify` | CI_Controller (public) | `/results/verify/{token}` (route): the statement's QR page, lists currently published results |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
@@ -273,7 +283,11 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - Helpers: `icon($name, $size)` (inline SVG, Feather style), `avatar_html(...)`, `money()`, `time_ago()`,
   `greeting()`, `initials()`, `receipt_no()`, `wa_link($phone, $text)` (normalises `07…` → `2637…`),
   `status_badge()`, `svg_bar_chart()`, `svg_donut_chart()`, v10: `post_format()` (escape + clickable links + line breaks),
-  `bytes_fmt()`, `rate_tone()` (attendance colour class). New icons: calendar, library, chat, check-square, pin, download, link, map-pin, headphones, video.
+  `bytes_fmt()`, `rate_tone()` (attendance colour class). New icons: calendar, library, chat, check-square, pin, download, link, map-pin, headphones, video, chart.
+  v11: `svg_pie_chart($labels, $values, ['legend' => [...html]])` (solid pie, % on slices ≥ 6%, stacked legend); palette now 11 colours (`--c0..c10`).
+  Badges `documents` (admin: pending) and `docs_todo` (student/lecturer: required documents missing or rejected).
+- **CodeIgniter gotcha (bit us in v11):** `where('YEAR(x)', $v, false)` with escaping off does **not** add `=`; write `where('YEAR(x) =', $v, false)`.
+  `Error_model::record()` now calls `reset_query()` first, because a half-built failed query otherwise leaked into the error logger's own query.
 
 ### Private files
 - Save uploads with `$this->_store_upload($field, $folder, $types, $maxKb, $error)` (Auth_Controller): returns
@@ -296,7 +310,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `data-print-card`, `data-id-flip`, `data-qr="text"`, `data-dropzone`, `data-strength`, `data-announcement`.
 
 ### Cache busting
-- CSS/JS links carry a version: `app.css?v=9` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
+- CSS/JS links carry a version: `app.css?v=10` (header + both verify pages), `app.js?v=6` (footer), `exam.js?v=2`, `ezra.js?v=1`
   (the three exam views). **Bump the number whenever you change the file**, or browsers keep the old copy
   (v6/v7 forgot to, so the laptop may have run stale CSS/JS until v7.1).
 
@@ -319,7 +333,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 
 ---
 
-## 7. Database (migration 19)
+## 7. Database (migration 20)
 
 | Table | Key columns / notes |
 |---|---|
@@ -352,7 +366,8 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `library_files` | title, author, category (Books, Articles, Commentaries, Sermons, Theses, Audio, Video, Other), description, course_id (optional "recommended for", SET NULL), file_path/original_name/file_size and/or external_link, downloads, uploaded_by |
 | `attendance_sessions` | course_id, session_date, topic, taken_by (one register) |
 | `attendance` | session_id + student_id (**unique**), status enum(present, late, absent, excused), note, marked_at. Rate = (present + late) / (present + late + absent) |
-| `migrations` | version = 19 |
+| `user_documents` | user_id (FK cascade), doc_type (national_id, passport, birth_certificate, qualification, transcript, ordination, reference, other), title, file_path, original_name, file_size, status enum(pending, verified, rejected), review_note, reviewed_by/at, uploaded_at |
+| `migrations` | version = 20 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
@@ -364,9 +379,10 @@ users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `gra
 018 ezra_messages + settings `ezra_enabled` (1), `ezra_roles` (student), `ezra_monthly_cap_usd` (50), `ezra_daily_limit` (25),
 `ezra_model` (claude-opus-5), `ezra_effort` (low), `ezra_bible_version` (NKJV), `ezra_retention_days` (365), `ezra_warned_month`,
 `ezra_statement_of_faith` (AG 16 Fundamental Truths summary) (+ appends an Ezra paragraph to `privacy_notice`). `ezra_purged_on` is created on first use ·
-019 discussions, discussion_replies, calendar_events, library_files, attendance_sessions, attendance (also `epub` added to config/mimes.php).
+019 discussions, discussion_replies, calendar_events, library_files, attendance_sessions, attendance (also `epub` added to config/mimes.php) ·
+020 user_documents + settings `docs_required_student` (national_id), `docs_required_lecturer` (national_id,qualification) (+ privacy_notice paragraph).
 
-**The next schema change is migration 020.**
+**The next schema change is migration 021.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -471,6 +487,14 @@ search, download counter. **Attendance**: lecturer register (everyone starts pre
 correct or delete later), per-student rate with a WhatsApp check-in button under 75%; students see their rate and every mark; admins see every
 course and export CSV. Student and lecturer dashboards get a **Coming up** + **Latest discussions / Questions waiting for a reply** row.
 
+**Documents + Reports (v11):** students and lecturers: **My documents** (menu badge when something required is missing) with a checklist of
+what the Center requires, upload a photo/scan, see Verified / Waiting / Not accepted (+ reason), remove unverified copies. Admins: **Documents**
+review queue (image previews, Verify / Reject with reason, tabs Verified/Rejected/Missing with WhatsApp Remind, required documents per role),
+and a Documents card on each user card. **Reports** (admin): overview KPIs; pass rates grouped by province (or gender, city, denomination,
+education, ministry role) with a pie of where passes come from + pass-rate bars + table; grades (donut + per-course bars/table); students by
+profile field (pie + table); attendance per course; fees per month/course; documents. Filters by course and year; Print/PDF and CSV on every report.
+Pass = published result with grade ≠ Fail; region comes from `user_profiles.province` ("Not given" when blank).
+
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
 internal broken links (404s with an internal referer only, to ignore bots), and JavaScript errors
 (beacon to `support/js`, capped per page/session). Repeats are grouped by fingerprint; resolved errors
@@ -542,7 +566,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       across years, certificates. Not built.
 - [ ] Possible v10 extras (not built): iCal/Google Calendar feed, attendance tied to calendar classes or QR self check-in,
       editing posts and attachments in Discussions, tracking borrowed physical books in the Library. **The user manuals (v1.0)
-      don't cover the four v10 modules yet**: add them (manuals v2.0) once v10 is tested.
+      don't cover v10/v11 yet**: manuals v2.0 add them.
 - [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
       (Markdown + `images/`, README with change log; v1.0 = commit `a56c06b`). The editing copies are Claude Docs
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
@@ -590,7 +614,8 @@ admin **Ezra (AI)** page → **Test connection**. PHP's cURL extension must be o
 **v10 knowledge:** `instructions()` now ends with `portal_guide()`: how every page works (incl. the four campus modules) + the **library
 catalogue** (80 newest items, shared, so it's cached). Each user's context adds, per course, attendance (student: rate + recent absences;
 lecturer: registers + students under 75%) and recent discussion topics, then the next 30 days of calendar events (multi-day events once, "until"),
-the General board, the user's own topics and (lecturers) unanswered questions.
+the General board, the user's own topics and (lecturers) unanswered questions. v11: the guide explains My documents, and the context lists
+the user's required documents with their state and any rejection reasons.
 
 **Possible next steps (not built):** streaming answers, Ezra for lecturers by default, letting Ezra read material
 *contents* (PDF text) rather than titles, a per-course "ask about this material" button, Shona/Ndebele UI text.

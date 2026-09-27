@@ -76,6 +76,8 @@
     </div>
 </div>
 
+<?php $this->load->view('partials/user_documents'); ?>
+
 <div class="card no-print" id="details">
     <div class="card-body">
         <div class="card-head">

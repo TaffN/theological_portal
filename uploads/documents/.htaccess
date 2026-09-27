@@ -1,0 +1,7 @@
+# Only served through the Documents controller, which checks who is asking.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

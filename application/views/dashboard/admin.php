@@ -181,7 +181,7 @@
 
 <?php
     $actIcons = ['auth' => ['user', 'bg-soft-navy'], 'payment' => ['card', 'bg-soft-green'], 'course' => ['book', 'bg-soft-blue'],
-                 'material' => ['file', 'bg-soft-gold'], 'assignment' => ['edit', 'bg-soft-gold'], 'submission' => ['upload', 'bg-soft-blue'], 'exam' => ['clock', 'bg-soft-gold'], 'attempt' => ['clock', 'bg-soft-blue'], 'result' => ['award', 'bg-soft-green'], 'grading' => ['layers', 'bg-soft-gold'], 'ezra' => ['message', 'bg-soft-blue'], 'discussion' => ['chat', 'bg-soft-blue'], 'calendar' => ['calendar', 'bg-soft-gold'], 'library' => ['library', 'bg-soft-navy'], 'attendance' => ['check-square', 'bg-soft-green'], 'user' => ['users', 'bg-soft-navy'], 'enrollment' => ['book', 'bg-soft-green'],
+                 'material' => ['file', 'bg-soft-gold'], 'assignment' => ['edit', 'bg-soft-gold'], 'submission' => ['upload', 'bg-soft-blue'], 'exam' => ['clock', 'bg-soft-gold'], 'attempt' => ['clock', 'bg-soft-blue'], 'result' => ['award', 'bg-soft-green'], 'grading' => ['layers', 'bg-soft-gold'], 'ezra' => ['message', 'bg-soft-blue'], 'discussion' => ['chat', 'bg-soft-blue'], 'calendar' => ['calendar', 'bg-soft-gold'], 'library' => ['library', 'bg-soft-navy'], 'attendance' => ['check-square', 'bg-soft-green'], 'document' => ['file', 'bg-soft-blue'], 'report' => ['chart', 'bg-soft-navy'], 'user' => ['users', 'bg-soft-navy'], 'enrollment' => ['book', 'bg-soft-green'],
                  'announcement' => ['bell', 'bg-soft-gold'], 'support' => ['alert', 'bg-soft-red'], 'error' => ['alert', 'bg-soft-red']];
 ?>
 <div class="row g-3 mt-1">

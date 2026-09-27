@@ -53,6 +53,7 @@ if (! function_exists('icon')) {
             'link'    => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
             'map-pin' => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
             'headphones' => '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+            'chart'   => '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
             'video'   => '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
         ];
 
@@ -102,6 +103,8 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'admin_users', 'label' => 'Lecturers', 'url' => 'admin_users/lecturers', 'icon' => 'user', 'section' => 'Menu', 'exact' => true],
                     ['key' => 'admin_results', 'label' => 'Results', 'url' => 'admin_results', 'icon' => 'award', 'section' => 'Menu'],
                     ['key' => 'admin_attendance', 'label' => 'Attendance', 'url' => 'admin_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
+                    ['key' => 'admin_documents', 'label' => 'Documents', 'url' => 'admin_documents', 'icon' => 'file', 'badge' => 'documents', 'section' => 'Menu'],
+                    ['key' => 'admin_reports', 'label' => 'Reports', 'url' => 'admin_reports', 'icon' => 'chart', 'section' => 'Menu'],
                     ['key' => 'admin_announcements', 'label' => 'Announcements', 'url' => 'admin_announcements', 'icon' => 'bell', 'section' => 'Menu'],
                     $alerts,
                     $calendar, $discussions, $library,
@@ -121,6 +124,7 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_attendance', 'label' => 'Attendance', 'url' => 'lecturer_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
                     ['key' => 'lecturer_results', 'label' => 'Results', 'url' => 'lecturer_results', 'icon' => 'award', 'section' => 'Menu'],
+                    ['key' => 'documents', 'label' => 'My documents', 'url' => 'documents', 'icon' => 'file', 'badge' => 'docs_todo', 'section' => 'Menu'],
                     $alerts,
                     $calendar, $discussions, $library,
                     ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
@@ -137,6 +141,7 @@ if (! function_exists('_nav_items_for')) {
                     ['key' => 'student_results', 'label' => 'Results', 'url' => 'student_results', 'icon' => 'award', 'section' => 'Menu'],
                     ['key' => 'student_attendance', 'label' => 'Attendance', 'url' => 'student_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
                     ['key' => 'payments', 'label' => 'Payments', 'url' => 'payments', 'icon' => 'card', 'section' => 'Menu'],
+                    ['key' => 'documents', 'label' => 'My documents', 'url' => 'documents', 'icon' => 'file', 'badge' => 'docs_todo', 'section' => 'Menu'],
                     $alerts,
                     $calendar, $discussions, $library,
                     ['key' => 'ezra', 'label' => 'Ask Ezra', 'url' => 'ezra', 'icon' => 'message', 'section' => 'Campus', 'ezra' => true],
@@ -170,6 +175,8 @@ if (! function_exists('status_badge')) {
             'pending'         => ['Pending', 'pill-warning'],
             'approved'        => ['Approved', 'pill-success'],
             'rejected'        => ['Rejected', 'pill-danger'],
+            'verified'        => ['Verified', 'pill-success'],
+            'missing'         => ['Missing', 'pill-danger'],
             // assignments (Assignment_model::student_state)
             'todo'            => ['To do', 'pill-warning'],
             'overdue'         => ['Overdue', 'pill-danger'],
@@ -235,7 +242,7 @@ if (! function_exists('layout_context')) {
         $userId = $CI->session->userdata('user_id');
         $role   = $CI->session->userdata('role');
 
-        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0, 'marking' => 0, 'assignments' => 0, 'exam_marking' => 0, 'exams' => 0];
+        $badges = ['notifications' => 0, 'payments' => 0, 'errors' => 0, 'resets' => 0, 'marking' => 0, 'assignments' => 0, 'exam_marking' => 0, 'exams' => 0, 'documents' => 0, 'docs_todo' => 0];
         if ($userId) {
             if ($CI->db->table_exists('notifications')) {
                 $badges['notifications'] = $CI->db->where('user_id', $userId)->where('is_read', 0)->count_all_results('notifications');
@@ -258,6 +265,14 @@ if (! function_exists('layout_context')) {
                             $badges['exams']++;
                         }
                     }
+                }
+            }
+            if ($CI->db->table_exists('user_documents')) {
+                if ($role === 'admin') {
+                    $badges['documents'] = $CI->db->where('status', 'pending')->count_all_results('user_documents');
+                } else {
+                    $CI->load->model('Document_model');
+                    $badges['docs_todo'] = count(array_filter($CI->Document_model->checklist($userId, $role), function ($s) { return $s === 'missing' || $s === 'rejected'; }));
                 }
             }
             if ($role === 'admin') {
@@ -375,6 +390,12 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Add a college event or holiday', base_url('calendar/add'), 'calendar', 'Calendar'];
                 $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
                 $items[] = ['Actions', 'Attendance per course (CSV)', base_url('admin_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'Verify uploaded documents', base_url('admin_documents'), 'file', 'Documents'];
+                $items[] = ['Actions', 'Who is missing a document', base_url('admin_documents?tab=missing'), 'file', 'Documents'];
+                $items[] = ['Actions', 'Pass rates by province (pie chart)', base_url('admin_reports/pass_rates'), 'chart', 'Reports'];
+                $items[] = ['Actions', 'Students by province / gender', base_url('admin_reports/students'), 'chart', 'Reports'];
+                $items[] = ['Actions', 'Grades report', base_url('admin_reports/grades'), 'chart', 'Reports'];
+                $items[] = ['Actions', 'Fees report', base_url('admin_reports/fees'), 'chart', 'Reports'];
                 $items[] = ['Actions', 'Ezra spending and settings', base_url('admin_ezra'), 'message', 'Ezra (AI)'];
                 break;
             case 'lecturer':
@@ -387,6 +408,7 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Publish course results', base_url('lecturer_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Change assignment / exam weighting', base_url('lecturer_results'), 'layers', 'Results'];
                 $items[] = ['Actions', 'Take the register', base_url('lecturer_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'Upload my ID or qualifications', base_url('documents'), 'file', 'My documents'];
                 $items[] = ['Actions', 'Add a class or event to the calendar', base_url('calendar/add'), 'calendar', 'Calendar'];
                 $items[] = ['Actions', 'Start a discussion', base_url('discussions'), 'chat', 'Discussions'];
                 $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
@@ -403,6 +425,7 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Print my statement of results', base_url('student_results/statement'), 'file', 'Results'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
                 $items[] = ['Actions', 'See my attendance', base_url('student_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'Upload my National ID', base_url('documents'), 'file', 'My documents'];
                 $items[] = ['Actions', 'What\'s on this month', base_url('calendar'), 'calendar', 'Calendar'];
                 $items[] = ['Actions', 'Ask a question in Discussions', base_url('discussions'), 'chat', 'Discussions'];
                 $items[] = ['Actions', 'Find a book in the library', base_url('library'), 'library', 'Library'];

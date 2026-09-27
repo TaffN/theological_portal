@@ -10,7 +10,7 @@ if (! function_exists('chart_palette')) {
     function chart_palette()
     {
         // Theme variables: each has a light and a dark value in app.css.
-        return ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)'];
+        return ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)', 'var(--c8)', 'var(--c9)', 'var(--c10)'];
     }
 }
 
@@ -162,5 +162,58 @@ if (! function_exists('svg_donut_chart')) {
         $legend .= '</ul>';
 
         return '<div class="donut-wrap">' . $svg . $legend . '</div>';
+    }
+}
+
+/**
+ * Solid pie chart with the share printed on each large slice.
+ * $opts: empty (message), legend (optional list of legend texts, one per slice,
+ * shown instead of "value (share%)"), label (aria label).
+ */
+if (! function_exists('svg_pie_chart')) {
+    function svg_pie_chart(array $labels, array $values, array $opts = [])
+    {
+        $values = array_map('floatval', array_values($values));
+        $labels = array_values($labels);
+        $total  = array_sum($values);
+        if ($total <= 0) {
+            return chart_empty(isset($opts['empty']) ? $opts['empty'] : 'No data yet.');
+        }
+        $palette = chart_palette();
+        $cx = 100; $cy = 100; $r = 92;
+        $svg = '<svg viewBox="0 0 200 200" class="pie-svg" role="img" aria-label="' . html_escape(isset($opts['label']) ? $opts['label'] : 'Pie chart') . '">';
+        $angle = -M_PI / 2;
+        $texts = '';
+        foreach ($values as $i => $v) {
+            if ($v <= 0) {
+                continue;
+            }
+            $share = $v / $total;
+            $color = $palette[$i % count($palette)];
+            $title = '<title>' . html_escape($labels[$i] . ': ' . round($share * 100) . '%') . '</title>';
+            if ($share >= 0.9999) {
+                $svg .= '<circle cx="' . $cx . '" cy="' . $cy . '" r="' . $r . '" style="fill:' . $color . '" class="pie-slice">' . $title . '</circle>';
+            } else {
+                $end = $angle + $share * 2 * M_PI;
+                $x1 = $cx + $r * cos($angle); $y1 = $cy + $r * sin($angle);
+                $x2 = $cx + $r * cos($end);   $y2 = $cy + $r * sin($end);
+                $svg .= '<path d="M' . $cx . ',' . $cy . ' L' . round($x1, 2) . ',' . round($y1, 2) . ' A' . $r . ',' . $r . ' 0 ' . ($share > 0.5 ? 1 : 0) . ',1 '
+                      . round($x2, 2) . ',' . round($y2, 2) . ' Z" style="fill:' . $color . '" class="pie-slice">' . $title . '</path>';
+            }
+            if ($share >= 0.06) {
+                $mid = $angle + $share * M_PI;
+                $texts .= '<text x="' . round($cx + $r * 0.62 * cos($mid), 1) . '" y="' . round($cy + $r * 0.62 * sin($mid) + 4, 1) . '" text-anchor="middle" class="pie-label">' . round($share * 100) . '%</text>';
+            }
+            $angle += $share * 2 * M_PI;
+        }
+        $svg .= $texts . '</svg>';
+
+        $legend = '<ul class="chart-legend' . (isset($opts['legend']) ? ' is-stacked' : '') . '">';
+        foreach ($values as $i => $v) {
+            $text = isset($opts['legend'][$i]) ? $opts['legend'][$i] : (score_fmt($v) . ' <small>(' . round($v / $total * 100) . '%)</small>');
+            $legend .= '<li><span class="legend-dot" style="background:' . $palette[$i % count($palette)] . '"></span>'
+                     . '<span class="legend-label">' . html_escape($labels[$i]) . '</span><span class="legend-value">' . $text . '</span></li>';
+        }
+        return '<div class="donut-wrap">' . $svg . $legend . '</ul></div>';
     }
 }

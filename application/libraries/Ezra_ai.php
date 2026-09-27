@@ -523,6 +523,7 @@ class Ezra_ai
             . "- Calendar: a month view of classes, college events and holidays, with assignment due dates and exam times added automatically. Online classes have a Join link.\n"
             . "- Discussions: a board per course plus a college-wide General board. Anyone can start a topic or reply; lecturers can pin, close or remove topics. Students are notified of replies to their topics.\n"
             . "- Library: the college library (books, articles, commentaries, sermons, theses, audio, video) for every paid-up student, searchable by title, author and category. Different from a course's Materials.\n"
+            . "- My documents: students and lecturers upload a photo or scan (PDF, JPG, PNG, up to 5 MB) of their National ID, qualifications and certificates; the office verifies them or says why not (then upload a new copy). Only the owner and administrators can open them.\n"
             . "- Payments (receipts), Alerts, My profile (photo, ID card, password), Help & contact, and Ezra (you).\n"
             . "When someone asks where to find something, name the page and how to reach it. Suggest Discussions for questions classmates or lecturers could answer, and recommend library items by exact title when they fit.";
 
@@ -599,6 +600,19 @@ class Ezra_ai
                 $until = $lastDay[$e['id']] !== $e['date'] ? ' until ' . date('D j M', strtotime($lastDay[$e['id']])) : '';
                 $lines[] = date('D j M', strtotime($e['date'])) . $until . ($e['time'] ? ' ' . $e['time'] . ($e['end'] ? '-' . $e['end'] : '') : ' (all day)') . ': ' . $e['title']
                     . ' [' . $e['kind'] . ', ' . ($e['course'] ?: 'whole college') . ']' . ($e['where'] ? ' at ' . $e['where'] : '') . ($e['link'] ? ' (online: join link in the Calendar)' : '');
+            }
+        }
+        if ($db->table_exists('user_documents')) {
+            $this->CI->load->model('Document_model');
+            $check = $this->CI->Document_model->checklist($uid, $role);
+            $words = ['verified' => 'verified', 'pending' => 'uploaded, waiting for the office', 'rejected' => 'not accepted, needs a new copy', 'missing' => 'not uploaded yet'];
+            if ($check) {
+                $lines[] = '';
+                $lines[] = 'Required documents (My documents page): ' . implode('; ', array_map(function ($t, $st) use ($words) { return Document_model::type_label($t) . ': ' . $words[$st]; }, array_keys($check), $check)) . '.';
+            }
+            $rej = $db->select('doc_type, review_note')->where('user_id', $uid)->where('status', 'rejected')->order_by('reviewed_at', 'DESC')->limit(3)->get('user_documents')->result_array();
+            foreach ($rej as $r) {
+                $lines[] = 'The office did not accept their ' . Document_model::type_label($r['doc_type']) . ($r['review_note'] ? ' because: ' . $r['review_note'] : '') . '.';
             }
         }
         if ($db->table_exists('discussions')) {

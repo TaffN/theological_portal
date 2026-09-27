@@ -12,6 +12,8 @@ class Error_model extends CI_Model
 
     public function record(array $e)
     {
+        // A query that failed half-built (e.g. a DB error) leaves its FROM/WHERE parts behind; start clean.
+        $this->db->reset_query();
         if (! $this->db->table_exists($this->table)) {
             return null;
         }

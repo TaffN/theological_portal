@@ -38,7 +38,7 @@
     <?php else: ?>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <?php endif; ?>
-    <link href="<?= base_url('assets/css/app.css') ?>?v=9" rel="stylesheet">
+    <link href="<?= base_url('assets/css/app.css') ?>?v=10" rel="stylesheet">
 
     <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg') ?>">
     <link rel="icon" type="image/png" sizes="192x192" href="<?= base_url('assets/img/icon-192.png') ?>">
