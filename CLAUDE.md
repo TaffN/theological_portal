@@ -99,8 +99,8 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 "being set up" and everything else works. Laptop steps: `git checkout main` → `git pull origin main` → back up DB →
 `/migrate` (→ 18) → test. New work goes on a fresh branch again.
 **v10 (the four campus modules, migration 19)** was tested by the user and **merged into `main`** (27 Sep 2026).
-**v11 (documents + reports, migration 20)** is on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test:
-checkout + pull the branch → back up DB → `/migrate` (→ 20) → test → merge into `main`. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
+**v11 (documents + reports, migration 20)** was tested by the user and **merged into `main`** (27 Sep 2026). `main` is now at
+migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
