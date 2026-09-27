@@ -574,7 +574,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
       so rewrite the .md with `images/...` links), bump the version in each header + README table + change log,
       commit to `docs/user-manuals` with the version in the message (this sandbox can't push git tags). Retake screenshots (sandbox, made-up data, never the real
-      proofs/photos) when pages change. Built from `main`, so it merges into `main` cleanly on its own.
+      proofs/photos) when pages change. Merged into `main` on 27 Sep 2026 (so `main` has `docs/manuals/`); keep updating on `docs/user-manuals` and merge again after each version.
 - [ ] The user may circle back to the exams guide doc ("Online Exams: How They Work", a Claude Doc) with changes.
 
 ---
