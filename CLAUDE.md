@@ -91,13 +91,11 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
-**Current state:** v7 (Stage 5 exams + paste hardening) is merged into `main` and on the laptop (DB at 16).
-v8 (Stage 6 results) **and v9 (Ezra)** are on branch `claude/inspiring-ramanujan-y9isjf`, waiting for the user to test
-(v8 was never tested/merged separately; one `/migrate` takes the laptop 16 → 18). For Ezra they also need an Anthropic
-API key in `application/config/ezra.php` (see §11); without it Ezra says "being set up" and everything else works.
-Laptop steps: `git checkout claude/inspiring-ramanujan-y9isjf` → `git pull origin claude/inspiring-ramanujan-y9isjf`
-(the local branch already exists, so **pull is required**; a bare checkout just switches to the stale copy, which
-happened once) → back up DB → `/migrate` (→ 18) → test → merge into `main` (checkout main, pull the branch, push main).
+**Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
+at the user's request). The laptop still has to pull `main`, back up the DB and run `/migrate` (16 → 18) to get them.
+For Ezra they also need an Anthropic API key in `application/config/ezra.php` (see §11); without it Ezra says
+"being set up" and everything else works. Laptop steps: `git checkout main` → `git pull origin main` → back up DB →
+`/migrate` (→ 18) → test. New work goes on a fresh branch again.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
