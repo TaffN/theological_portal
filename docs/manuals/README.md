@@ -2,9 +2,9 @@
 
 | Manual | For | Current version |
 | --- | --- | --- |
-| [Student User Manual](student-manual.md) | Students | 2.0 |
-| [Lecturer User Manual](lecturer-manual.md) | Lecturers | 2.0 |
-| [Administrator User Manual](administrator-manual.md) | Office staff / administrators | 2.0 |
+| [Student User Manual](student-manual.md) | Students | 2.1 |
+| [Lecturer User Manual](lecturer-manual.md) | Lecturers | 2.1 |
+| [Administrator User Manual](administrator-manual.md) | Office staff / administrators | 2.1 |
 
 Screenshots are in [`images/`](images/) (`s-` student, `l-` lecturer, `a-` administrator). They were taken from a test copy with made-up people and data.
 
@@ -25,5 +25,6 @@ Screenshots are in [`images/`](images/) (`s-` student, `l-` lecturer, `a-` admin
 
 | Version | Date | Changes |
 | --- | --- | --- |
+| 2.1 | 30 September 2026 | Ezra is now a floating chat button on every page (Portal v12) instead of a menu page: new Ezra sections in all three manuals, Ezra tip of the day on the student dashboard, how administrators run Ezra on a local model (Ollama) or switch back to Claude. All screenshots retaken, because the menus no longer list Ezra. |
 | 2.0 | 27 September 2026 | Added Calendar, Discussions, Library and Attendance (Portal v10) and My documents; administrators also get Documents verification and Reports (Portal v11). 23 new screenshots. |
 | 1.0 | 27 September 2026 | First draft of all three manuals, for Portal v9 (Results and Ezra). |

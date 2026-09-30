@@ -102,7 +102,7 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 **v10 (the four campus modules, migration 19)** was tested by the user and **merged into `main`** (27 Sep 2026).
 **v11 (documents + reports, migration 20)** was tested by the user and **merged into `main`** (27 Sep 2026). `main` is now at
 migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
-**v12 (Ezra floating widget + local Ollama, no migration)** was tested by the user (without Ollama, guides only) and **merged into `main`** (27 Sep 2026). Laptop: `git checkout main` → `git pull origin main` (no `/migrate`). Real AI answers need Ollama + `ollama pull llama3.2` (the user will install it on WiFi). **To do:** the manuals' Ezra sections still describe the old Ask Ezra page; update them (manuals v2.1) on `docs/user-manuals`. Lesson from v12 testing: the user's laptop already had the branch from earlier rounds, so `git checkout` alone gave them old code; always include `git pull origin <branch>` in test steps.
+**v12 (Ezra floating widget + local Ollama, no migration)** was tested by the user (without Ollama, guides only) and **merged into `main`** (27 Sep 2026). Laptop: `git checkout main` → `git pull origin main` (no `/migrate`). Real AI answers need Ollama + `ollama pull llama3.2` (the user will install it on WiFi). Manuals **v2.1** (Ezra widget, all screenshots retaken) are on `docs/user-manuals` (30 Sep 2026); the shared Claude Docs editing copies were NOT updated to v2.1 yet. Lesson from v12 testing: the user's laptop already had the branch from earlier rounds, so `git checkout` alone gave them old code; always include `git pull origin <branch>` in test steps.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -578,7 +578,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 - [ ] Possible v11 extras (not built): document expiry dates / renewal reminders, reports over time (pass-rate trends by year),
       a map of provinces, scheduled report emails to the board.
 - [ ] **User manuals** (Student, Lecturer, Administrator) live on branch **`docs/user-manuals`** in `docs/manuals/`
-      (Markdown + `images/`, README with change log; v1.0 = `a56c06b`, v2.0 (v10 + v11) = `70be078`). The editing copies are Claude Docs
+      (Markdown + `images/`, README with change log; v1.0 = `a56c06b`, v2.0 (v10 + v11) = `70be078`, v2.1 (Ezra widget) = see the branch log). The editing copies are Claude Docs
       (links in that README). When the user says to version them: re-read each doc (the markdown export drops images,
       so rewrite the .md with `images/...` links), bump the version in each header + README table + change log,
       commit to `docs/user-manuals` with the version in the message (this sandbox can't push git tags). Retake screenshots (sandbox, made-up data, never the real

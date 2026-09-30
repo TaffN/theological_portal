@@ -1,10 +1,10 @@
 # Administrator User Manual
 
-**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents, Reports)
+**Version 2.1** · 30 September 2026 · for Portal v12 (Ezra is now a chat button on every page)
 
 ## Welcome
 
-Administrators run the Center's side of the portal: approving fee payments (which opens courses to students), managing courses, lecturers and students, posting announcements, keeping the organisation details up to date, and looking after Ezra and the system's health. Lecturers handle teaching and marking; administrators don't publish results.
+Administrators run the Center's side of the portal: approving fee payments (which opens courses to students), managing courses, lecturers and students, posting announcements, keeping the organisation details up to date, and looking after the system's health. Lecturers handle teaching and marking; administrators don't publish results.
 
 ### First-day checklist
 
@@ -14,7 +14,7 @@ Administrators run the Center's side of the portal: approving fee payments (whic
 - [ ] Fill in **Settings**: organisation name, contact details, address and **payment details** (students see these when paying).
 - [ ] Create the courses and assign a lecturer to each.
 - [ ] Post a welcome announcement.
-- [ ] Set up Ezra's API key and check its spending limit (section 4).
+- [ ] Decide how Ezra should run (section 4): built-in guides only (works straight away), a free local AI model, or the paid Claude service.
 
 The dashboard's **setup checklist** reminds you of anything left undone.
 
@@ -42,10 +42,11 @@ After logging in you see the admin dashboard: payments waiting, fees collected p
 | Alerts | Your own notifications |
 | Calendar, Discussions, Library | The Campus pages (section 7) |
 | Error reports | Problems the portal caught or users reported |
-| Ezra (AI) | The AI assistant's spending and settings |
 | Audit trail | Who did what, and when |
 | Settings | Organisation details, payment details, grade boundaries |
 | Administrators | Add and manage admin accounts |
+
+The green chat button at the bottom right is **Ezra**, who can explain any task to you step by step (section 4).
 
 Numbers next to menu items show things waiting for you (for example payments to review, or password reset requests on **Students**).
 
@@ -147,7 +148,7 @@ Lecturers publish results; administrators see how far each course has got and ca
 
 ### Organisation settings
 
-The details you enter here appear on receipts, ID cards, statements of results, the Help page and Ezra's answers.
+The details you enter here appear on receipts, ID cards, statements of results, the Help page and Ezra's answers (Ezra's statement of faith is part of its settings; see section 4).
 
 1. Click **Settings**.
 2. Fill in each group:
@@ -163,43 +164,56 @@ The details you enter here appear on receipts, ID cards, statements of results, 
 
 Grade boundaries must stay in order (Distinction ≥ Merit ≥ Pass). Changing them affects results published from then on.
 
-## 4. Ezra (AI assistant)
+## 4. Ezra (the study companion)
 
-Ezra is the students' AI study assistant. It is paid per question from credit bought in advance, so the admin page shows what it costs and lets you cap it. You see numbers only, never what students typed.
+Ezra is the green chat button at the bottom right of every page, for students, lecturers and administrators. It explains how to do things in the portal in simple steps, answers Bible study questions and understands English, Shona and Ndebele. There is no Ezra page in the menu: people use the button.
 
-### Set up Ezra (once)
+### Use Ezra yourself
+
+1. Click the green chat button.
+2. Click a quick button or type a question, for example "How do I approve a payment?", "How do I verify documents?" or "How are exams created?".
+3. Read the steps. They are the steps for **administrators**. Use the pencil icon for a new conversation and the **X** to close.
+
+![Ezra answering an administrator](images/a-ezra.png)
+
+Ezra can't change anything and cannot see other people's conversations. Each person's chat is kept only on their own device. Ezra is switched off for a student while they are writing an exam.
+
+### The three ways Ezra can run
+
+Ezra always works. How clever its answers are depends on the "engine" behind it, which is set in one file on the server, `application/config/ai_config.php`.
+
+| Engine | Cost | What it does |
+| --- | --- | --- |
+| Built-in guides only | Free | Answers "how do I..." questions in all three languages from its library of step-by-step guides. This is what people get whenever the AI model below is not running. |
+| Local AI model (Ollama) | Free to run | A model on the Center's own computer answers other questions too. It needs a reasonably powerful computer; ordinary shared hosting cannot run it. This is the default setting (`ai_provider` is `'local'`). |
+| Claude (Anthropic) | Pay per use | The best answers, including in Shona and Ndebele, with a monthly spending limit. Set `ai_provider` to `'claude'`. |
+
+### Set up the local AI model (Ollama)
+
+1. On the computer that runs the portal, install **Ollama** from ollama.com.
+2. Open a Command Prompt and run `ollama pull llama3.2`. This downloads the model (about 2 GB) once.
+3. Leave Ollama running. The first answer after a restart is slow (up to a minute) while the model loads.
+4. Open the portal and ask Ezra a question that is not a "how do I" question, for example "What is grace?". A real answer means it is working. If Ezra only lists the topics it can help with, Ollama is not running or the model is not downloaded.
+
+If Ollama is not running, Ezra still answers "how do I..." questions, and when an administrator asks, Ezra adds a short note saying the AI model is off.
+
+### Switch back to Claude (paid)
+
+Claude was Ezra's engine before, and all of its settings and limits are kept. To use it again:
 
 1. Go to **console.anthropic.com**, create an account, add a payment card and buy credit ($20 is enough to start). Under **Limits** you can set a monthly spend limit there too, as a second safety net.
 2. Create an **API key** (Settings → API keys) and copy it. Treat it like a password.
 3. On the server, copy `application/config/ezra.sample.php` to `application/config/ezra.php` and paste the key between the quotes of `$config['ezra_api_key']`.
-4. In the portal, click **Ezra (AI)** and click **Test connection**. A green message confirms it works.
+4. In `application/config/ai_config.php`, change `$config['ai_provider'] = 'local';` to `$config['ai_provider'] = 'claude';`.
+5. Open the Ezra settings page (above) and click **Test connection**. A green message confirms it works.
 
-### Check spending
+### Ezra's settings page
 
-1. Click **Ezra (AI)**.
-2. **This month** shows the amount spent against the limit, an estimate for the whole month, the number of answers, students using it, questions today and the average cost per answer.
-3. The chart shows spending for the last 6 months; **Most active this month** lists students by number of questions.
+The Ezra admin page is no longer in the menu, but it still works in every mode: type `/admin_ezra` after the portal address. Use it to change **the statement of faith Ezra follows** (it starts from the Assemblies of God Statement of Fundamental Truths; replace it with the Center's own wording). Both the local model and Claude follow it.
 
-![The Ezra admin page](images/a-ezra.png)
+With Claude switched on, the page also shows the money spent against the monthly limit, the number of answers, students using it and the cost of each answer, with a 6-month chart. You see numbers only, never what people typed. You get an alert when 80% of the limit is used; at 100% Ezra pauses for everyone until the 1st of the next month. Its settings cover the limit (suggested $50 a month and 25 questions per person a day for under 100 students), the model, the Bible version quoted and how long conversations are kept.
 
-You get an alert when 80% of the monthly limit is used. At 100%, Ezra pauses for everyone until the 1st of the next month.
-
-### Change Ezra's settings
-
-1. On the Ezra page, go to **Settings**.
-2. Change what you need:
-    - **Ezra is switched on**: turn Ezra off for everyone.
-    - **Who can use Ezra**: Students, and optionally Lecturers.
-    - **Monthly limit ($)**: suggested $50 for under 100 students (about 1,500 answers).
-    - **Questions per person a day**: suggested 25; 0 means no daily limit.
-    - **AI model**: Claude Opus 5 gives the best answers; Claude Sonnet 5 costs about 60% less.
-    - **Answer depth**: Quick is cheapest; Thorough costs more.
-    - **Bible version quoted**: for example NKJV or KJV.
-    - **Statement of faith Ezra follows**: starts from the Assemblies of God Statement of Fundamental Truths. Replace it with the Center's own wording.
-    - **Keep conversations for (days)**: older conversation text is deleted automatically; costs are kept.
-3. Click **Save settings**.
-
-**Remove old conversations now** deletes the text of conversations older than the retention period straight away.
+In Claude mode students also see the old Ask Ezra chat page; in local mode the green button is the only way to reach Ezra.
 
 ## 5. Documents (ID copies and qualifications)
 
@@ -321,5 +335,7 @@ If a page says a feature "needs a database update first", step 3 hasn't been don
 | I approved a payment by mistake | Contact the developer; approvals are recorded in the audit trail. |
 | A lecturer can't see their course | Courses → **Assign a Lecturer to a Course**. |
 | Emails aren't being sent | Email is off until the mail server is set up; alerts still show in the portal. |
-| Ezra says it is being set up | The API key file `ezra.php` is missing, or PHP's cURL extension is off (the Ezra page explains which). |
-| Ezra stopped for everyone | The monthly limit was reached. Raise it on the Ezra page, or wait for the 1st. |
+| Ezra only lists topics and says its AI helper isn't running | Ollama is not running, or `llama3.2` has not been downloaded (`ollama pull llama3.2`). Ezra still answers "how do I" questions meanwhile. |
+| Ezra says it is being set up (Claude mode) | The API key file `ezra.php` is missing, or PHP's cURL extension is off. |
+| Ezra stopped for everyone (Claude mode) | The monthly limit was reached. Raise it on the Ezra admin page (`/admin_ezra`), or wait for the 1st. |
+| I can't see the green Ezra button | Press Ctrl + F5. The button does not show on the login page or while a student writes an exam. |

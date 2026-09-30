@@ -1,6 +1,6 @@
 # Student User Manual
 
-**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents)
+**Version 2.1** · 30 September 2026 · for Portal v12 (Ezra is now a chat button on every page)
 
 ## Welcome
 
@@ -13,7 +13,7 @@ What you can do in the portal:
 - Hand in assignments and read your lecturer's marks and feedback
 - Write timed online exams
 - See your results and print a statement of results
-- Ask **Ezra**, the AI study assistant, about your courses and the Bible
+- Ask **Ezra**, the study companion in the green chat button, how to do things in the portal, and about the Bible
 - Keep your profile, photo and student ID card up to date
 
 The portal works on any phone browser (Chrome, Safari, Samsung Internet). Pictures in this manual show the phone view; on a computer the same menu sits on the left of the screen.
@@ -44,7 +44,7 @@ If you type the wrong password 5 times, your account is locked for 15 minutes. W
 
 ### Find your way around
 
-Your **Dashboard** is the first page after logging in. It shows a checklist to get you started, what is due soon, your upcoming exams and new materials.
+Your **Dashboard** is the first page after logging in. It shows an **Ezra tip of the day**, a checklist to get you started, what is due soon, your upcoming exams and new materials. The green chat button at the bottom right is **Ezra**, who can help you on every page (see section 4).
 
 ![The student dashboard](images/s-dashboard.png)
 
@@ -57,7 +57,7 @@ On a phone, the bar at the bottom of the screen takes you to the main pages:
 | Exams | Online exams, open now or coming up |
 | Materials | Notes, readings and recordings for your courses |
 | Alerts | Messages from the portal and your lecturers |
-| More | Everything else: Courses, Results, Ask Ezra, Payments, your profile |
+| More | Everything else: Courses, Results, Payments, your profile |
 
 1. Tap **More** (bottom right) to see every page.
 2. Start typing to search, for example `receipt` or `results`.
@@ -198,23 +198,27 @@ The statement has a QR code. Anyone who scans it (an employer, your church) sees
 
 ![Statement of results](images/s-statement.png)
 
-### Ask Ezra, your study assistant
+### Ask Ezra, your study companion
 
-Ezra is an AI assistant that knows your courses, due dates, exams and published marks, and follows the college's statement of faith. You can write in English, Shona or Ndebele.
+Ezra is a chat helper that lives in the **green chat button** at the bottom right of every page (on a phone it sits just above the bottom bar). It explains how to do things in the portal in simple steps, helps you understand a Bible passage, and answers in English, Shona or Ndebele: write in the language you prefer and Ezra replies in the same language.
 
-1. Tap **More**, then **Ask Ezra** (or the Ezra card on your dashboard).
-2. Tap one of the suggested questions, or type your own, for example "Explain Romans 8 simply" or "What is due this week?".
-3. Tap the send arrow. Ezra's answer appears after a few seconds.
-4. To start a fresh topic, tap **New conversation**.
+1. Tap the green chat button. The Ezra window slides up.
+2. Tap a quick button: **Exams**, **Upload ID** or **Romans 8**. Or type your own question, for example "How do I pay?" or "Explain Romans 8 simply", and tap the green arrow.
+3. Wait a moment while the three dots show that Ezra is typing, then read the answer.
+4. Tap the **X** (or the green button again) to close the window. Your conversation is still there when you open it again, even on another page.
+5. To start a fresh conversation, tap the **pencil** icon at the top of the window.
 
-![A conversation with Ezra](images/s-ezra.png)
+![Ezra answering a question on a phone](images/s-ezra.png)
 
 Good to know:
 
+- Ezra gives **steps for students**. Ask "How do I upload proof of payment?" and you get the student steps.
 - Ezra helps you learn. It **won't write your assignments** or answer exam questions for you, but it will explain ideas and help you plan your answer.
 - Ezra can make mistakes. Check important things with your lecturer and your Bible.
-- Ezra is **paused while you are writing an exam**, and there is a daily limit on questions (shown under the box).
+- Ezra is **switched off while you are writing an exam**. It is back when you hand in.
 - Ezra can't change anything in the portal. For payments, marks or passwords, contact the office.
+- Your conversation is kept on your own phone or computer only. Clearing your browser data removes it.
+- Some days Ezra may answer only from its built-in guides ("how do I..." questions) and say it can't answer other things right now. Try again later or ask your lecturer.
 
 ### Your profile, photo and ID card
 
@@ -268,7 +272,7 @@ The library holds books, commentaries, articles, sermons and recordings for ever
 2. Tap a category (Books, Sermons...), choose a course, or search by title or author.
 3. Tap **Open** to read or download a file, or **Open link** for an online item.
 
-Tip: ask Ezra "Is there a book in the library about the Holy Spirit?" and it will suggest titles.
+Tip: Ezra knows how the library works. Ask "How do I find a book in the library?" for the steps.
 
 ![The library](images/s-library.png)
 
@@ -320,4 +324,6 @@ You can remove a document until it is verified. Files can be PDF, JPG or PNG, up
 | I can't see the materials | The course opens only after your payment is approved. |
 | I can't hand in my assignment | After the due date, late work is only accepted if your lecturer allows it. Speak to your lecturer. |
 | My phone died during an exam | Ask your lecturer to press **New device**, then log in on another phone and tap **Continue the exam**. The timer keeps running. |
-| Ezra says it is paused | You have an exam in progress, you reached today's limit, or the monthly limit was reached. Try again later. |
+| Ezra says it is paused | You have an exam in progress. It is back when you hand in. |
+| I can't see the Ezra button | Press Ctrl + F5 (or close and reopen the browser). The button shows on every page except the login page and while you write an exam. |
+| Ezra says it can't answer that right now | Its AI helper is not running at the moment. It can still explain how to do things in the portal; for anything else, ask your lecturer. |

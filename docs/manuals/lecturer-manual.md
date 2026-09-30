@@ -1,6 +1,6 @@
 # Lecturer User Manual
 
-**Version 2.0** · 27 September 2026 · for Portal v11 (adds Calendar, Discussions, Library, Attendance, Documents)
+**Version 2.1** · 30 September 2026 · for Portal v12 (Ezra is now a chat button on every page)
 
 ## Welcome
 
@@ -273,6 +273,18 @@ The office asks lecturers for a copy of their **National ID** and **qualificatio
 5. **My ID card** shows your staff number (for example `TCL-2026-0001`) with a QR code; click **Print** to print it.
 
 ![My profile](images/l-profile.png)
+
+### Ask Ezra
+
+Ezra is the green chat button at the bottom right of every page. It gives you the steps for **lecturers**, for example "How do I set an assignment?", "How do I create an exam?", "How do I take the register?" or "How do I upload my ID?". Write in English, Shona or Ndebele and Ezra answers in the same language.
+
+1. Click the green chat button.
+2. Click a quick button (**Exams**, **Upload ID**, **Romans 8**) or type your question and click the green arrow.
+3. Use the pencil icon to start a new conversation and the **X** to close the window.
+
+![Ezra answering a lecturer](images/l-ezra.png)
+
+Ezra can't change anything for you and can't see students' work. It does know which courses you teach, what is waiting to be marked and what is coming up in the calendar, so you can ask "What is waiting to be marked?". It can also help you prepare teaching, such as discussion questions or a lesson outline. Your conversation stays on your own computer or phone.
 
 ### Getting help
 
