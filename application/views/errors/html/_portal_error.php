@@ -21,7 +21,7 @@ $isDev = defined('ENVIRONMENT') && ENVIRONMENT === 'development';
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--t1);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 .wrap{width:100%;max-width:520px;text-align:center}
 .mark{width:44px;height:44px;border-radius:12px;display:inline-grid;place-items:center;background:linear-gradient(135deg,#DDB940,#C9A227);color:#13243F;font-weight:800;text-decoration:none;margin-bottom:28px;box-shadow:0 4px 12px rgba(201,162,39,.35)}
-.code{font-size:96px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:0;background:linear-gradient(135deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.code{font-size:clamp(48px,16vw,96px);font-weight:800;letter-spacing:-.04em;line-height:1;margin:0;background:linear-gradient(135deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent}
 h1{font-size:24px;margin:14px 0 8px;letter-spacing:-.02em}p{color:var(--t2);margin:0 0 24px;line-height:1.55}
 .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:11px 18px;border-radius:10px;font-weight:600;text-decoration:none;font-size:15px;border:1px solid var(--b);color:var(--t1);background:var(--card);cursor:pointer}
@@ -38,11 +38,15 @@ details pre{white-space:pre-wrap;word-break:break-word;margin:10px 0 0;font-size
     <p class="code"><?= htmlspecialchars((string) $code, ENT_QUOTES, 'UTF-8') ?></p>
     <h1><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h1>
     <p><?= $text ?></p>
+    <?php if (! empty($customButtons)): ?>
+    <div class="btns"><?= $customButtons ?></div>
+    <?php else: ?>
     <div class="btns">
         <a class="btn primary" href="<?= htmlspecialchars($base . 'dashboard', ENT_QUOTES, 'UTF-8') ?>">Go to my dashboard</a>
         <a class="btn" href="javascript:history.back()">Go back</a>
         <a class="btn" href="<?= htmlspecialchars($base . 'support/report?from=' . rawurlencode(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '') . ($ref ? '&ref=' . $ref : ''), ENT_QUOTES, 'UTF-8') ?>">Report this</a>
     </div>
+    <?php endif; ?>
     <?php if ($ref): ?>
         <div class="ref">Error reference <strong><?= htmlspecialchars($ref, ENT_QUOTES, 'UTF-8') ?></strong> &middot; our team has been notified</div>
     <?php endif; ?>

@@ -27,6 +27,30 @@ class Auth_Controller extends CI_Controller
 
         $this->current_user_id = $this->session->userdata('user_id');
         $this->current_role    = $this->session->userdata('role');
+
+        $this->_require_current_database();
+    }
+
+    /**
+     * New code on an old database (the files were updated but /migrate has not been run yet) would
+     * crash every page with a 500. Say what to do instead. Checked on the table the latest
+     * migration creates; /migrate itself is a separate controller, so it always works.
+     */
+    protected function _require_current_database()
+    {
+        if ($this->db->table_exists('modules') && $this->db->table_exists('programs')) {
+            return;
+        }
+        $this->output->set_status_header(503);
+        $code  = 'Update';
+        $title = 'The portal needs a database update';
+        $text  = 'The program files have been updated, but the database has not been updated to match yet. '
+               . '<strong>First back up the database</strong> (phpMyAdmin, then Export, then Go). '
+               . 'Then open <a href="' . base_url('migrate') . '">' . base_url('migrate') . '</a>. When it says "Migrations up to date", come back here.';
+        $techDetails = '';
+        $customButtons = '<a class="btn primary" href="' . base_url('migrate') . '">Open the update page</a> <a class="btn" href="' . base_url('logout') . '">Log out</a>';
+        include APPPATH . 'views/errors/html/_portal_error.php';
+        exit;
     }
 
     /**

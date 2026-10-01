@@ -340,6 +340,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   so pages don't crash before the user migrates (this happened with `photo_path`/`id_number` notices; v8's
   results controllers redirect to the dashboard with "needs a database update" until `module_results` exists).
   To test that state in the sandbox, `RENAME TABLE` the new table away and back (`/migrate` can't go down).
+- **New code on an old database must not 500.** v13 renamed tables, so before `/migrate` every page crashed (the user hit it on the laptop). `Auth_Controller::_require_current_database()` now shows a 503 "needs a database update" page (with the /migrate link) when the `programs`/`modules` tables are missing. When a future migration is breaking like this, update that check to the new table. Additive migrations should keep using `table_exists()` guards in the pages they touch.
 - The user once installed code **without backing up**. Always remind them: phpMyAdmin → Export → Go first.
 
 ---
