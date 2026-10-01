@@ -24,21 +24,39 @@ class Payment_model extends CI_Model
     }
 
     /**
-     * Pending payments, with student name/email and module name joined in,
-     * for the admin review screen.
+     * The base query for every payment list: the payment, who paid, and for which program (and, for
+     * payments made before programs had a fee, which module). Payments always belong to a program enrolment.
      */
-    public function pending_with_details()
+    protected function with_details()
     {
         return $this->db
-            ->select('payments.*, enrollments.id as enrollment_id, users.name as student_name, users.email as student_email, modules.name as module_name')
+            ->select('payments.*, pe.user_id AS student_id, pe.id AS pe_id, users.name AS student_name, users.email AS student_email,
+                      programs.id AS program_id, programs.name AS program_name, programs.slug AS program_slug, programs.fee_amount AS program_fee,
+                      lm.name AS legacy_module_name, (SELECT COUNT(*) FROM modules mc WHERE mc.program_id = programs.id) AS module_count', false)
             ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->join('users', 'users.id = enrollments.user_id')
-            ->join('modules', 'modules.id = enrollments.module_id')
-            ->where('payments.status', 'pending')
-            ->order_by('payments.submitted_at', 'ASC')
-            ->get()
-            ->result_array();
+            ->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->join('users', 'users.id = pe.user_id')
+            ->join('programs', 'programs.id = pe.program_id')
+            ->join('enrollments le', 'le.id = payments.enrollment_id', 'left')
+            ->join('modules lm', 'lm.id = le.module_id', 'left');
+    }
+
+    /** Pending payments for the admin review screen, oldest first. */
+    public function pending_with_details()
+    {
+        return $this->with_details()->where('payments.status', 'pending')->order_by('payments.submitted_at', 'ASC')->get()->result_array();
+    }
+
+    /** One payment with its details (used for receipts and approval messages). */
+    public function find_with_details($id)
+    {
+        return $this->with_details()->where('payments.id', (int) $id)->get()->row_array();
+    }
+
+    /** A student's own payments, newest first. */
+    public function for_student($userId)
+    {
+        return $this->with_details()->where('pe.user_id', (int) $userId)->order_by('payments.submitted_at', 'DESC')->get()->result_array();
     }
 
     public function approve($paymentId, $reviewerId)
@@ -62,44 +80,27 @@ class Payment_model extends CI_Model
         ]);
     }
 
-    /**
-     * Reviewed payments (approved + rejected), newest first, for the
-     * admin's History tab.
-     */
+    /** Reviewed payments (approved + rejected), newest first, for the admin's History tab. */
     public function history($limit = 50)
     {
-        return $this->db
-            ->select('payments.*, users.name as student_name, users.email as student_email, modules.name as module_name, reviewer.name as reviewer_name')
-            ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->join('users', 'users.id = enrollments.user_id')
-            ->join('modules', 'modules.id = enrollments.module_id')
+        return $this->with_details()->select('reviewer.name AS reviewer_name', false)
             ->join('users reviewer', 'reviewer.id = payments.reviewed_by', 'left')
             ->where_in('payments.status', ['approved', 'rejected'])
-            ->order_by('payments.reviewed_at', 'DESC')
-            ->limit($limit)
-            ->get()
-            ->result_array();
+            ->order_by('payments.reviewed_at', 'DESC')->limit($limit)->get()->result_array();
     }
 
     /**
-     * Latest payment row per enrollment for one student, keyed by
-     * enrollment_id - lets the module page say "rejected: <reason>".
+     * Latest payment row per program enrolment for one student, keyed by program_enrollment_id, so a
+     * program page can say "rejected: <reason>".
      */
-    public function latest_by_enrollment_for_student($userId)
+    public function latest_by_program_enrollment_for_student($userId)
     {
-        $rows = $this->db
-            ->select('payments.*')
-            ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->where('enrollments.user_id', $userId)
-            ->order_by('payments.id', 'ASC')
-            ->get()
-            ->result_array();
-
+        $rows = $this->db->select('payments.*')->from('payments')
+            ->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->where('pe.user_id', (int) $userId)->order_by('payments.id', 'ASC')->get()->result_array();
         $latest = [];
         foreach ($rows as $r) {
-            $latest[(int) $r['enrollment_id']] = $r; // later rows overwrite earlier
+            $latest[(int) $r['program_enrollment_id']] = $r;   // later rows overwrite earlier
         }
         return $latest;
     }

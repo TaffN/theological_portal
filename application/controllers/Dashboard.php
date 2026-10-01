@@ -9,7 +9,7 @@ class Dashboard extends Auth_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model(['Dashboard_model', 'Enrollment_model', 'Error_model']);
+        $this->load->model(['Dashboard_model', 'Enrollment_model', 'Error_model', 'Program_enrollment_model']);
         $this->load->helper(['ui', 'chart']);
     }
 
@@ -68,17 +68,22 @@ class Dashboard extends Auth_Controller
         $modules = $this->Enrollment_model->modules_for_student($uid);
 
         $active = 0;
-        $awaiting = 0;
         foreach ($modules as $c) {
             if ($c['enrollment_status'] === 'active') {
                 $active++;
-            } elseif ($c['enrollment_status'] === 'pending_payment') {
+            }
+        }
+        $programs = $this->Program_enrollment_model->for_student($uid);
+        $awaiting = 0;
+        foreach ($programs as $pe) {
+            if ($pe['status'] === 'pending_payment') {
                 $awaiting++;
             }
         }
 
         return [
             'modules'        => $modules,
+            'programs'       => $programs,
             'active_count'   => $active,
             'awaiting_count' => $awaiting,
             'proof_pending'  => $this->Dashboard_model->student_enrollments_with_pending_proof($uid),

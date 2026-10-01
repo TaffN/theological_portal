@@ -40,7 +40,7 @@
             <div class="stat-icon bg-soft-gold"><?= icon('card', 22) ?></div>
             <div>
                 <div class="stat-value"><?= (int) $awaiting_count ?></div>
-                <div class="stat-label">Awaiting payment</div>
+                <div class="stat-label">Programs awaiting payment</div>
             </div>
         </div>
     </div>
@@ -69,14 +69,33 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
-                    <h5 class="card-heading">My modules</h5>
+                    <h5 class="card-heading">My programs and modules</h5>
                     <a href="<?= base_url('programs') ?>" class="card-link-sm">All programs <?= icon('arrow', 14) ?></a>
                 </div>
+                <?php foreach ($programs as $pe): ?>
+                    <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded border">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate"><?= html_escape($pe['program_name']) ?></div>
+                            <div class="small text-muted"><?= money($pe['fee_amount']) ?> &middot; <?= status_badge($pe['status']) ?></div>
+                        </div>
+                        <?php if ($pe['status'] === 'pending_payment'): ?>
+                            <?php if (in_array((int) $pe['id'], $proof_pending, true)): ?>
+                                <span class="small text-muted text-end">Proof sent,<br>awaiting review</span>
+                            <?php else: ?>
+                                <a href="<?= base_url('payments/upload/' . $pe['id']) ?>" class="btn btn-gold btn-sm">Pay</a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <a href="<?= base_url('programs/' . $pe['program_slug']) ?>" class="btn btn-outline-primary btn-sm">Open</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
                 <?php if (empty($modules)): ?>
+                    <?php if (empty($programs)): ?>
                     <div class="empty-state">
-                        You haven't applied for a module yet.<br>
+                        You haven't applied for a program yet.<br>
                         <a href="<?= base_url('programs') ?>" class="btn btn-primary btn-sm mt-3">Browse programs</a>
                     </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <ul class="module-list">
                     <?php foreach ($modules as $c): ?>
@@ -89,12 +108,6 @@
                             </div>
                             <?php if ($c['enrollment_status'] === 'active'): ?>
                                 <a href="<?= base_url('student_materials/module/' . $c['id']) ?>" class="btn btn-outline-primary btn-sm">Open</a>
-                            <?php elseif ($c['enrollment_status'] === 'pending_payment'): ?>
-                                <?php if (in_array((int) $c['enrollment_id'], $proof_pending, true)): ?>
-                                    <span class="small text-muted text-end">Proof sent,<br>awaiting review</span>
-                                <?php else: ?>
-                                    <a href="<?= base_url('payments/upload/' . $c['enrollment_id']) ?>" class="btn btn-gold btn-sm">Pay</a>
-                                <?php endif; ?>
                             <?php endif; ?>
                         </li>
                     <?php endforeach; ?>

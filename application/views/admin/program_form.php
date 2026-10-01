@@ -12,6 +12,11 @@
                 <div class="form-text">Web address: <code>/programs/<?= html_escape($program['slug']) ?></code> (it changes only if you rename the program).</div>
             </div>
             <div class="mb-3">
+                <label class="form-label" for="fee_amount">Program fee ($)</label>
+                <input type="number" step="0.01" min="0" id="fee_amount" name="fee_amount" class="form-control" required value="<?= html_escape(set_value('fee_amount', $program['fee_amount'])) ?>">
+                <div class="form-text">One fee for the whole program. A student who pays gets every module in it, including modules you add later. Use 0 for a free program. Changing it does not affect payments already made.</div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label" for="duration_text">Duration</label>
                 <input type="text" id="duration_text" name="duration_text" class="form-control" maxlength="100" placeholder="e.g. 3 years" value="<?= html_escape(set_value('duration_text', $program['duration_text'])) ?>">
             </div>

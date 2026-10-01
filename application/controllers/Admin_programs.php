@@ -56,7 +56,8 @@ class Admin_programs extends Admin_Controller
                 if (isset($data['thumbnail_path']) && ! empty($program['thumbnail_path']) && is_file(FCPATH . $program['thumbnail_path'])) {
                     @unlink(FCPATH . $program['thumbnail_path']);   // the old picture is replaced
                 }
-                $this->audit->log('program.updated', 'program', $program['id'], 'Edited program "' . $data['name'] . '"');
+                $this->audit->log('program.updated', 'program', $program['id'], 'Edited program "' . $data['name'] . '"'
+                    . ((float) $program['fee_amount'] !== (float) $data['fee_amount'] ? ' (fee ' . $program['fee_amount'] . ' -> ' . $data['fee_amount'] . ')' : ''));
                 $this->session->set_flashdata('success', 'Program updated.');
                 return redirect('admin_programs');
             }
@@ -110,6 +111,7 @@ class Admin_programs extends Admin_Controller
     {
         $this->form_validation->set_rules('name', 'Program name', 'required|max_length[200]');
         $this->form_validation->set_rules('duration_text', 'Duration', 'max_length[100]');
+        $this->form_validation->set_rules('fee_amount', 'Program fee', 'required|numeric|greater_than_equal_to[0]');
         if (! $this->form_validation->run()) {
             $this->error = strip_tags(validation_errors());
             return false;
@@ -118,6 +120,7 @@ class Admin_programs extends Admin_Controller
             'name'          => trim($this->input->post('name')),
             'description'   => trim($this->input->post('description')) ?: null,
             'duration_text' => trim($this->input->post('duration_text')) ?: null,
+            'fee_amount'    => $this->input->post('fee_amount'),
         ];
         $file = $this->_store_upload('thumbnail', 'programs', 'jpg|jpeg|png', 1024, $err);
         if ($file === false) {

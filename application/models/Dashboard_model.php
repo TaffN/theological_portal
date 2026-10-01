@@ -100,11 +100,11 @@ class Dashboard_model extends CI_Model
     public function recent_payments($limit = 6)
     {
         return $this->db
-            ->select('payments.id, payments.amount, payments.method, payments.status, payments.submitted_at, users.name AS student_name, modules.name AS module_name')
+            ->select('payments.id, payments.amount, payments.method, payments.status, payments.submitted_at, users.name AS student_name, programs.name AS program_name')
             ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->join('users', 'users.id = enrollments.user_id')
-            ->join('modules', 'modules.id = enrollments.module_id')
+            ->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->join('users', 'users.id = pe.user_id')
+            ->join('programs', 'programs.id = pe.program_id')
             ->order_by('payments.submitted_at', 'DESC')
             ->limit($limit)
             ->get()->result_array();
@@ -124,26 +124,26 @@ class Dashboard_model extends CI_Model
     public function student_pending_payments($userId)
     {
         return $this->db->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->where('enrollments.user_id', $userId)
+            ->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->where('pe.user_id', $userId)
             ->where('payments.status', 'pending')
             ->count_all_results();
     }
 
     /**
-     * Enrollment ids that already have a proof of payment waiting for
+     * Program enrolment ids that already have a proof of payment waiting for
      * review, so the dashboard doesn't nag students to upload twice.
      */
     public function student_enrollments_with_pending_proof($userId)
     {
-        $rows = $this->db->select('payments.enrollment_id')
+        $rows = $this->db->select('payments.program_enrollment_id')
             ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->where('enrollments.user_id', $userId)
+            ->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->where('pe.user_id', $userId)
             ->where('payments.status', 'pending')
             ->get()->result_array();
 
-        return array_map('intval', array_column($rows, 'enrollment_id'));
+        return array_map('intval', array_column($rows, 'program_enrollment_id'));
     }
 
     public function student_recent_materials($userId, $limit = 5)
@@ -299,8 +299,8 @@ class Dashboard_model extends CI_Model
         $CI =& get_instance();
         $CI->load->model('User_model');
         $CI_complete = $CI->User_model->completeness($user, $CI->User_model->get_profile($userId))['percent'];
-        $hasPayment = $this->db->from('payments')->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->where('enrollments.user_id', $userId)->count_all_results() > 0;
+        $hasPayment = $this->db->from('payments')->join('program_enrollments pe', 'pe.id = payments.program_enrollment_id')
+            ->where('pe.user_id', $userId)->count_all_results() > 0;
         $active = count(array_filter($modules, function ($c) { return $c['enrollment_status'] === 'active'; }));
 
         return [

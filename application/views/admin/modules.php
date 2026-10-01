@@ -2,7 +2,7 @@
 <div class="page-head">
     <div>
         <h1 class="page-title"><?= html_escape($program['name']) ?> <?= status_badge($program['status']) ?></h1>
-        <p class="page-sub">Modules in this program. Each has its own fee, lecturers, students, materials, assignments and exams.</p>
+        <p class="page-sub">Modules in this program. Students pay one fee of <?= money($program['fee_amount']) ?> for the whole program. Each has its own lecturers, students, materials, assignments and exams.</p>
     </div>
     <a href="<?= base_url('admin_programs/edit/' . (int) $program['id']) ?>" class="btn btn-light btn-sm">Edit program</a>
 </div>
@@ -16,9 +16,6 @@
             </div>
             <div class="col-md-3">
                 <input type="text" name="code" class="form-control" placeholder="Code (optional, e.g. OT101)" maxlength="30">
-            </div>
-            <div class="col-md-2">
-                <input type="number" step="0.01" min="0" name="fee_amount" class="form-control" placeholder="Fee ($)" required>
             </div>
             <div class="col-md-2">
                 <input type="number" min="0" name="credits" class="form-control" placeholder="Credits">
@@ -57,9 +54,8 @@
                         <?php endif; ?>
                     </div>
                 </div>
-                <p class="text-muted mb-2 mt-1">$<?= html_escape(number_format($module['fee_amount'], 2)) ?>
-                    <?php if ($module['duration_text']): ?> &middot; <?= html_escape($module['duration_text']) ?><?php endif; ?>
-                    &middot; <?= (int) $module['students'] ?> student<?= $module['students'] == 1 ? '' : 's' ?>
+                <p class="text-muted mb-2 mt-1">
+                    <?php if ($module['duration_text']): ?><?= html_escape($module['duration_text']) ?> &middot; <?php endif; ?> <?= (int) $module['students'] ?> student<?= $module['students'] == 1 ? '' : 's' ?>
                 </p>
 
                 <strong class="d-block mb-1">Lecturers:</strong>

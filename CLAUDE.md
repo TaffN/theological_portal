@@ -1,7 +1,7 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 1 October 2026 (after Portal **v13** = Program > Module structure; database migration **21**).
+Last updated: 1 October 2026 (after Portal **v14** = fees and enrolment per PROGRAM; database migration **22**).
 
 ---
 
@@ -93,6 +93,7 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 | 9 | **Documents + Reports** (v11): students/lecturers upload ID copies and qualifications, admins verify/reject, required documents per role; admin Reports (pass rates by province with pie + bars, grades, students by region/gender/…, attendance, fees, documents; print + CSV) | ✅ Built (v11) |
 | 10 | **Ezra widget on a local model** (v12): Ezra removed from all menus; floating green chat button on every signed-in page; `askEzra()` abstraction (`ai_provider` = local Ollama or the old Claude code); knowledge base of how-to guides in English/Shona/Ndebele with a no-AI fallback; Tip of the Day on the student dashboard (see §11) | ✅ Built (v12), merged |
 | 11 | **Program > Module** (v13): the flat "course" became a **module** inside a **program** (e.g. Diploma in Theology > Old Testament Survey). Migration 021 moves the data (same ids), renames `course_id` to `module_id` everywhere; Programs listing + program page with its modules for students; admin Programs and nested Modules CRUD; breadcrumbs; report/library/calendar pickers show the program (see §12) | ✅ Built (v13), on the branch, **not merged** |
+| 12 | **Program fees (v14)**: the fee and the enrolment belong to the **program** ("Certificate in Christian Ministry", 6 modules, $300): apply once, pay once, every module opens. Migration 022; see §12 | ✅ Built (v14), on the branch, **not merged** |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -105,6 +106,7 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
 **v12 (Ezra floating widget + local Ollama, no migration)** was tested by the user (without Ollama, guides only) and **merged into `main`** (27 Sep 2026). Laptop: `git checkout main` → `git pull origin main` (no `/migrate`). Real AI answers need Ollama + `ollama pull llama3.2` (the user will install it on WiFi). **To do:** the manuals' Ezra sections still describe the old Ask Ezra page; update them (manuals v2.1) on `docs/user-manuals`. Lesson from v12 testing: the user's laptop already had the branch from earlier rounds, so `git checkout` alone gave them old code; always include `git pull origin <branch>` in test steps.
 **v13 (Program > Module, migration 21)** is on `claude/inspiring-ramanujan-y9isjf`, tested in the sandbox on a copy of the real test data (row counts identical before/after, rollback `down()` and a fresh install both verified) and waiting for the user. Laptop: `git fetch origin` → `git checkout claude/inspiring-ramanujan-y9isjf` → `git pull origin claude/inspiring-ramanujan-y9isjf` → **back up the DB (phpMyAdmin → Export)** → visit `/migrate` (→ 21). The user's real courses become modules of one auto-created "General Program"; they can rename it or create programs and move modules (Admin > Programs > Edit module). Manuals (v2.1) and the exams/Ezra texts still say "course" in places: manuals v2.2 is a to-do.
+**v14 (program fees, migration 22)** is on the same branch (`claude/inspiring-ramanujan-y9isjf`), tested in the sandbox (apply, proof, approve opens all modules, later module syncs, reject, free program, crawl of all roles, migration up/re-run/down/up). Laptop: `git pull origin claude/inspiring-ramanujan-y9isjf` → **back up the DB** → `/migrate` (→ 22) → Ctrl+F5. Each program's starting fee = the sum of its old module fees (edit it in Admin > Programs).
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -345,14 +347,14 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 
 ---
 
-## 7. Database (migration 21)
+## 7. Database (migration 22)
 
 | Table | Key columns / notes |
 |---|---|
 | `users` | id, **id_number** (unique, `TCS-/TCL-/TCA-YYYY-NNNN`), **verify_token** (unique, 20 chars, QR secret), name, email (unique), phone, photo_path, photo_updated_at, password_hash (bcrypt), role enum(admin, lecturer, student), status enum(active, inactive), last_login_at, reset_requested_at, timestamps |
 | `user_profiles` | 1:1 with users (FK cascade): title, date_of_birth, gender, national_id, alt_phone, address_line1/2, city, province, country, postal_code, emergency_name/relationship/phone, church_name, denomination, ministry_role, education_level, occupation, referral_source, qualifications, bio, privacy_consent_at |
-| `programs` | name, slug (unique), description, duration_text, thumbnail_path, status enum(active, inactive), timestamps |
-| `modules` | **program_id** (FK programs, RESTRICT), name, **code** (unique, `MOD-001` or admin-typed), description, fee_amount (the fee stays per module), duration_text, **sort_order** (the user wrote `order`, a reserved word), credits, status. Ids are the old `courses` ids. The original table is kept as `courses_legacy` (drop by hand when happy) |
+| `programs` | name, slug (unique), description, duration_text, **fee_amount** (v14: the whole program's price; 0 = free), thumbnail_path, status enum(active, inactive), timestamps |
+| `modules` | **program_id** (FK programs, RESTRICT), name, **code** (unique, `MOD-001` or admin-typed), description, fee_amount (v14: no longer used, always 0 for new modules; the program carries the fee), duration_text, **sort_order** (the user wrote `order`, a reserved word), credits, status. Ids are the old `courses` ids. The original table is kept as `courses_legacy` (drop by hand when happy) |
 | `module_lecturers` | module_id, user_id (unique pair) |
 | `enrollments` | user_id, module_id (unique pair), status enum(pending_payment, active, completed, suspended), enrolled_at |
 | `payments` | enrollment_id, amount, method enum(ecocash, bank_transfer), proof_file_path, proof_original_name, status enum(pending, approved, rejected), admin_note (rejection reason), submitted_at, reviewed_by, reviewed_at |
@@ -380,7 +382,8 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 | `attendance_sessions` | module_id, session_date, topic, taken_by (one register) |
 | `attendance` | session_id + student_id (**unique**), status enum(present, late, absent, excused), note, marked_at. Rate = (present + late) / (present + late + absent) |
 | `user_documents` | user_id (FK cascade), doc_type (national_id, passport, birth_certificate, qualification, transcript, ordination, reference, other), title, file_path, original_name, file_size, status enum(pending, verified, rejected), review_note, reviewed_by/at, uploaded_at |
-| `migrations` | version = 21 |
+| `program_enrollments` | user_id, program_id (**unique pair**), status enum(pending_payment, active, completed, suspended), **full_access** (1 = gets every module, including ones added later; 0 = legacy student who keeps only the modules they had), enrolled_at. **This is what a student applies for and pays for.** |
+| `migrations` | version = 22 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
@@ -396,7 +399,9 @@ users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `gra
 020 user_documents + settings `docs_required_student` (national_id), `docs_required_lecturer` (national_id,qualification) (+ privacy_notice paragraph) ·
 021 programs + modules: copies `courses` into `modules` (same ids) under an auto-created "General Program", renames `course_id` to `module_id` (and FK to modules) in 11 tables, renames course_lecturers/grading/results to module_*, keeps `courses_legacy`, rewrites stored `/course/` notification links. Re-runnable if interrupted; `down()` reverses it (not reachable from /migrate).
 
-**The next schema change is migration 022.**
+022 program fees: `programs.fee_amount` (starts as the sum of its modules' fees), `program_enrollments`, `enrollments.program_enrollment_id`, `payments.program_enrollment_id` (`payments.enrollment_id` now NULLable, kept for old payments); converts every existing student per program (partial holders get `full_access = 0`); rewrites `payments/upload/N` notification links. Re-runnable; `down()` refuses if program-only payments exist.
+
+**The next schema change is migration 023.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -679,3 +684,21 @@ the user's required documents with their state and any rejection reasons.
 **Testing recipe used:** scratch DB from a `mysqldump` of the sandbox data + `config/testing/database.php` pointing at it + `CI_ENV=testing php index.php migrate` (CLI); a temporary controller calling `migration->version(20)` tested `down()`; row counts compared; then `/migrate` on the sandbox DB and a curl crawl of every page for the three roles plus POST flows (create/edit/move/delete program and module, apply, approve payment, material, assignment, calendar, register, discussion, library). Delete the throwaway `config/testing` and temp controller afterwards.
 
 **Not built (ideas):** apply for several modules of a program at once, a program-level fee or certificate, student progress per program (modules completed of total), per-program results/statement grouping, a public program catalogue before login.
+
+---
+
+## 13. Program fees (v14)
+
+**The rule:** a student applies to a **program**, pays **one fee** (`programs.fee_amount`) and gets **every module** in it. Modules have no price (the old `modules.fee_amount` column stays, always 0 for new modules; the admin forms no longer show it). This supersedes the v13 decision "fee stays per module".
+
+**Flow:** `Programs::apply/{programId}` (POST) creates a `program_enrollments` row (`pending_payment`) and redirects to `payments/upload/{programEnrollmentId}` (note: that id is now a *program enrolment* id). Free program (fee 0) activates immediately. `Payments::upload` stores a payment with `program_enrollment_id` and `amount = fee`. `Admin_payments::approve` calls `Program_enrollment_model::activate()` which sets it active and `grant_modules()` upserts an `enrollments` row (status active, `program_enrollment_id` set) for every module in the program. **`enrollments` is still one row per student per module and `has_active_access()` is unchanged**: everything else (materials, results, attendance...) keeps working. Approving warns the admin if the amount is below the program's current fee.
+
+**Modules added later:** `Admin_modules::create_module` (and moving a module into a program) calls `sync_program()`, which opens the module for every active `full_access = 1` enrolment and notifies those students. Legacy students with `full_access = 0` are not synced.
+
+**Closing a program** only stops new applications; enrolled students can still open its page. Rejected payments: student sees the reason on the program page and My Payments and uploads again (`payments/upload/{peId}`).
+
+**Code map:** `Program_enrollment_model` (find, find_for, for_student, create_pending, activate, grant_modules, sync_program), `Payment_model::with_details()` (joins program enrolment; `program_name`, `program_fee`, `module_count`, `legacy_module_name`), `Receipt_model` (`program_name`), `Dashboard_model` (payments via program enrolments), `Report_model::fees()` (per program), student dashboard has "My programs and modules" with Pay buttons. `Auth_Controller::_require_current_database()` also needs `program_enrollments`. Ezra guides `pay`, `enrol`, `approve_pay`, `programs` and the portal guide/context explain program fees (Shona/Ndebele lines updated by me, still need a native speaker).
+
+**Gotcha:** `Program_enrollment_model::activate()` returns a *count*, not the ids; `grant_modules()` returns the ids. Controllers that call `money()` must load the `ui` helper.
+
+**Not built:** installments, part-payment tracking against the fee, per-module refunds, a bundle discount, manuals update (manuals v2.2 should say program fees; they still say per-module fees and "course").

@@ -110,7 +110,7 @@
                                         <div class="fw-semibold"><?= html_escape($p['student_name']) ?></div>
                                         <small class="text-muted"><?= html_escape(time_ago($p['submitted_at'])) ?></small>
                                     </td>
-                                    <td><?= html_escape($p['module_name']) ?></td>
+                                    <td><?= html_escape($p['program_name']) ?></td>
                                     <td><?= money($p['amount']) ?></td>
                                     <td><?= status_badge($p['status']) ?></td>
                                 </tr>

@@ -27,10 +27,6 @@
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
-                    <label class="form-label" for="fee_amount">Fee ($)</label>
-                    <input type="number" step="0.01" min="0" id="fee_amount" name="fee_amount" class="form-control" required value="<?= html_escape(set_value('fee_amount', $module['fee_amount'])) ?>">
-                </div>
-                <div class="col-md-4">
                     <label class="form-label" for="credits">Credits</label>
                     <input type="number" min="0" id="credits" name="credits" class="form-control" value="<?= html_escape(set_value('credits', $module['credits'])) ?>">
                 </div>

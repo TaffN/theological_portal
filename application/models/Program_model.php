@@ -31,15 +31,13 @@ class Program_model extends CI_Model
 
     /**
      * Programs with their numbers: modules (and how many are open), students with access,
-     * and the fee range of the open modules. $onlyActive hides closed programs (student view).
+     * (the program's own fee is in p.fee_amount). $onlyActive hides closed programs (student view).
      */
     public function with_counts($onlyActive = false)
     {
         $this->db->select("p.*,
                 COUNT(DISTINCT m.id) AS module_count,
                 COUNT(DISTINCT CASE WHEN m.status = 'active' THEN m.id END) AS open_modules,
-                MIN(CASE WHEN m.status = 'active' THEN m.fee_amount END) AS fee_min,
-                MAX(CASE WHEN m.status = 'active' THEN m.fee_amount END) AS fee_max,
                 COUNT(DISTINCT CASE WHEN e.status = 'active' THEN e.user_id END) AS students", false)
             ->from('programs p')
             ->join('modules m', 'm.program_id = p.id', 'left')

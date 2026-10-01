@@ -6,8 +6,9 @@ class Admin_payments extends Admin_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model(['Payment_model', 'Enrollment_model']);
+        $this->load->model(['Payment_model', 'Program_enrollment_model']);
         $this->load->library('notifier');
+        $this->load->helper('ui');
     }
 
     public function index()
@@ -50,36 +51,39 @@ class Admin_payments extends Admin_Controller
 
     public function approve($paymentId)
     {
-        $payment = $this->Payment_model->find($paymentId);
+        $payment = $this->Payment_model->find_with_details($paymentId);
 
         if (! $payment) {
             show_404();
         }
 
-        // Approving a payment both marks it approved AND flips the
-        // enrollment to active - this is the actual access gate opening.
+        // Approving a payment marks it approved AND activates the program enrolment,
+        // which opens every module of the program. This is the access gate opening.
         if ($payment['status'] !== 'pending') {
             $this->session->set_flashdata('error', 'That payment was already ' . $payment['status'] . '.');
             return redirect('admin_payments');
         }
         $this->Payment_model->approve($paymentId, $this->current_user_id);
-        $this->Enrollment_model->activate($payment['enrollment_id']);
+        $opened = $this->Program_enrollment_model->activate($payment['program_enrollment_id']);
 
-        $enrollment = $this->Enrollment_model->find($payment['enrollment_id']);
-        $this->audit->log('payment.approved', 'payment', $paymentId, 'Approved $' . number_format($payment['amount'], 2) . ' payment #' . $paymentId . ' (enrollment #' . $payment['enrollment_id'] . ')');
+        $this->audit->log('payment.approved', 'payment', $paymentId, 'Approved ' . money($payment['amount']) . ' payment #' . $paymentId . ' for ' . $payment['program_name'] . ' (' . $opened . ' modules opened)');
         $this->notifier->notify_user(
-            $enrollment['user_id'],
-            'Your payment was approved - your module is now open.',
-            base_url('student_materials/module/' . $enrollment['module_id'])
+            $payment['student_id'],
+            'Your payment was approved - ' . $payment['program_name'] . ' is now open to you.',
+            base_url('programs/' . $payment['program_slug'])
         );
 
-        $this->session->set_flashdata('success', 'Payment approved. Student now has access to the module.');
+        $msg = 'Payment approved. The student now has every module in ' . $payment['program_name'] . '.';
+        if ((float) $payment['amount'] < (float) $payment['program_fee']) {
+            $msg .= ' Note: the program fee is now ' . money($payment['program_fee']) . ', more than this payment.';
+        }
+        $this->session->set_flashdata('success', $msg);
         redirect('admin_payments');
     }
 
     public function reject($paymentId)
     {
-        $payment = $this->Payment_model->find($paymentId);
+        $payment = $this->Payment_model->find_with_details($paymentId);
 
         if (! $payment) {
             show_404();
@@ -93,11 +97,10 @@ class Admin_payments extends Admin_Controller
         $this->Payment_model->reject($paymentId, $this->current_user_id, $note);
         $this->audit->log('payment.rejected', 'payment', $paymentId, 'Rejected payment #' . $paymentId . ($note !== '' ? ': ' . $note : ''));
 
-        $enrollment = $this->Enrollment_model->find($payment['enrollment_id']);
         $this->notifier->notify_user(
-            $enrollment['user_id'],
+            $payment['student_id'],
             'Your proof of payment was not accepted' . ($note !== '' ? ': ' . $note : '') . '. Please upload it again.',
-            base_url('payments/upload/' . $payment['enrollment_id'])
+            base_url('payments/upload/' . $payment['program_enrollment_id'])
         );
 
         $this->session->set_flashdata('success', 'Payment rejected.');

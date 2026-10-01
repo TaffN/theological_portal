@@ -7,23 +7,15 @@ class Payments extends Student_Controller
     {
         parent::__construct();
         $this->load->library('form_validation');
-        $this->load->model(['Enrollment_model', 'Module_model', 'Payment_model']);
+        $this->load->model(['Program_enrollment_model', 'Payment_model']);
         $this->load->helper('ui');
     }
 
     /** Student's own payment history, with receipts for approved ones. */
     public function index()
     {
-        $rows = $this->db->select('payments.*, modules.name AS module_name')
-            ->from('payments')
-            ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->join('modules', 'modules.id = enrollments.module_id')
-            ->where('enrollments.user_id', $this->current_user_id)
-            ->order_by('payments.submitted_at', 'DESC')
-            ->get()->result_array();
-
         $this->load->view('templates/header', ['title' => 'My Payments']);
-        $this->load->view('student/payments', ['payments' => $rows]);
+        $this->load->view('student/payments', ['payments' => $this->Payment_model->for_student($this->current_user_id)]);
         $this->load->view('templates/footer');
     }
 
@@ -39,26 +31,26 @@ class Payments extends Student_Controller
         $this->load->view('templates/footer');
     }
 
-    public function upload($enrollmentId)
+    /** Proof of payment for a program enrolment ($peId = program_enrollments.id). */
+    public function upload($peId = 0)
     {
-        $enrollment = $this->Enrollment_model->find($enrollmentId);
+        $pe = $this->Program_enrollment_model->find($peId);
 
-        if (! $enrollment || $enrollment['user_id'] != $this->current_user_id) {
+        if (! $pe || (int) $pe['user_id'] !== (int) $this->current_user_id) {
             show_404();
         }
 
-        if ($enrollment['status'] !== 'pending_payment') {
-            $this->session->set_flashdata('error', 'This enrollment is not awaiting payment.');
-            return redirect('programs');
+        if ($pe['status'] !== 'pending_payment') {
+            $this->session->set_flashdata('error', 'This enrolment is not awaiting payment.');
+            return redirect('programs/' . $pe['program_slug']);
         }
 
-        $module = $this->Module_model->find($enrollment['module_id']);
-        $latest = $this->Payment_model->latest_by_enrollment_for_student($this->current_user_id);
-        $latest = isset($latest[(int) $enrollmentId]) ? $latest[(int) $enrollmentId] : null;
+        $latest = $this->Payment_model->latest_by_program_enrollment_for_student($this->current_user_id);
+        $latest = isset($latest[(int) $peId]) ? $latest[(int) $peId] : null;
 
         if ($latest && $latest['status'] === 'pending') {
-            $this->session->set_flashdata('success', 'Your proof of payment for this module is already waiting for review.');
-            return redirect('programs');
+            $this->session->set_flashdata('success', 'Your proof of payment for this program is already waiting for review.');
+            return redirect('programs/' . $pe['program_slug']);
         }
         $path = null;
         $originalName = null;
@@ -69,12 +61,12 @@ class Payments extends Student_Controller
             if ($this->form_validation->run()) {
                 if (! $this->_handle_upload($path, $originalName)) {
                     // error message already flashed - reload the form to show it
-                    return redirect('payments/upload/' . $enrollmentId);
+                    return redirect('payments/upload/' . $peId);
                 }
 
                 $paymentId = $this->Payment_model->create([
-                    'enrollment_id'        => $enrollmentId,
-                    'amount'               => $module['fee_amount'],
+                    'program_enrollment_id' => $peId,
+                    'amount'               => $pe['fee_amount'],
                     'method'               => $this->input->post('method'),
                     'proof_file_path'      => $path,
                     'proof_original_name'  => $originalName,
@@ -82,18 +74,19 @@ class Payments extends Student_Controller
                     'submitted_at'         => date('Y-m-d H:i:s'),
                 ]);
 
-                $this->audit->log('payment.submitted', 'payment', $paymentId, 'Submitted proof of payment (' . money($module['fee_amount']) . ') for ' . $module['name']);
+                $this->audit->log('payment.submitted', 'payment', $paymentId, 'Submitted proof of payment (' . money($pe['fee_amount']) . ') for ' . $pe['program_name']);
                 $this->session->set_flashdata('success', 'Proof of payment submitted. An admin will review it shortly.');
-                return redirect('programs');
+                return redirect('programs/' . $pe['program_slug']);
             }
         }
 
+        $this->load->model('Module_model');
         $this->load->view('templates/header', ['title' => 'Submit Proof of Payment']);
         $this->load->view('student/upload_payment', [
-            'enrollment' => $enrollment,
-            'module'     => $module,
-            'latest'     => $latest,
-            'pay'        => $this->_payment_details(),
+            'pe'           => $pe,
+            'module_count' => count($this->Module_model->for_program($pe['program_id'])),
+            'latest'       => $latest,
+            'pay'          => $this->_payment_details(),
         ]);
         $this->load->view('templates/footer');
     }

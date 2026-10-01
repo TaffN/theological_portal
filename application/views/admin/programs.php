@@ -9,13 +9,16 @@
     <div class="card-body">
         <h5 class="card-title">Add a program</h5>
         <form method="post" action="<?= base_url('admin_programs/create') ?>" enctype="multipart/form-data" class="row g-2">
-            <div class="col-md-5">
-                <input type="text" name="name" class="form-control" placeholder="Program name, e.g. Diploma in Theology" maxlength="200" required>
+            <div class="col-md-4">
+                <input type="text" name="name" class="form-control" placeholder="Program name, e.g. Certificate in Christian Ministry" maxlength="200" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" step="0.01" min="0" name="fee_amount" class="form-control" placeholder="Fee ($)" title="One fee for the whole program" required>
             </div>
             <div class="col-md-3">
                 <input type="text" name="duration_text" class="form-control" placeholder="Duration, e.g. 3 years" maxlength="100">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="file" name="thumbnail" class="form-control" accept="image/png,image/jpeg" title="Optional picture (JPG or PNG, up to 1 MB)">
             </div>
             <div class="col-12">
@@ -49,6 +52,7 @@
                 <h5 class="module-name"><?= html_escape($p['name']) ?>
                     <?php if (! empty($p['thumbnail_path'])): ?><?= status_badge($p['status']) ?><?php endif; ?></h5>
                 <ul class="module-meta">
+                    <li><?= icon('dollar', 16) ?> <strong><?= money($p['fee_amount']) ?></strong> for the whole program</li>
                     <li><?= icon('layers', 16) ?> <?= (int) $p['module_count'] ?> module<?= $p['module_count'] == 1 ? '' : 's' ?> (<?= (int) $p['open_modules'] ?> open)</li>
                     <li><?= icon('users', 16) ?> <?= (int) $p['students'] ?> student<?= $p['students'] == 1 ? '' : 's' ?> with access</li>
                     <?php if ($p['duration_text']): ?><li><?= icon('clock', 16) ?> <?= html_escape($p['duration_text']) ?></li><?php endif; ?>

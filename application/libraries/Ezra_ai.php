@@ -400,8 +400,14 @@ class Ezra_ai
 
         $modules = $db->select('modules.id, modules.name, modules.duration_text, programs.name AS program_name, e.status')->from('enrollments e')
             ->join('modules', 'modules.id = e.module_id')->join('programs', 'programs.id = modules.program_id')->where('e.user_id', $uid)->get()->result_array();
+        if ($db->table_exists('program_enrollments')) {
+            $pes = $db->select('programs.name, programs.fee_amount, pe.status')->from('program_enrollments pe')->join('programs', 'programs.id = pe.program_id')->where('pe.user_id', $uid)->get()->result_array();
+            foreach ($pes as $pe) {
+                $lines[] = 'Program: ' . $pe['name'] . ', fee $' . number_format($pe['fee_amount'], 2) . ', enrolment ' . str_replace('_', ' ', $pe['status']) . ($pe['status'] === 'pending_payment' ? ' (all its modules open once proof of payment is approved)' : '') . '.';
+            }
+        }
         if (! $modules) {
-            $lines[] = 'Not enrolled in any module yet. Students open Programs, choose a program, apply for a module, pay by EcoCash or bank transfer, and upload proof of payment.';
+            $lines[] = 'Not enrolled in any module yet. Students open Programs, choose a program, apply to it, pay its single fee by EcoCash or bank transfer, and upload proof of payment.';
             return implode("\n", $lines);
         }
 
@@ -514,7 +520,7 @@ class Ezra_ai
     {
         $g = "## The portal (so you can guide people around it)\n"
             . "On a phone, the bottom bar has the main pages and **More** lists every page; on a computer the menu is on the left. Ctrl+K searches pages.\n"
-            . "- Programs and modules: a program (for example a Diploma) is made of modules. Students open Programs, choose a program, apply for a module, then pay by EcoCash or bank transfer and upload proof of payment; the office approves it and that module opens. Each module has its own lecturers, materials, assignments, exams and results.\n"
+            . "- Programs and modules: a program (for example a Diploma) is made of modules. Students open Programs, choose a program, apply, then pay the program's one fee by EcoCash or bank transfer and upload proof of payment; the office approves it and every module in the program opens (modules added later open automatically). Fees belong to the program, not to individual modules. Each module has its own lecturers, materials, assignments, exams and results.\n"
             . "- Materials: each module's notes, readings and recordings from the lecturer.\n"
             . "- Assignments: hand in a document and/or typed answer before the due date; marks and feedback appear there.\n"
             . "- Exams: timed online exams with an integrity pledge; results appear once the lecturer releases them.\n"

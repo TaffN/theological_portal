@@ -38,7 +38,7 @@ class Auth_Controller extends CI_Controller
      */
     protected function _require_current_database()
     {
-        if ($this->db->table_exists('modules') && $this->db->table_exists('programs')) {
+        if ($this->db->table_exists('modules') && $this->db->table_exists('programs') && $this->db->table_exists('program_enrollments')) {
             return;
         }
         $this->output->set_status_header(503);

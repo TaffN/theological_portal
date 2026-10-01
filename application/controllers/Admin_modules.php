@@ -15,7 +15,8 @@ class Admin_modules extends Admin_Controller
     {
         parent::__construct();
         $this->load->library('form_validation');
-        $this->load->model(['Module_model', 'Module_lecturer_model', 'Program_model', 'User_model']);
+        $this->load->model(['Module_model', 'Module_lecturer_model', 'Program_model', 'User_model', 'Program_enrollment_model']);
+        $this->load->library('notifier');
         $this->load->helper('ui');
     }
 
@@ -58,7 +59,9 @@ class Admin_modules extends Admin_Controller
         } else {
             $moduleId = $this->Module_model->create($data + ['program_id' => $program['id'], 'status' => 'active']);
             $this->audit->log('module.created', 'module', $moduleId, 'Created module "' . $data['name'] . '" in ' . $program['name']);
-            $this->session->set_flashdata('success', 'Module added to ' . $program['name'] . '.');
+            $n = $this->open_for_enrolled($program);
+            $this->session->set_flashdata('success', 'Module added to ' . $program['name'] . '.'
+                . ($n ? ' It is now open to the ' . $n . ' student' . ($n === 1 ? '' : 's') . ' already enrolled in the program.' : ''));
         }
         redirect('admin_programs/' . $program['id'] . '/modules');
     }
@@ -82,8 +85,10 @@ class Admin_modules extends Admin_Controller
                 $data['program_id'] = $program['id'];
                 $this->Module_model->update($module['id'], $data);
                 $this->audit->log('module.updated', 'module', $module['id'], 'Edited module "' . $data['name'] . '"'
-                    . ((float) $module['fee_amount'] !== (float) $data['fee_amount'] ? ' (fee ' . $module['fee_amount'] . ' -> ' . $data['fee_amount'] . ')' : '')
                     . ((int) $module['program_id'] !== (int) $program['id'] ? ' (moved from ' . $module['program_name'] . ' to ' . $program['name'] . ')' : ''));
+                if ((int) $module['program_id'] !== (int) $program['id']) {
+                    $this->open_for_enrolled($program);
+                }
                 $this->session->set_flashdata('success', 'Module updated.');
                 return redirect('admin_programs/' . $program['id'] . '/modules');
             }
@@ -167,6 +172,16 @@ class Admin_modules extends Admin_Controller
 
     protected $error = '';
 
+    /** Students with full access to the program get its new module straight away, and are told. Returns how many. */
+    private function open_for_enrolled($program)
+    {
+        $opened = $this->Program_enrollment_model->sync_program($program['id']);
+        foreach ($opened as $userId => $moduleIds) {
+            $this->notifier->notify_user($userId, 'A new module has been added to ' . $program['name'] . ' and is open to you.', base_url('programs/' . $program['slug']));
+        }
+        return count($opened);
+    }
+
     private function find_or_404($id)
     {
         $module = $this->Module_model->find($id);
@@ -180,7 +195,6 @@ class Admin_modules extends Admin_Controller
     private function validated($ignoreId)
     {
         $this->form_validation->set_rules('name', 'Module name', 'required|max_length[200]');
-        $this->form_validation->set_rules('fee_amount', 'Fee', 'required|numeric|greater_than_equal_to[0]');
         $this->form_validation->set_rules('credits', 'Credits', 'integer|greater_than_equal_to[0]');
         $this->form_validation->set_rules('code', 'Code', 'max_length[30]|regex_match[/^[A-Za-z0-9._-]*$/]');
         if (! $this->form_validation->run()) {
@@ -195,7 +209,6 @@ class Admin_modules extends Admin_Controller
         $data = [
             'name'          => trim($this->input->post('name')),
             'description'   => trim($this->input->post('description')) ?: null,
-            'fee_amount'    => $this->input->post('fee_amount'),
             'duration_text' => trim($this->input->post('duration_text')) ?: null,
             'credits'       => (int) $this->input->post('credits'),
         ];

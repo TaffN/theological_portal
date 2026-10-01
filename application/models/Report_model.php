@@ -136,7 +136,7 @@ class Report_model extends CI_Model
         return array_map(function ($r) { return ['group' => $r['grp'], 'students' => (int) $r['n']]; }, $rows);
     }
 
-    /** Approved fees per month for the last 12 months, and totals per module. */
+    /** Approved fees per month for the last 12 months, and totals per program. */
     public function fees($year = null)
     {
         $months = [];
@@ -161,7 +161,7 @@ class Report_model extends CI_Model
         }
 
         $this->db->select("c.name, COUNT(p.id) AS payments, SUM(p.amount) AS total", false)
-            ->from('payments p')->join('enrollments e', 'e.id = p.enrollment_id')->join('modules c', 'c.id = e.module_id')->where('p.status', 'approved');
+            ->from('payments p')->join('program_enrollments e', 'e.id = p.program_enrollment_id')->join('programs c', 'c.id = e.program_id')->where('p.status', 'approved');
         if ($year) {
             $this->db->where('YEAR(COALESCE(p.reviewed_at, p.submitted_at)) =', (int) $year, false);
         }
