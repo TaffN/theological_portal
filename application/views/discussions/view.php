@@ -1,5 +1,5 @@
 <?php $me = (int) get_instance()->session->userdata('user_id'); ?>
-<p class="mb-3"><a href="<?= base_url('discussions?board=' . ($topic['course_id'] ?: 'general')) ?>" class="back-link">&larr; <?= html_escape($topic['course_name'] ?: 'General') ?></a></p>
+<p class="mb-3"><a href="<?= base_url('discussions?board=' . ($topic['module_id'] ?: 'general')) ?>" class="back-link">&larr; <?= html_escape($topic['module_name'] ?: 'General') ?></a></p>
 
 <div class="page-head">
     <div class="min-w-0">
@@ -7,7 +7,7 @@
             <?php if ($topic['is_pinned']): ?><span class="topic-flag" title="Pinned"><?= icon('pin', 18) ?></span><?php endif; ?>
             <?= html_escape($topic['title']) ?>
         </h1>
-        <p class="page-sub mb-0"><?= (int) $topic['reply_count'] ?> repl<?= $topic['reply_count'] == 1 ? 'y' : 'ies' ?> &middot; <?= html_escape($topic['course_name'] ?: 'General board') ?><?= $topic['is_locked'] ? ' &middot; closed for replies' : '' ?></p>
+        <p class="page-sub mb-0"><?= (int) $topic['reply_count'] ?> repl<?= $topic['reply_count'] == 1 ? 'y' : 'ies' ?> &middot; <?= html_escape($topic['module_name'] ?: 'General board') ?><?= $topic['is_locked'] ? ' &middot; closed for replies' : '' ?></p>
     </div>
     <?php if ($moderate || (int) $topic['user_id'] === $me): ?>
         <div class="d-flex flex-wrap gap-2">

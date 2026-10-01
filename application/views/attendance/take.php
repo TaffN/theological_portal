@@ -1,13 +1,13 @@
-<p class="mb-3"><a href="<?= base_url('lecturer_attendance/course/' . $course['id']) ?>" class="back-link">&larr; <?= html_escape($course['name']) ?></a></p>
+<p class="mb-3"><a href="<?= base_url('lecturer_attendance/module/' . $module['id']) ?>" class="back-link">&larr; <?= html_escape($module['name']) ?></a></p>
 <div class="page-head">
     <div>
         <h1 class="page-title"><?= $session ? 'Correct the register' : 'Take the register' ?></h1>
-        <p class="page-sub mb-0"><?= html_escape($course['name']) ?>. Everyone starts as present: tap the others.</p>
+        <p class="page-sub mb-0"><?= html_escape($module['name']) ?>. Everyone starts as present: tap the others.</p>
     </div>
 </div>
 
 <?php if (! $students): ?>
-    <div class="card"><div class="empty-state">No students have access to this course yet, so there is no one to mark.</div></div>
+    <div class="card"><div class="empty-state">No students have access to this module yet, so there is no one to mark.</div></div>
 <?php else: ?>
 <form method="post" class="card" data-register>
     <div class="card-body">
@@ -46,7 +46,7 @@
     </ul>
     <div class="card-body border-top d-flex flex-wrap gap-2">
         <button type="submit" class="btn btn-primary"><?= icon('check', 16) ?> Save register</button>
-        <a href="<?= base_url('lecturer_attendance/course/' . $course['id']) ?>" class="btn btn-light">Cancel</a>
+        <a href="<?= base_url('lecturer_attendance/module/' . $module['id']) ?>" class="btn btn-light">Cancel</a>
         <?php if ($session): ?><button type="submit" form="del-session" class="btn btn-link text-danger-soft ms-auto">Delete this register</button><?php endif; ?>
     </div>
 </form>

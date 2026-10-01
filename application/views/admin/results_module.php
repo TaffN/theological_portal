@@ -1,11 +1,11 @@
-<p class="mb-3"><a href="<?= base_url('admin_results') ?>" class="back-link">&larr; Results</a></p>
+<?= module_crumbs($module, 'Results') ?: '<p class="mb-3"><a href="' . base_url('admin_results') . '" class="back-link">&larr; Results</a></p>' ?>
 
 <div class="page-head">
     <div>
-        <h1 class="page-title"><?= html_escape($course['name']) ?></h1>
+        <h1 class="page-title"><?= html_escape($module['name']) ?></h1>
         <p class="page-sub"><?= count($rows) ?> published result<?= count($rows) == 1 ? '' : 's' ?>.</p>
     </div>
-    <a href="<?= base_url('admin_results/export/' . $course['id']) ?>" class="btn btn-outline-primary"><?= icon('upload', 16) ?> Export (CSV)</a>
+    <a href="<?= base_url('admin_results/export/' . $module['id']) ?>" class="btn btn-outline-primary"><?= icon('upload', 16) ?> Export (CSV)</a>
 </div>
 
 <div class="card">

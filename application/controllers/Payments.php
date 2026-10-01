@@ -7,17 +7,17 @@ class Payments extends Student_Controller
     {
         parent::__construct();
         $this->load->library('form_validation');
-        $this->load->model(['Enrollment_model', 'Course_model', 'Payment_model']);
+        $this->load->model(['Enrollment_model', 'Module_model', 'Payment_model']);
         $this->load->helper('ui');
     }
 
     /** Student's own payment history, with receipts for approved ones. */
     public function index()
     {
-        $rows = $this->db->select('payments.*, courses.name AS course_name')
+        $rows = $this->db->select('payments.*, modules.name AS module_name')
             ->from('payments')
             ->join('enrollments', 'enrollments.id = payments.enrollment_id')
-            ->join('courses', 'courses.id = enrollments.course_id')
+            ->join('modules', 'modules.id = enrollments.module_id')
             ->where('enrollments.user_id', $this->current_user_id)
             ->order_by('payments.submitted_at', 'DESC')
             ->get()->result_array();
@@ -49,16 +49,16 @@ class Payments extends Student_Controller
 
         if ($enrollment['status'] !== 'pending_payment') {
             $this->session->set_flashdata('error', 'This enrollment is not awaiting payment.');
-            return redirect('courses');
+            return redirect('programs');
         }
 
-        $course = $this->Course_model->find($enrollment['course_id']);
+        $module = $this->Module_model->find($enrollment['module_id']);
         $latest = $this->Payment_model->latest_by_enrollment_for_student($this->current_user_id);
         $latest = isset($latest[(int) $enrollmentId]) ? $latest[(int) $enrollmentId] : null;
 
         if ($latest && $latest['status'] === 'pending') {
-            $this->session->set_flashdata('success', 'Your proof of payment for this course is already waiting for review.');
-            return redirect('courses');
+            $this->session->set_flashdata('success', 'Your proof of payment for this module is already waiting for review.');
+            return redirect('programs');
         }
         $path = null;
         $originalName = null;
@@ -74,7 +74,7 @@ class Payments extends Student_Controller
 
                 $paymentId = $this->Payment_model->create([
                     'enrollment_id'        => $enrollmentId,
-                    'amount'               => $course['fee_amount'],
+                    'amount'               => $module['fee_amount'],
                     'method'               => $this->input->post('method'),
                     'proof_file_path'      => $path,
                     'proof_original_name'  => $originalName,
@@ -82,16 +82,16 @@ class Payments extends Student_Controller
                     'submitted_at'         => date('Y-m-d H:i:s'),
                 ]);
 
-                $this->audit->log('payment.submitted', 'payment', $paymentId, 'Submitted proof of payment (' . money($course['fee_amount']) . ') for ' . $course['name']);
+                $this->audit->log('payment.submitted', 'payment', $paymentId, 'Submitted proof of payment (' . money($module['fee_amount']) . ') for ' . $module['name']);
                 $this->session->set_flashdata('success', 'Proof of payment submitted. An admin will review it shortly.');
-                return redirect('courses');
+                return redirect('programs');
             }
         }
 
         $this->load->view('templates/header', ['title' => 'Submit Proof of Payment']);
         $this->load->view('student/upload_payment', [
             'enrollment' => $enrollment,
-            'course'     => $course,
+            'module'     => $module,
             'latest'     => $latest,
             'pay'        => $this->_payment_details(),
         ]);

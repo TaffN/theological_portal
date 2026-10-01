@@ -3,7 +3,7 @@
 <div class="page-head">
     <div class="min-w-0">
         <h1 class="page-title">Invigilation</h1>
-        <p class="page-sub mb-0"><?= html_escape($e['title']) ?> &middot; <?= html_escape($e['course_name']) ?> &middot;
+        <p class="page-sub mb-0"><?= html_escape($e['title']) ?> &middot; <?= html_escape($e['module_name']) ?> &middot;
             closes <?= html_escape(date('D j M, H:i', strtotime($e['closes_at']))) ?> (<?= html_escape(due_in($e['closes_at'])) ?>)</p>
     </div>
     <span class="live-dot" data-live-status>Live</span>

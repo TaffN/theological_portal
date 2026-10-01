@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Stage 6: a student's published course results, and a printable statement
+ * Stage 6: a student's published module results, and a printable statement
  * of results whose QR code opens a public "this is genuine" page.
  */
 class Student_results extends Student_Controller
@@ -12,7 +12,7 @@ class Student_results extends Student_Controller
         parent::__construct();
         $this->load->model(['Result_model', 'User_model']);
         $this->load->helper('ui');
-        if (! $this->db->table_exists('course_results')) {   // code updated, database not yet (visit /migrate)
+        if (! $this->db->table_exists('module_results')) {   // code updated, database not yet (visit /migrate)
             $this->session->set_flashdata('error', 'Results need a database update first. An administrator should run the latest update (/migrate).');
             redirect('dashboard');
         }

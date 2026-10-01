@@ -1,19 +1,19 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Course_lecturer_model extends CI_Model
+class Module_lecturer_model extends CI_Model
 {
-    protected $table = 'course_lecturers';
+    protected $table = 'module_lecturers';
 
     public function __construct()
     {
         parent::__construct();
     }
 
-    public function assign($courseId, $userId)
+    public function assign($moduleId, $userId)
     {
         $existing = $this->db
-            ->where('course_id', $courseId)
+            ->where('module_id', $moduleId)
             ->where('user_id', $userId)
             ->get($this->table)
             ->row_array();
@@ -23,31 +23,31 @@ class Course_lecturer_model extends CI_Model
         }
 
         return $this->db->insert($this->table, [
-            'course_id'  => $courseId,
+            'module_id'  => $moduleId,
             'user_id'    => $userId,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
     }
 
-    public function courses_for_lecturer($userId)
+    public function modules_for_lecturer($userId)
     {
         return $this->db
-            ->select('courses.*')
-            ->from('course_lecturers cl')
-            ->join('courses', 'courses.id = cl.course_id')
+            ->select('modules.*')
+            ->from('module_lecturers cl')
+            ->join('modules', 'modules.id = cl.module_id')
             ->where('cl.user_id', $userId)
             ->get()
             ->result_array();
     }
 
     /**
-     * Is this lecturer actually assigned to this course? Used to stop a
-     * lecturer posting materials into a course they don't teach.
+     * Is this lecturer actually assigned to this module? Used to stop a
+     * lecturer posting materials into a module they don't teach.
      */
-    public function is_assigned($courseId, $userId)
+    public function is_assigned($moduleId, $userId)
     {
         $row = $this->db
-            ->where('course_id', $courseId)
+            ->where('module_id', $moduleId)
             ->where('user_id', $userId)
             ->get($this->table)
             ->row_array();
@@ -55,10 +55,10 @@ class Course_lecturer_model extends CI_Model
         return (bool) $row;
     }
 
-    public function unassign($courseId, $userId)
+    public function unassign($moduleId, $userId)
     {
         return $this->db
-            ->where('course_id', $courseId)
+            ->where('module_id', $moduleId)
             ->where('user_id', $userId)
             ->delete($this->table);
     }

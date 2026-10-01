@@ -20,7 +20,8 @@ class Dashboard_model extends CI_Model
         return [
             'students'           => $this->db->where('role', 'student')->count_all_results('users'),
             'lecturers'          => $this->db->where('role', 'lecturer')->count_all_results('users'),
-            'courses'            => $this->db->where('status', 'active')->count_all_results('courses'),
+            'modules'            => $this->db->where('status', 'active')->count_all_results('modules'),
+            'programs'           => $this->db->where('status', 'active')->count_all_results('programs'),
             'active_enrollments' => $this->db->where('status', 'active')->count_all_results('enrollments'),
             'pending_payments'   => $this->db->where('status', 'pending')->count_all_results('payments'),
             'fees_total'         => (float) $feesTotal,
@@ -63,16 +64,16 @@ class Dashboard_model extends CI_Model
     }
 
     /**
-     * Paid-up (active or completed) enrollments per active course.
+     * Paid-up (active or completed) enrollments per active module.
      */
-    public function enrollments_by_course()
+    public function enrollments_by_module()
     {
         $rows = $this->db
-            ->select('courses.name, COUNT(enrollments.id) AS total', false)
-            ->from('courses')
-            ->join('enrollments', "enrollments.course_id = courses.id AND enrollments.status IN ('active','completed')", 'left', false)
-            ->where('courses.status', 'active')
-            ->group_by('courses.id')
+            ->select('modules.name, COUNT(enrollments.id) AS total', false)
+            ->from('modules')
+            ->join('enrollments', "enrollments.module_id = modules.id AND enrollments.status IN ('active','completed')", 'left', false)
+            ->where('modules.status', 'active')
+            ->group_by('modules.id')
             ->order_by('total', 'DESC')
             ->get()->result_array();
 
@@ -99,11 +100,11 @@ class Dashboard_model extends CI_Model
     public function recent_payments($limit = 6)
     {
         return $this->db
-            ->select('payments.id, payments.amount, payments.method, payments.status, payments.submitted_at, users.name AS student_name, courses.name AS course_name')
+            ->select('payments.id, payments.amount, payments.method, payments.status, payments.submitted_at, users.name AS student_name, modules.name AS module_name')
             ->from('payments')
             ->join('enrollments', 'enrollments.id = payments.enrollment_id')
             ->join('users', 'users.id = enrollments.user_id')
-            ->join('courses', 'courses.id = enrollments.course_id')
+            ->join('modules', 'modules.id = enrollments.module_id')
             ->order_by('payments.submitted_at', 'DESC')
             ->limit($limit)
             ->get()->result_array();
@@ -152,10 +153,10 @@ class Dashboard_model extends CI_Model
         }
 
         return $this->db
-            ->select('materials.id, materials.title, materials.created_at, materials.course_id, courses.name AS course_name')
+            ->select('materials.id, materials.title, materials.created_at, materials.module_id, modules.name AS module_name')
             ->from('materials')
-            ->join('enrollments', 'enrollments.course_id = materials.course_id')
-            ->join('courses', 'courses.id = materials.course_id')
+            ->join('enrollments', 'enrollments.module_id = materials.module_id')
+            ->join('modules', 'modules.id = materials.module_id')
             ->where('enrollments.user_id', $userId)
             ->where('enrollments.status', 'active')
             ->order_by('materials.created_at', 'DESC')
@@ -170,7 +171,7 @@ class Dashboard_model extends CI_Model
         }
 
         return $this->db->from('materials')
-            ->join('enrollments', 'enrollments.course_id = materials.course_id')
+            ->join('enrollments', 'enrollments.module_id = materials.module_id')
             ->where('enrollments.user_id', $userId)
             ->where('enrollments.status', 'active')
             ->where('materials.created_at >=', date('Y-m-d H:i:s', strtotime('-' . (int) $days . ' days')))
@@ -179,16 +180,17 @@ class Dashboard_model extends CI_Model
 
     /* --------------------------------------------------------- LECTURER */
 
-    public function lecturer_courses_with_counts($userId)
+    public function lecturer_modules_with_counts($userId)
     {
         return $this->db
-            ->select('courses.id, courses.name, COUNT(enrollments.id) AS students', false)
-            ->from('course_lecturers')
-            ->join('courses', 'courses.id = course_lecturers.course_id')
-            ->join('enrollments', "enrollments.course_id = courses.id AND enrollments.status = 'active'", 'left', false)
-            ->where('course_lecturers.user_id', $userId)
-            ->group_by('courses.id')
-            ->order_by('courses.name', 'ASC')
+            ->select('modules.id, modules.name, programs.name AS program_name, COUNT(enrollments.id) AS students', false)
+            ->from('module_lecturers')
+            ->join('modules', 'modules.id = module_lecturers.module_id')
+            ->join('programs', 'programs.id = modules.program_id')
+            ->join('enrollments', "enrollments.module_id = modules.id AND enrollments.status = 'active'", 'left', false)
+            ->where('module_lecturers.user_id', $userId)
+            ->group_by('modules.id')
+            ->order_by('modules.name', 'ASC')
             ->get()->result_array();
     }
 
@@ -207,9 +209,9 @@ class Dashboard_model extends CI_Model
         }
 
         return $this->db
-            ->select('materials.id, materials.title, materials.created_at, materials.course_id, courses.name AS course_name')
+            ->select('materials.id, materials.title, materials.created_at, materials.module_id, modules.name AS module_name')
             ->from('materials')
-            ->join('courses', 'courses.id = materials.course_id')
+            ->join('modules', 'modules.id = materials.module_id')
             ->where('materials.lecturer_id', $userId)
             ->order_by('materials.created_at', 'DESC')
             ->limit($limit)
@@ -284,14 +286,14 @@ class Dashboard_model extends CI_Model
             ['Add a second administrator', $this->db->where('role', 'admin')->where('status', 'active')->count_all_results('users') > 1, base_url('admin_users/admins'), 'So someone can reset your password if you forget it'],
             ['Add the Center\'s contact details', $orgConfigured, base_url('admin_settings') . '#set-contact', 'Shown on receipts, ID cards and the Help page'],
             ['Add your payment details', $payConfigured, base_url('admin_settings') . '#set-payments', 'EcoCash number and bank account'],
-            ['Create your first course', $this->db->count_all('courses') > 0, base_url('admin_courses'), ''],
+            ['Create your first program and its modules', $this->db->count_all('modules') > 0, base_url('admin_programs'), 'A program (for example a Diploma) holds the modules students apply for'],
             ['Add a lecturer', $this->db->where('role', 'lecturer')->count_all_results('users') > 0, base_url('admin_users/lecturers'), ''],
-            ['Assign a lecturer to a course', $this->db->count_all('course_lecturers') > 0, base_url('admin_courses'), ''],
+            ['Assign a lecturer to a module', $this->db->count_all('module_lecturers') > 0, base_url('admin_programs'), ''],
             ['Post a welcome announcement', $this->db->table_exists('announcements') && $this->db->count_all('announcements') > 0, base_url('admin_announcements'), ''],
         ];
     }
 
-    public function student_checklist($userId, array $courses)
+    public function student_checklist($userId, array $modules)
     {
         $user = $this->db->where('id', $userId)->get('users')->row_array();
         $CI =& get_instance();
@@ -299,15 +301,15 @@ class Dashboard_model extends CI_Model
         $CI_complete = $CI->User_model->completeness($user, $CI->User_model->get_profile($userId))['percent'];
         $hasPayment = $this->db->from('payments')->join('enrollments', 'enrollments.id = payments.enrollment_id')
             ->where('enrollments.user_id', $userId)->count_all_results() > 0;
-        $active = count(array_filter($courses, function ($c) { return $c['enrollment_status'] === 'active'; }));
+        $active = count(array_filter($modules, function ($c) { return $c['enrollment_status'] === 'active'; }));
 
         return [
             ['Create your account', true, null, ''],
             ['Add your WhatsApp number', ! empty($user['phone']), base_url('profile'), 'So the Center can reach you'],
             ['Add a profile photo', ! empty($user['photo_path']), base_url('profile') . '#photo', 'Used on your student ID card'],
             ['Complete your personal details', $CI_complete >= 80, base_url('profile') . '#details', 'Address, emergency contact, church'],
-            ['Apply for a course', count($courses) > 0, base_url('courses'), ''],
-            ['Upload your proof of payment', $hasPayment, base_url('courses'), ''],
+            ['Apply for a module (choose a program first)', count($modules) > 0, base_url('programs'), ''],
+            ['Upload your proof of payment', $hasPayment, base_url('programs'), ''],
             ['Get approved and start studying', $active > 0, base_url('student_materials'), 'Usually within a day'],
         ];
     }

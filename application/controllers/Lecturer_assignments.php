@@ -2,11 +2,11 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Stage 4: lecturers set assignments for their courses, see who has handed
+ * Stage 4: lecturers set assignments for their modules, see who has handed
  * in, and mark the work with a score and feedback.
  *
- * Every action checks Course_lecturer_model::is_assigned(), so a lecturer
- * can only ever see or change assignments in courses they teach.
+ * Every action checks Module_lecturer_model::is_assigned(), so a lecturer
+ * can only ever see or change assignments in modules they teach.
  */
 class Lecturer_assignments extends Lecturer_Controller
 {
@@ -17,35 +17,35 @@ class Lecturer_assignments extends Lecturer_Controller
     {
         parent::__construct();
         $this->load->library(['form_validation', 'notifier']);
-        $this->load->model(['Assignment_model', 'Course_lecturer_model', 'Course_model']);
+        $this->load->model(['Assignment_model', 'Module_lecturer_model', 'Module_model']);
         $this->load->helper('ui');
     }
 
-    /** All assignments across the lecturer's courses, grouped by course. */
+    /** All assignments across the lecturer's modules, grouped by module. */
     public function index()
     {
-        $courses = $this->Course_lecturer_model->courses_for_lecturer($this->current_user_id);
-        $byCourse = [];
-        foreach ($courses as $c) {
-            $byCourse[$c['id']] = ['course' => $c, 'assignments' => []];
+        $modules = $this->Module_lecturer_model->modules_for_lecturer($this->current_user_id);
+        $byModule = [];
+        foreach ($modules as $c) {
+            $byModule[$c['id']] = ['module' => $c, 'assignments' => []];
         }
         foreach ($this->Assignment_model->for_lecturer($this->current_user_id) as $a) {
-            if (isset($byCourse[$a['course_id']])) {
-                $byCourse[$a['course_id']]['assignments'][] = $a;
+            if (isset($byModule[$a['module_id']])) {
+                $byModule[$a['module_id']]['assignments'][] = $a;
             }
         }
 
         $this->load->view('templates/header', ['title' => 'Assignments']);
         $this->load->view('lecturer/assignments_index', [
-            'groups'  => $byCourse,
+            'groups'  => $byModule,
             'to_mark' => $this->Assignment_model->to_mark_count($this->current_user_id),
         ]);
         $this->load->view('templates/footer');
     }
 
-    public function create($courseId)
+    public function create($moduleId)
     {
-        $course = $this->_my_course($courseId);
+        $module = $this->_my_module($moduleId);
         $uploadError = null;
 
         if ($this->input->method() === 'post' && $this->_validate()) {
@@ -54,7 +54,7 @@ class Lecturer_assignments extends Lecturer_Controller
                 $uploadError = 'The file was not attached: ' . $error;   // shown on the form below (flashdata would only appear on the NEXT page)
             } else {
                 $data = $this->_form_data();
-                $data['course_id']   = $course['id'];
+                $data['module_id']   = $module['id'];
                 $data['lecturer_id'] = $this->current_user_id;
                 if ($upload) {
                     $data['attachment_path'] = $upload['path'];
@@ -62,10 +62,10 @@ class Lecturer_assignments extends Lecturer_Controller
                 }
                 $id = $this->Assignment_model->create($data);
 
-                $this->audit->log('assignment.created', 'assignment', $id, 'Set assignment "' . $data['title'] . '" in ' . $course['name'] . ', due ' . date('j M Y H:i', strtotime($data['due_at'])));
-                $sent = $this->notifier->notify_course(
-                    $course['id'],
-                    'New assignment in ' . $course['name'] . ': ' . $data['title'] . ' (due ' . date('D j M, H:i', strtotime($data['due_at'])) . ')',
+                $this->audit->log('assignment.created', 'assignment', $id, 'Set assignment "' . $data['title'] . '" in ' . $module['name'] . ', due ' . date('j M Y H:i', strtotime($data['due_at'])));
+                $sent = $this->notifier->notify_module(
+                    $module['id'],
+                    'New assignment in ' . $module['name'] . ': ' . $data['title'] . ' (due ' . date('D j M, H:i', strtotime($data['due_at'])) . ')',
                     base_url('student_assignments/view/' . $id)
                 );
 
@@ -75,7 +75,7 @@ class Lecturer_assignments extends Lecturer_Controller
         }
 
         $this->load->view('templates/header', ['title' => 'New assignment']);
-        $this->load->view('lecturer/assignment_form', ['course' => $course, 'a' => null, 'uploadError' => $uploadError]);
+        $this->load->view('lecturer/assignment_form', ['module' => $module, 'a' => null, 'uploadError' => $uploadError]);
         $this->load->view('templates/footer');
     }
 
@@ -100,12 +100,12 @@ class Lecturer_assignments extends Lecturer_Controller
                 $this->_delete_file($oldFile);
 
                 $dueChanged = strtotime($data['due_at']) !== strtotime($a['due_at']);
-                $this->audit->log('assignment.updated', 'assignment', $id, 'Edited assignment "' . $data['title'] . '" in ' . $a['course_name']
+                $this->audit->log('assignment.updated', 'assignment', $id, 'Edited assignment "' . $data['title'] . '" in ' . $a['module_name']
                     . ($dueChanged ? ', due date ' . date('j M H:i', strtotime($a['due_at'])) . ' -> ' . date('j M H:i', strtotime($data['due_at'])) : ''));
                 if ($dueChanged) {
-                    $this->notifier->notify_course(
-                        $a['course_id'],
-                        'Due date changed for "' . $data['title'] . '" (' . $a['course_name'] . '): now ' . date('D j M, H:i', strtotime($data['due_at'])),
+                    $this->notifier->notify_module(
+                        $a['module_id'],
+                        'Due date changed for "' . $data['title'] . '" (' . $a['module_name'] . '): now ' . date('D j M, H:i', strtotime($data['due_at'])),
                         base_url('student_assignments/view/' . $id)
                     );
                 }
@@ -117,7 +117,7 @@ class Lecturer_assignments extends Lecturer_Controller
 
         $this->load->view('templates/header', ['title' => 'Edit assignment']);
         $this->load->view('lecturer/assignment_form', [
-            'course' => ['id' => $a['course_id'], 'name' => $a['course_name']],
+            'module' => ['id' => $a['module_id'], 'name' => $a['module_name']],
             'a'      => $a,
             'uploadError' => $uploadError,
         ]);
@@ -139,7 +139,7 @@ class Lecturer_assignments extends Lecturer_Controller
 
         $this->Assignment_model->delete($id);
         $this->_delete_file($a['attachment_path']);
-        $this->audit->log('assignment.deleted', 'assignment', $id, 'Deleted assignment "' . $a['title'] . '" from ' . $a['course_name']);
+        $this->audit->log('assignment.deleted', 'assignment', $id, 'Deleted assignment "' . $a['title'] . '" from ' . $a['module_name']);
         $this->session->set_flashdata('success', 'Assignment deleted.');
         redirect('lecturer_assignments');
     }
@@ -233,19 +233,19 @@ class Lecturer_assignments extends Lecturer_Controller
 
     /* ------------------------------------------------------------ */
 
-    private function _my_course($courseId)
+    private function _my_module($moduleId)
     {
-        $course = $this->Course_model->find($courseId);
-        if (! $course || ! $this->Course_lecturer_model->is_assigned($courseId, $this->current_user_id)) {
-            show_error('You are not assigned to that course.', 403);
+        $module = $this->Module_model->find($moduleId);
+        if (! $module || ! $this->Module_lecturer_model->is_assigned($moduleId, $this->current_user_id)) {
+            show_error('You are not assigned to that module.', 403);
         }
-        return $course;
+        return $module;
     }
 
     private function _my_assignment($id)
     {
         $a = $this->Assignment_model->find($id);
-        if (! $a || ! $this->Course_lecturer_model->is_assigned($a['course_id'], $this->current_user_id)) {
+        if (! $a || ! $this->Module_lecturer_model->is_assigned($a['module_id'], $this->current_user_id)) {
             show_404();
         }
         return $a;

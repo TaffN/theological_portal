@@ -1,10 +1,10 @@
-<p class="mb-3"><a href="<?= base_url('lecturer_materials') ?>" class="back-link">&larr; My Courses</a></p>
-<h1 class="page-title mb-4"><?= html_escape($course['name']) ?> &mdash; Materials</h1>
+<?= module_crumbs($module, 'Materials') ?: '<p class="mb-3"><a href="' . base_url('lecturer_materials') . '" class="back-link">&larr; My Modules</a></p>' ?>
+<h1 class="page-title mb-4"><?= html_escape($module['name']) ?> &mdash; Materials</h1>
 
 <div class="card mb-4">
     <div class="card-body">
         <h5 class="card-title">Post New Material</h5>
-        <form method="post" action="<?= base_url('lecturer_materials/course/' . $course['id']) ?>" enctype="multipart/form-data">
+        <form method="post" action="<?= base_url('lecturer_materials/module/' . $module['id']) ?>" enctype="multipart/form-data">
             <div class="mb-3">
                 <label class="form-label">Title</label>
                 <input type="text" name="title" class="form-control" value="<?= html_escape(set_value('title')) ?>" required>

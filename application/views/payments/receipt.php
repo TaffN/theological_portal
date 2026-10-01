@@ -35,7 +35,7 @@
 
     <dl class="facts receipt-facts">
         <dt>Received from</dt><dd><?= html_escape($r['student_name']) ?><?= ! empty($r['student_id_number']) ? ' <span class="id-chip">' . html_escape($r['student_id_number']) . '</span>' : '' ?><br><small class="text-muted"><?= html_escape($r['student_email']) ?></small></dd>
-        <dt>For</dt><dd><?= html_escape($r['course_name']) ?><?= $r['duration_text'] ? ' <span class="text-muted">(' . html_escape($r['duration_text']) . ')</span>' : '' ?></dd>
+        <dt>For</dt><dd><?= html_escape($r['module_name']) ?><?= $r['duration_text'] ? ' <span class="text-muted">(' . html_escape($r['duration_text']) . ')</span>' : '' ?></dd>
         <dt>Proof submitted</dt><dd><?= html_escape(date('j F Y, H:i', strtotime($r['submitted_at']))) ?></dd>
         <dt>Verified by</dt><dd><?= html_escape($r['approved_by'] ?: 'Administrator') ?></dd>
     </dl>

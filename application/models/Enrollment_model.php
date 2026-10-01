@@ -24,14 +24,14 @@ class Enrollment_model extends CI_Model
     }
 
     /**
-     * A student only has real access to a course once their enrollment is 'active'.
+     * A student only has real access to a module once their enrollment is 'active'.
      * This is the single access-gate check the rest of the app relies on.
      */
-    public function has_active_access($userId, $courseId)
+    public function has_active_access($userId, $moduleId)
     {
         $row = $this->db
             ->where('user_id', $userId)
-            ->where('course_id', $courseId)
+            ->where('module_id', $moduleId)
             ->where('status', 'active')
             ->get($this->table)
             ->row_array();
@@ -39,12 +39,13 @@ class Enrollment_model extends CI_Model
         return (bool) $row;
     }
 
-    public function courses_for_student($userId)
+    public function modules_for_student($userId)
     {
         return $this->db
-            ->select('courses.*, e.status as enrollment_status, e.id as enrollment_id')
+            ->select('modules.*, programs.name AS program_name, programs.slug AS program_slug, e.status as enrollment_status, e.id as enrollment_id')
             ->from('enrollments e')
-            ->join('courses', 'courses.id = e.course_id')
+            ->join('modules', 'modules.id = e.module_id')
+            ->join('programs', 'programs.id = modules.program_id')
             ->where('e.user_id', $userId)
             ->get()
             ->result_array();
@@ -60,16 +61,16 @@ class Enrollment_model extends CI_Model
     }
 
     /**
-     * Students with active (paid, approved) access to a course - the exact
+     * Students with active (paid, approved) access to a module - the exact
      * audience for "new material posted" notifications/emails.
      */
-    public function active_students_for_course($courseId)
+    public function active_students_for_module($moduleId)
     {
         return $this->db
             ->select('users.id, users.name, users.email')
             ->from('enrollments e')
             ->join('users', 'users.id = e.user_id')
-            ->where('e.course_id', $courseId)
+            ->where('e.module_id', $moduleId)
             ->where('e.status', 'active')
             ->get()
             ->result_array();

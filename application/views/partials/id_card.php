@@ -1,6 +1,6 @@
 <?php
 /*
- * Two-sided ID card. Expects $u (user row), $cardCourses, optional $profile.
+ * Two-sided ID card. Expects $u (user row), $cardModules, optional $profile.
  * On screen: tap/click to flip. Printed: front and back side by side.
  */
 $roleLabel = ['student' => 'Student', 'lecturer' => 'Lecturer', 'admin' => 'Staff'][$u['role']];
@@ -38,9 +38,9 @@ $address   = array_filter([setting('org_address'), setting('org_city'), setting(
                     <div class="id-name"><?= html_escape($title . $u['name']) ?></div>
                     <div class="id-label">ID number</div>
                     <div class="id-number"><?= html_escape($u['id_number'] ?: '—') ?></div>
-                    <?php if (! empty($cardCourses)): ?>
+                    <?php if (! empty($cardModules)): ?>
                         <div class="id-label"><?= $u['role'] === 'lecturer' ? 'Teaches' : 'Enrolled in' ?></div>
-                        <div class="id-courses"><?= html_escape(implode(', ', array_slice($cardCourses, 0, 2))) ?><?= count($cardCourses) > 2 ? ' +' . (count($cardCourses) - 2) : '' ?></div>
+                        <div class="id-modules"><?= html_escape(implode(', ', array_slice($cardModules, 0, 2))) ?><?= count($cardModules) > 2 ? ' +' . (count($cardModules) - 2) : '' ?></div>
                     <?php endif; ?>
                     <div class="id-label">Valid until</div>
                     <div class="id-since"><?= html_escape($validTo) ?></div>

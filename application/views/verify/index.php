@@ -17,7 +17,7 @@
     <?php else: ?>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <?php endif; ?>
-    <link href="<?= base_url('assets/css/app.css') ?>?v=11" rel="stylesheet">
+    <link href="<?= base_url('assets/css/app.css') ?>?v=12" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg') ?>">
 </head>
 <body class="auth-body">
@@ -44,8 +44,8 @@
             <span class="pill <?= $u['role'] === 'lecturer' ? 'pill-muted' : 'pill-warning' ?> mt-2"><?= $roleName ?></span>
 
             <dl class="facts text-start mt-4">
-                <?php if ($isStaff && ! empty($courses)): ?>
-                    <dt><?= $u['role'] === 'lecturer' ? 'Teaches' : 'Enrolled in' ?></dt><dd><?= html_escape(implode(', ', $courses)) ?></dd>
+                <?php if ($isStaff && ! empty($modules)): ?>
+                    <dt><?= $u['role'] === 'lecturer' ? 'Teaches' : 'Enrolled in' ?></dt><dd><?= html_escape(implode(', ', $modules)) ?></dd>
                 <?php endif; ?>
                 <dt>Member since</dt><dd><?= html_escape(date('F Y', strtotime($u['created_at']))) ?></dd>
                 <dt>Checked</dt><dd><?= date('j M Y, H:i') ?></dd>

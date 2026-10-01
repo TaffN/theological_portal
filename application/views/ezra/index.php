@@ -14,7 +14,7 @@
         <span class="ezra-avatar ezra-avatar-lg" aria-hidden="true">E</span>
         <div class="min-w-0">
             <h1 class="page-title mb-0">Ezra</h1>
-            <p class="page-sub mb-0 d-none d-md-block">Your study assistant. Ask about your courses, the Bible and theology, or how to use the portal.</p>
+            <p class="page-sub mb-0 d-none d-md-block">Your study assistant. Ask about your modules, the Bible and theology, or how to use the portal.</p>
         </div>
     </div>
     <form method="post" action="<?= base_url('ezra/new_thread') ?>" class="<?= $messages ? '' : 'd-none' ?>" data-ezra-new>
@@ -28,7 +28,7 @@
             <div class="ezra-intro" data-ezra-intro>
                 <span class="ezra-avatar ezra-avatar-lg mb-3 d-none d-md-inline-grid" aria-hidden="true">E</span>
                 <h2 class="h5 fw-bold mb-1"><?= html_escape(greeting()) ?>, <?= html_escape($firstName) ?>. I'm Ezra.</h2>
-                <p class="text-muted small mb-3">I know your courses, due dates, exams and published marks, and I follow the college's statement of faith.
+                <p class="text-muted small mb-3">I know your modules, due dates, exams and published marks, and I follow the college's statement of faith.
                     I can explain, guide and quiz you, but I won't write your assignments or answer exam questions for you.</p>
                 <?php if ($canAsk): ?>
                     <div class="ezra-chips">

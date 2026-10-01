@@ -69,11 +69,11 @@ class Admin_payments extends Admin_Controller
         $this->audit->log('payment.approved', 'payment', $paymentId, 'Approved $' . number_format($payment['amount'], 2) . ' payment #' . $paymentId . ' (enrollment #' . $payment['enrollment_id'] . ')');
         $this->notifier->notify_user(
             $enrollment['user_id'],
-            'Your payment was approved - your course is now open.',
-            base_url('student_materials/course/' . $enrollment['course_id'])
+            'Your payment was approved - your module is now open.',
+            base_url('student_materials/module/' . $enrollment['module_id'])
         );
 
-        $this->session->set_flashdata('success', 'Payment approved. Student now has access to the course.');
+        $this->session->set_flashdata('success', 'Payment approved. Student now has access to the module.');
         redirect('admin_payments');
     }
 

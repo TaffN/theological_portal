@@ -65,3 +65,14 @@ $route['translate_uri_dashes'] = FALSE;
 $route['verify/(:any)'] = 'verify/index/$1';
 $route['results/verify/(:any)'] = 'result_verify/index/$1';
 $route['api/ezra_chat'] = 'ezra/chat';   // the floating Ezra chat widget
+
+// v13: Program > Module
+$route['programs/thumbnail/(:num)']           = 'programs/thumbnail/$1';
+$route['programs/(:any)/modules']             = 'programs/view/$1';          // the program page lists its modules
+$route['programs/(:any)']                     = 'programs/view/$1';
+$route['admin_programs/(:num)/modules']        = 'admin_modules/index/$1';
+$route['admin_programs/(:num)/modules/create'] = 'admin_modules/create_module/$1';
+// Old addresses (bookmarks, notifications sent before the change) still work.
+$route['courses']                              = 'programs';
+$route['admin_courses']                        = 'admin_programs';
+$route['(student_materials|lecturer_materials|lecturer_results|lecturer_attendance|admin_results|admin_attendance)/course/(.+)'] = '$1/module/$2';

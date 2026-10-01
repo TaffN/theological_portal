@@ -394,7 +394,7 @@ class Exam_attempt_model extends CI_Model
     /* -------------------------------------------------------- LECTURER */
 
     /**
-     * Everyone who can sit the exam (active students on the course) plus anyone
+     * Everyone who can sit the exam (active students on the module) plus anyone
      * who started it and has since lost access, with their attempt (att_*)
      * and how many questions they have answered.
      */
@@ -408,7 +408,7 @@ class Exam_attempt_model extends CI_Model
                 (SELECT COUNT(*) FROM exam_answers x WHERE x.attempt_id = a.id AND x.answer IS NOT NULL AND x.answer <> \'\') AS answered', false)
             ->from('users')
             ->join('exam_attempts a', 'a.student_id = users.id AND a.exam_id = ' . (int) $exam['id'], 'left', false)
-            ->join('enrollments e', 'e.user_id = users.id AND e.course_id = ' . (int) $exam['course_id'] . " AND e.status = 'active'", 'left', false)
+            ->join('enrollments e', 'e.user_id = users.id AND e.module_id = ' . (int) $exam['module_id'] . " AND e.status = 'active'", 'left', false)
             ->group_start()->where('e.id IS NOT NULL', null, false)->or_where('a.id IS NOT NULL', null, false)->group_end()
             ->order_by('users.name', 'ASC')
             ->get()->result_array();

@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Stage 6: overall course results.
+ * Stage 6: overall module results.
  *
  * How a result is worked out (explained the same way on the lecturer's page):
  *  - Assignment %: the average of the student's percentage on every assignment
@@ -12,10 +12,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *    that has closed (not sat = 0%). An exam whose results aren't released yet
  *    holds the result back.
  *  - Final % = assignment % x assignment weight + exam % x exam weight. If a
- *    course has only assignments or only exams, that part counts 100%.
+ *    module has only assignments or only exams, that part counts 100%.
  *  - Grade from the boundaries in Settings (Distinction / Merit / Pass / Fail).
  *
- * Publishing stores a snapshot (course_results), so a published result only
+ * Publishing stores a snapshot (module_results), so a published result only
  * changes when the lecturer publishes again.
  */
 class Result_model extends CI_Model
@@ -23,18 +23,18 @@ class Result_model extends CI_Model
     /* ------------------------------------------------------- WEIGHTING */
 
     /** [assignment weight, exam weight], percentages adding up to 100. */
-    public function weights($courseId)
+    public function weights($moduleId)
     {
-        $row = $this->db->where('course_id', $courseId)->get('course_grading')->row_array();
+        $row = $this->db->where('module_id', $moduleId)->get('module_grading')->row_array();
         return $row ? [(int) $row['assignment_weight'], (int) $row['exam_weight']] : [40, 60];
     }
 
-    public function save_weights($courseId, $assignmentWeight, $userId)
+    public function save_weights($moduleId, $assignmentWeight, $userId)
     {
         $a = max(0, min(100, (int) $assignmentWeight));
-        $this->db->query('INSERT INTO course_grading (course_id, assignment_weight, exam_weight, updated_by, updated_at) VALUES (?, ?, ?, ?, ?)
+        $this->db->query('INSERT INTO module_grading (module_id, assignment_weight, exam_weight, updated_by, updated_at) VALUES (?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE assignment_weight = VALUES(assignment_weight), exam_weight = VALUES(exam_weight),
-            updated_by = VALUES(updated_by), updated_at = VALUES(updated_at)', [$courseId, $a, 100 - $a, $userId, date('Y-m-d H:i:s')]);
+            updated_by = VALUES(updated_by), updated_at = VALUES(updated_at)', [$moduleId, $a, 100 - $a, $userId, date('Y-m-d H:i:s')]);
         return [$a, 100 - $a];
     }
 
@@ -65,32 +65,32 @@ class Result_model extends CI_Model
     /* ------------------------------------------------------ CALCULATION */
 
     /**
-     * Works out the current result for every student on the course (active
+     * Works out the current result for every student on the module (active
      * enrolments, plus anyone who already has a published result).
      * Each row: student fields, enrollment_id, assignment_pct, exam_pct,
      * final_pct, grade, items (breakdown), blockers (why it can't be
      * published yet), published (the stored result, if any).
      */
-    public function compute_for_course(array $course)
+    public function compute_for_module(array $module)
     {
-        list($aw, $ew) = $this->weights($course['id']);
+        list($aw, $ew) = $this->weights($module['id']);
         $now = date('Y-m-d H:i:s');
 
         $students = $this->db
             ->select('users.id AS student_id, users.name, users.id_number, users.photo_path, users.photo_updated_at, e.id AS enrollment_id, e.status AS enrollment_status')
             ->from('enrollments e')
             ->join('users', 'users.id = e.user_id')
-            ->where('e.course_id', $course['id'])
+            ->where('e.module_id', $module['id'])
             ->group_start()
                 ->where('e.status', 'active')
-                ->or_where('e.id IN (SELECT enrollment_id FROM course_results)', null, false)
+                ->or_where('e.id IN (SELECT enrollment_id FROM module_results)', null, false)
             ->group_end()
             ->order_by('users.name', 'ASC')
             ->get()->result_array();
 
         // Assignments that count: due date passed.
         $assignments = $this->db->table_exists('assignments')
-            ? $this->db->where('course_id', $course['id'])->where('due_at <=', $now)->order_by('due_at', 'ASC')->get('assignments')->result_array()
+            ? $this->db->where('module_id', $module['id'])->where('due_at <=', $now)->order_by('due_at', 'ASC')->get('assignments')->result_array()
             : [];
         $subs = [];
         if ($assignments) {
@@ -101,7 +101,7 @@ class Result_model extends CI_Model
 
         // Exams that count: published and closed.
         $exams = $this->db->table_exists('exams')
-            ? $this->db->where('course_id', $course['id'])->where('status', 'published')->where('closes_at <=', $now)->order_by('opens_at', 'ASC')->get('exams')->result_array()
+            ? $this->db->where('module_id', $module['id'])->where('status', 'published')->where('closes_at <=', $now)->order_by('opens_at', 'ASC')->get('exams')->result_array()
             : [];
         $atts = [];
         if ($exams) {
@@ -116,7 +116,7 @@ class Result_model extends CI_Model
         }
 
         $published = [];
-        foreach ($this->db->where('course_id', $course['id'])->get('course_results')->result_array() as $r) {
+        foreach ($this->db->where('module_id', $module['id'])->get('module_results')->result_array() as $r) {
             $published[$r['enrollment_id']] = $r;
         }
 
@@ -195,11 +195,11 @@ class Result_model extends CI_Model
     /* ------------------------------------------------------ PUBLISHING */
 
     /** Stores (or replaces) a student's published result from a computed row. */
-    public function publish(array $course, array $row, $remarks, $publisherId, array $weights)
+    public function publish(array $module, array $row, $remarks, $publisherId, array $weights)
     {
         $now  = date('Y-m-d H:i:s');
         $data = [
-            'course_id'         => $course['id'],
+            'module_id'         => $module['id'],
             'student_id'        => $row['student_id'],
             'assignment_pct'    => $row['assignment_pct'],
             'exam_pct'          => $row['exam_pct'],
@@ -216,18 +216,18 @@ class Result_model extends CI_Model
         ];
 
         if ($row['published']) {
-            $this->db->where('id', $row['published']['id'])->update('course_results', $data);
+            $this->db->where('id', $row['published']['id'])->update('module_results', $data);
         } else {
             $data['enrollment_id'] = $row['enrollment_id'];
             $data['created_at']    = $now;
-            $this->db->insert('course_results', $data);
+            $this->db->insert('module_results', $data);
         }
         $this->ensure_token($row['student_id']);
     }
 
     public function withdraw($resultId)
     {
-        return $this->db->where('id', $resultId)->update('course_results', ['status' => 'withdrawn', 'updated_at' => date('Y-m-d H:i:s')]);
+        return $this->db->where('id', $resultId)->update('module_results', ['status' => 'withdrawn', 'updated_at' => date('Y-m-d H:i:s')]);
     }
 
     /** The statement QR code: created the first time a student gets a result. */
@@ -256,15 +256,15 @@ class Result_model extends CI_Model
 
     /* ---------------------------------------------------------- READING */
 
-    /** A student's published results, newest first, with course names. */
+    /** A student's published results, newest first, with module names. */
     public function for_student($studentId)
     {
-        return $this->db->select('course_results.*, courses.name AS course_name, courses.duration_text')
-            ->from('course_results')
-            ->join('courses', 'courses.id = course_results.course_id')
-            ->where('course_results.student_id', $studentId)
-            ->where('course_results.status', 'published')
-            ->order_by('course_results.published_at', 'DESC')
+        return $this->db->select('module_results.*, modules.name AS module_name, modules.duration_text')
+            ->from('module_results')
+            ->join('modules', 'modules.id = module_results.module_id')
+            ->where('module_results.student_id', $studentId)
+            ->where('module_results.status', 'published')
+            ->order_by('module_results.published_at', 'DESC')
             ->get()->result_array();
     }
 
@@ -276,29 +276,29 @@ class Result_model extends CI_Model
         return $this->db->where('results_token', $token)->where('role', 'student')->get('users')->row_array();
     }
 
-    /** Per course: students with access, results published, average final %. */
+    /** Per module: students with access, results published, average final %. */
     public function overview()
     {
         return $this->db->query("SELECT c.id, c.name, c.status,
-                (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id AND e.status = 'active') AS students,
-                (SELECT COUNT(*) FROM course_results r WHERE r.course_id = c.id AND r.status = 'published') AS published,
-                (SELECT AVG(r.final_pct) FROM course_results r WHERE r.course_id = c.id AND r.status = 'published') AS average,
-                (SELECT MAX(r.published_at) FROM course_results r WHERE r.course_id = c.id AND r.status = 'published') AS last_published
-            FROM courses c ORDER BY c.name")->result_array();
+                (SELECT COUNT(*) FROM enrollments e WHERE e.module_id = c.id AND e.status = 'active') AS students,
+                (SELECT COUNT(*) FROM module_results r WHERE r.module_id = c.id AND r.status = 'published') AS published,
+                (SELECT AVG(r.final_pct) FROM module_results r WHERE r.module_id = c.id AND r.status = 'published') AS average,
+                (SELECT MAX(r.published_at) FROM module_results r WHERE r.module_id = c.id AND r.status = 'published') AS last_published
+            FROM modules c ORDER BY c.name")->result_array();
     }
 
-    /** Published results for one course (or all), for the admin CSV. */
-    public function published_rows($courseId = null)
+    /** Published results for one module (or all), for the admin CSV. */
+    public function published_rows($moduleId = null)
     {
-        $this->db->select('course_results.*, courses.name AS course_name, users.name AS student_name, users.id_number, p.name AS publisher_name')
-            ->from('course_results')
-            ->join('courses', 'courses.id = course_results.course_id')
-            ->join('users', 'users.id = course_results.student_id')
-            ->join('users p', 'p.id = course_results.published_by', 'left')
-            ->where('course_results.status', 'published');
-        if ($courseId) {
-            $this->db->where('course_results.course_id', $courseId);
+        $this->db->select('module_results.*, modules.name AS module_name, users.name AS student_name, users.id_number, p.name AS publisher_name')
+            ->from('module_results')
+            ->join('modules', 'modules.id = module_results.module_id')
+            ->join('users', 'users.id = module_results.student_id')
+            ->join('users p', 'p.id = module_results.published_by', 'left')
+            ->where('module_results.status', 'published');
+        if ($moduleId) {
+            $this->db->where('module_results.module_id', $moduleId);
         }
-        return $this->db->order_by('courses.name', 'ASC')->order_by('users.name', 'ASC')->get()->result_array();
+        return $this->db->order_by('modules.name', 'ASC')->order_by('users.name', 'ASC')->get()->result_array();
     }
 }

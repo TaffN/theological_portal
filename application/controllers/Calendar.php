@@ -7,7 +7,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   calendar/add          - form (staff)       calendar/edit/{id} - form
  *   calendar/save[/{id}]  - POST               calendar/delete/{id} - POST
  *
- * Lecturers add events to their own courses; administrators to any course or
+ * Lecturers add events to their own modules; administrators to any module or
  * the whole college. Assignment due dates and exam windows appear by themselves.
  */
 class Calendar extends Auth_Controller
@@ -15,7 +15,7 @@ class Calendar extends Auth_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model(['Calendar_model', 'Course_model']);
+        $this->load->model(['Calendar_model', 'Module_model']);
         $this->load->library('notifier');
         $this->load->helper('ui');
         if (! $this->db->table_exists('calendar_events')) {   // code updated, database not yet (visit /migrate)
@@ -35,8 +35,8 @@ class Calendar extends Auth_Controller
         $gridStart = date('Y-m-d', strtotime($first . ' -' . (date('N', strtotime($first)) - 1) . ' days'));
         $gridEnd   = date('Y-m-d', strtotime($last . ' +' . (7 - date('N', strtotime($last))) . ' days'));
 
-        $courseIds = $this->Course_model->ids_for_user($this->current_user_id, $this->current_role);
-        $items = $this->Calendar_model->items($gridStart, $gridEnd, $courseIds);
+        $moduleIds = $this->Module_model->ids_for_user($this->current_user_id, $this->current_role);
+        $items = $this->Calendar_model->items($gridStart, $gridEnd, $moduleIds);
         $byDay = [];
         foreach ($items as $it) {
             $byDay[$it['date']][] = $it;
@@ -77,10 +77,10 @@ class Calendar extends Auth_Controller
         }
         $existing = $id ? $this->find_manageable($id) : null;
 
-        $courseRaw = (string) $this->input->post('course_id');
-        $courseId  = $courseRaw === '' ? null : (int) $courseRaw;
-        if ($courseId === null ? $this->current_role !== 'admin' : ! $this->Course_model->user_can_manage($courseId, $this->current_user_id, $this->current_role)) {
-            $this->session->set_flashdata('error', 'You can only add events to courses you teach.');
+        $moduleRaw = (string) $this->input->post('module_id');
+        $moduleId  = $moduleRaw === '' ? null : (int) $moduleRaw;
+        if ($moduleId === null ? $this->current_role !== 'admin' : ! $this->Module_model->user_can_manage($moduleId, $this->current_user_id, $this->current_role)) {
+            $this->session->set_flashdata('error', 'You can only add events to modules you teach.');
             return redirect('calendar');
         }
 
@@ -119,7 +119,7 @@ class Calendar extends Auth_Controller
         }
 
         $data = [
-            'course_id'    => $courseId,
+            'module_id'    => $moduleId,
             'title'        => $title,
             'event_type'   => $type,
             'description'  => trim((string) $this->input->post('description')) ?: null,
@@ -136,12 +136,12 @@ class Calendar extends Auth_Controller
 
         $when = date('D j M', strtotime($startsAt)) . ($allDay ? '' : ' at ' . date('H:i', strtotime($startsAt)));
         $this->audit->log($existing ? 'calendar.updated' : 'calendar.created', 'calendar', $eventId,
-            ($existing ? 'Changed' : 'Added') . ' the ' . ($courseId ? 'course' : 'college') . ' event "' . $title . '" (' . $when . ')');
+            ($existing ? 'Changed' : 'Added') . ' the ' . ($moduleId ? 'module' : 'college') . ' event "' . $title . '" (' . $when . ')');
 
-        // Students hear about new course events, and about changed times.
-        if ($courseId && (! $existing || $existing['starts_at'] !== $startsAt)) {
-            $course = $this->Course_model->find($courseId);
-            $this->notifier->notify_course($courseId, ($existing ? 'Moved: ' : 'New in the calendar: ') . $title . ' (' . $course['name'] . '), ' . $when,
+        // Students hear about new module events, and about changed times.
+        if ($moduleId && (! $existing || $existing['starts_at'] !== $startsAt)) {
+            $module = $this->Module_model->find($moduleId);
+            $this->notifier->notify_module($moduleId, ($existing ? 'Moved: ' : 'New in the calendar: ') . $title . ' (' . $module['name'] . '), ' . $when,
                 base_url('calendar?m=' . substr($date, 0, 7)));
         }
 
@@ -164,18 +164,18 @@ class Calendar extends Auth_Controller
 
     private function form($event, $date)
     {
-        $courses = $this->current_role === 'admin'
-            ? $this->Course_model->for_user($this->current_user_id, 'admin')
-            : $this->Course_model->for_user($this->current_user_id, 'lecturer');
-        if (! $courses && $this->current_role !== 'admin') {
-            $this->session->set_flashdata('error', 'You aren\'t assigned to any course yet, so there\'s nothing to add events to.');
+        $modules = $this->current_role === 'admin'
+            ? $this->Module_model->for_user($this->current_user_id, 'admin')
+            : $this->Module_model->for_user($this->current_user_id, 'lecturer');
+        if (! $modules && $this->current_role !== 'admin') {
+            $this->session->set_flashdata('error', 'You aren\'t assigned to any module yet, so there\'s nothing to add events to.');
             return redirect('calendar');
         }
         $this->load->view('templates/header', ['title' => $event ? 'Edit event' : 'Add an event']);
         $this->load->view('calendar/form', [
             'e'       => $event,
             'date'    => $date,
-            'courses' => $courses,
+            'modules' => $modules,
             'college' => $this->current_role === 'admin',
             'types'   => Calendar_model::$types,
         ]);
@@ -196,20 +196,20 @@ class Calendar extends Auth_Controller
         if (! $event) {
             show_404();
         }
-        $ok = $event['course_id'] === null ? $this->current_role === 'admin'
-            : $this->Course_model->user_can_manage($event['course_id'], $this->current_user_id, $this->current_role);
+        $ok = $event['module_id'] === null ? $this->current_role === 'admin'
+            : $this->Module_model->user_can_manage($event['module_id'], $this->current_user_id, $this->current_role);
         if (! $ok) {
             show_404();
         }
         return $event;
     }
 
-    /** Course ids whose events this person may edit (null = all, for admins). */
+    /** Module ids whose events this person may edit (null = all, for admins). */
     private function manageable_ids()
     {
         if ($this->current_role === 'admin') {
             return null;
         }
-        return $this->current_role === 'lecturer' ? $this->Course_model->ids_for_user($this->current_user_id, 'lecturer') : [];
+        return $this->current_role === 'lecturer' ? $this->Module_model->ids_for_user($this->current_user_id, 'lecturer') : [];
     }
 }

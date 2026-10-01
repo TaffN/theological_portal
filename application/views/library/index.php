@@ -3,15 +3,15 @@
     $me = (int) $CI->session->userdata('user_id');
     $role = $CI->session->userdata('role');
     $icons = ['Books' => 'book', 'Articles' => 'file', 'Commentaries' => 'book', 'Sermons' => 'message', 'Theses' => 'award', 'Audio' => 'headphones', 'Video' => 'video', 'Other' => 'folder'];
-    $link = function ($over) use ($q, $category, $courseId) {
-        $p = array_filter(array_merge(['q' => $q, 'category' => $category, 'course' => $courseId ?: ''], $over), 'strlen');
+    $link = function ($over) use ($q, $category, $moduleId) {
+        $p = array_filter(array_merge(['q' => $q, 'category' => $category, 'module' => $moduleId ?: ''], $over), 'strlen');
         return base_url('library') . ($p ? '?' . http_build_query($p) : '');
     };
 ?>
 <div class="page-head">
     <div>
         <h1 class="page-title">Library</h1>
-        <p class="page-sub">Books, commentaries, articles, sermons and recordings for every student. Your course notes are under <a href="<?= base_url($role === 'student' ? 'student_materials' : ($role === 'lecturer' ? 'lecturer_materials' : 'admin_courses')) ?>">Materials</a>.</p>
+        <p class="page-sub">Books, commentaries, articles, sermons and recordings for every student. Your module notes are under <a href="<?= base_url($role === 'student' ? 'student_materials' : ($role === 'lecturer' ? 'lecturer_materials' : 'admin_modules')) ?>">Materials</a>.</p>
     </div>
     <?php if ($canUpload): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#lib-add" aria-expanded="false"><?= icon('upload', 16) ?> Add to library</button>
@@ -21,7 +21,7 @@
 <?php if (! $allowed): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('book', 28) ?></span><br>
-        The library opens once your first course is paid up and approved.
+        The library opens once your first module is paid up and approved.
     </div></div>
 <?php else: ?>
 
@@ -44,9 +44,9 @@
                     <select class="form-select" id="lb-cat" name="category"><?php foreach ($categories as $c): ?><option><?= $c ?></option><?php endforeach; ?></select>
                 </div>
                 <div class="col-6 col-md-3">
-                    <label class="form-label" for="lb-course">Recommended for (optional)</label>
-                    <select class="form-select" id="lb-course" name="course_id"><option value="">Any course</option>
-                        <?php foreach ($courses as $c): ?><option value="<?= (int) $c['id'] ?>"><?= html_escape($c['name']) ?></option><?php endforeach; ?>
+                    <label class="form-label" for="lb-module">Recommended for (optional)</label>
+                    <select class="form-select" id="lb-module" name="module_id"><option value="">Any module</option>
+                        <?php foreach ($modules as $c): ?><option value="<?= (int) $c['id'] ?>"><?= html_escape(module_label($c)) ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-6">
@@ -78,9 +78,9 @@
     </nav>
     <form method="get" action="<?= base_url('library') ?>" class="board-search d-flex gap-2">
         <?php if ($category): ?><input type="hidden" name="category" value="<?= html_escape($category) ?>"><?php endif; ?>
-        <select name="course" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Course">
-            <option value="">All courses</option>
-            <?php foreach ($courses as $c): ?><option value="<?= (int) $c['id'] ?>" <?= (int) $c['id'] === $courseId ? 'selected' : '' ?>><?= html_escape($c['name']) ?></option><?php endforeach; ?>
+        <select name="module" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Module">
+            <option value="">All modules</option>
+            <?php foreach ($modules as $c): ?><option value="<?= (int) $c['id'] ?>" <?= (int) $c['id'] === $moduleId ? 'selected' : '' ?>><?= html_escape(module_label($c)) ?></option><?php endforeach; ?>
         </select>
         <input type="search" name="q" class="form-control form-control-sm" placeholder="Title, author…" value="<?= html_escape($q) ?>" aria-label="Search the library">
     </form>
@@ -89,7 +89,7 @@
 <?php if (! $files): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('book', 28) ?></span><br>
-        <?= $q !== '' || $category !== '' || $courseId ? 'Nothing matches that search.' : 'The library is empty for now.' . ($canUpload ? ' Add the first book or recording.' : '') ?>
+        <?= $q !== '' || $category !== '' || $moduleId ? 'Nothing matches that search.' : 'The library is empty for now.' . ($canUpload ? ' Add the first book or recording.' : '') ?>
     </div></div>
 <?php else: ?>
     <div class="row g-3">
@@ -103,7 +103,7 @@
                         <?php if ($f['author']): ?><div class="small text-muted"><?= html_escape($f['author']) ?></div><?php endif; ?>
                         <div class="small mt-1 d-flex flex-wrap gap-1 align-items-center">
                             <span class="pill pill-muted"><?= html_escape($f['category']) ?></span>
-                            <?php if ($f['course_name']): ?><span class="pill pill-navy"><?= html_escape($f['course_name']) ?></span><?php endif; ?>
+                            <?php if ($f['module_name']): ?><span class="pill pill-navy"><?= html_escape($f['module_name']) ?></span><?php endif; ?>
                         </div>
                         <?php if ($f['description']): ?><p class="small text-muted mt-2 mb-0"><?= html_escape($f['description']) ?></p><?php endif; ?>
                     </div>

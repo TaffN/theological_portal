@@ -19,9 +19,9 @@ class Admin_users extends Admin_Controller
     {
         $students = $this->db
             ->select("users.*,
-                SUM(CASE WHEN enrollments.status = 'active' THEN 1 ELSE 0 END) AS active_courses,
+                SUM(CASE WHEN enrollments.status = 'active' THEN 1 ELSE 0 END) AS active_modules,
                 SUM(CASE WHEN enrollments.status = 'pending_payment' THEN 1 ELSE 0 END) AS awaiting,
-                COUNT(enrollments.id) AS total_courses", false)
+                COUNT(enrollments.id) AS total_modules", false)
             ->from('users')
             ->join('enrollments', 'enrollments.user_id = users.id', 'left')
             ->where('users.role', 'student')
@@ -38,9 +38,9 @@ class Admin_users extends Admin_Controller
     public function lecturers()
     {
         $lecturers = $this->db
-            ->select('users.*, COUNT(course_lecturers.id) AS course_count', false)
+            ->select('users.*, COUNT(module_lecturers.id) AS module_count', false)
             ->from('users')
-            ->join('course_lecturers', 'course_lecturers.user_id = users.id', 'left')
+            ->join('module_lecturers', 'module_lecturers.user_id = users.id', 'left')
             ->where('users.role', 'lecturer')
             ->group_by('users.id')
             ->order_by('users.name', 'ASC')
@@ -60,7 +60,7 @@ class Admin_users extends Admin_Controller
         $this->load->view('admin/user_card', [
             'u'           => $user,
             'profile'     => $profile,
-            'cardCourses' => $this->User_model->card_courses($user),
+            'cardModules' => $this->User_model->card_modules($user),
             'complete'    => $this->User_model->completeness($user, $profile),
         ]);
         $this->load->view('templates/footer');

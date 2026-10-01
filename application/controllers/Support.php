@@ -12,7 +12,7 @@ class Support extends CI_Controller
     private $categories = [
         'bug'     => ['Something isn\'t working', 'high'],
         'payment' => ['Payment or fees', 'high'],
-        'access'  => ['Can\'t see a course or material', 'medium'],
+        'access'  => ['Can\'t see a module or material', 'medium'],
         'account' => ['Login or account', 'medium'],
         'idea'    => ['Suggestion', 'low'],
         'other'   => ['Something else', 'low'],

@@ -9,7 +9,7 @@
 <div class="page-head">
     <div class="min-w-0">
         <h1 class="page-title"><?= html_escape($e['title']) ?></h1>
-        <p class="page-sub mb-0"><?= html_escape($e['course_name']) ?> &middot; <?= (int) $e['duration_minutes'] ?> minutes &middot; <?= (int) $count ?> question<?= $count == 1 ? '' : 's' ?></p>
+        <p class="page-sub mb-0"><?= html_escape($e['module_name']) ?> &middot; <?= (int) $e['duration_minutes'] ?> minutes &middot; <?= (int) $count ?> question<?= $count == 1 ? '' : 's' ?></p>
     </div>
 </div>
 

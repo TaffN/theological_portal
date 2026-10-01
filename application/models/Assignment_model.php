@@ -16,9 +16,9 @@ class Assignment_model extends CI_Model
 
     public function find($id)
     {
-        return $this->db->select('assignments.*, courses.name AS course_name')
+        return $this->db->select('assignments.*, modules.name AS module_name')
             ->from($this->table)
-            ->join('courses', 'courses.id = assignments.course_id')
+            ->join('modules', 'modules.id = assignments.module_id')
             ->where('assignments.id', $id)
             ->get()->row_array();
     }
@@ -43,18 +43,18 @@ class Assignment_model extends CI_Model
     }
 
     /**
-     * Every assignment in the lecturer's courses (not only ones they set,
+     * Every assignment in the lecturer's modules (not only ones they set,
      * so co-lecturers share the marking), with submission counts.
      */
     public function for_lecturer($lecturerId)
     {
         return $this->db
-            ->select("assignments.*, courses.name AS course_name,
+            ->select("assignments.*, modules.name AS module_name,
                 COUNT(s.id) AS submitted,
                 SUM(CASE WHEN s.id IS NOT NULL AND s.graded_at IS NULL THEN 1 ELSE 0 END) AS to_mark", false)
             ->from($this->table)
-            ->join('course_lecturers cl', 'cl.course_id = assignments.course_id')
-            ->join('courses', 'courses.id = assignments.course_id')
+            ->join('module_lecturers cl', 'cl.module_id = assignments.module_id')
+            ->join('modules', 'modules.id = assignments.module_id')
             ->join($this->subs . ' s', 's.assignment_id = assignments.id', 'left')
             ->where('cl.user_id', $lecturerId)
             ->group_by('assignments.id')
@@ -62,30 +62,30 @@ class Assignment_model extends CI_Model
             ->get()->result_array();
     }
 
-    /** Submissions waiting for a mark, across all of a lecturer's courses. */
+    /** Submissions waiting for a mark, across all of a lecturer's modules. */
     public function to_mark_count($lecturerId)
     {
         return $this->db->from($this->subs . ' s')
             ->join('assignments', 'assignments.id = s.assignment_id')
-            ->join('course_lecturers cl', 'cl.course_id = assignments.course_id')
+            ->join('module_lecturers cl', 'cl.module_id = assignments.module_id')
             ->where('cl.user_id', $lecturerId)
             ->where('s.graded_at IS NULL', null, false)
             ->count_all_results();
     }
 
     /**
-     * Assignments in every course the student has active (paid) access to,
+     * Assignments in every module the student has active (paid) access to,
      * each with the student's own submission fields (sub_*) if any.
      */
     public function for_student($studentId)
     {
         return $this->db
-            ->select('assignments.*, courses.name AS course_name,
+            ->select('assignments.*, modules.name AS module_name,
                 s.id AS sub_id, s.submitted_at AS sub_submitted_at, s.is_late AS sub_is_late,
                 s.score AS sub_score, s.graded_at AS sub_graded_at')
             ->from($this->table)
-            ->join('enrollments e', "e.course_id = assignments.course_id AND e.status = 'active'", 'inner', false)
-            ->join('courses', 'courses.id = assignments.course_id')
+            ->join('enrollments e', "e.module_id = assignments.module_id AND e.status = 'active'", 'inner', false)
+            ->join('modules', 'modules.id = assignments.module_id')
             ->join($this->subs . ' s', 's.assignment_id = assignments.id AND s.student_id = ' . (int) $studentId, 'left', false)
             ->where('e.user_id', $studentId)
             ->order_by('assignments.due_at', 'ASC')
@@ -167,7 +167,7 @@ class Assignment_model extends CI_Model
 
     /**
      * The marking sheet for one assignment: every student with active access
-     * to the course, plus anyone who handed in and has since lost access
+     * to the module, plus anyone who handed in and has since lost access
      * (their work still needs a mark). Students who haven't submitted have
      * sub_id = null. Not-yet-marked work comes first.
      */
@@ -179,7 +179,7 @@ class Assignment_model extends CI_Model
                 s.score, s.feedback, s.graded_at')
             ->from('users')
             ->join($this->subs . ' s', 's.student_id = users.id AND s.assignment_id = ' . (int) $assignment['id'], 'left', false)
-            ->join('enrollments e', "e.user_id = users.id AND e.course_id = " . (int) $assignment['course_id'] . " AND e.status = 'active'", 'left', false)
+            ->join('enrollments e', "e.user_id = users.id AND e.module_id = " . (int) $assignment['module_id'] . " AND e.status = 'active'", 'left', false)
             ->group_start()->where('e.id IS NOT NULL', null, false)->or_where('s.id IS NOT NULL', null, false)->group_end()
             ->order_by('(s.id IS NOT NULL AND s.graded_at IS NULL)', 'DESC', false)
             ->order_by('(s.id IS NULL)', 'ASC', false)

@@ -2,11 +2,11 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Stage 4: students see assignments for their paid-up courses, hand in a
+ * Stage 4: students see assignments for their paid-up modules, hand in a
  * file and/or a typed answer, and read their mark and feedback.
  *
  * has_active_access() is checked on every page and every download, the
- * same gate used for course materials.
+ * same gate used for module materials.
  */
 class Student_assignments extends Student_Controller
 {
@@ -33,7 +33,7 @@ class Student_assignments extends Student_Controller
         $this->load->view('templates/header', ['title' => 'Assignments']);
         $this->load->view('student/assignments_index', [
             'groups'     => $groups,
-            'hasCourses' => $this->db->where('user_id', $this->current_user_id)->where('status', 'active')->count_all_results('enrollments') > 0,
+            'hasModules' => $this->db->where('user_id', $this->current_user_id)->where('status', 'active')->count_all_results('enrollments') > 0,
         ]);
         $this->load->view('templates/footer');
     }
@@ -94,7 +94,7 @@ class Student_assignments extends Student_Controller
 
         $late = strtotime(date('Y-m-d H:i:s')) > strtotime($a['due_at']);
         $this->audit->log('submission.' . ($sub ? 'resubmitted' : 'submitted'), 'submission', $subId,
-            ($sub ? 'Re-submitted' : 'Handed in') . ' "' . $a['title'] . '" (' . $a['course_name'] . ')' . ($late ? ', late' : ''));
+            ($sub ? 'Re-submitted' : 'Handed in') . ' "' . $a['title'] . '" (' . $a['module_name'] . ')' . ($late ? ', late' : ''));
 
         $this->session->set_flashdata('success', $late
             ? 'Handed in. It was after the due date, so your lecturer will see it as late.'
@@ -128,9 +128,9 @@ class Student_assignments extends Student_Controller
         if (! $a) {
             show_404();
         }
-        if (! $this->Enrollment_model->has_active_access($this->current_user_id, $a['course_id'])) {
-            $this->session->set_flashdata('error', 'You do not have access to that course yet.');
-            redirect('courses');
+        if (! $this->Enrollment_model->has_active_access($this->current_user_id, $a['module_id'])) {
+            $this->session->set_flashdata('error', 'You do not have access to that module yet.');
+            redirect('programs');
         }
         return $a;
     }

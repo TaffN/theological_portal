@@ -3,11 +3,11 @@
         <p class="welcome-kicker mb-1"><?= ! empty($birthday) ? '🎉 Happy birthday! &middot; ' : '' ?><?= date('l, j F Y') ?></p>
         <h2 class="welcome-title"><?= greeting() ?>, <?= html_escape($first_name) ?></h2>
         <?php if ($active_count > 0): ?>
-            <p class="welcome-sub mb-3">You're enrolled in <?= (int) $active_count ?> course<?= $active_count == 1 ? '' : 's' ?>. Keep going!</p>
+            <p class="welcome-sub mb-3">You're enrolled in <?= (int) $active_count ?> module<?= $active_count == 1 ? '' : 's' ?>. Keep going!</p>
             <a href="<?= base_url('student_materials') ?>" class="btn btn-gold btn-sm"><?= icon('folder', 16) ?> Open my materials</a>
         <?php else: ?>
-            <p class="welcome-sub mb-3">Start by choosing a course and submitting your proof of payment.</p>
-            <a href="<?= base_url('courses') ?>" class="btn btn-gold btn-sm"><?= icon('book', 16) ?> Browse courses</a>
+            <p class="welcome-sub mb-3">Start by choosing a module and submitting your proof of payment.</p>
+            <a href="<?= base_url('programs') ?>" class="btn btn-gold btn-sm"><?= icon('book', 16) ?> Browse programs</a>
         <?php endif; ?>
     </div>
 </div>
@@ -31,7 +31,7 @@
             <div class="stat-icon bg-soft-navy"><?= icon('book', 22) ?></div>
             <div>
                 <div class="stat-value"><?= (int) $active_count ?></div>
-                <div class="stat-label">Active courses</div>
+                <div class="stat-label">Active modules</div>
             </div>
         </div>
     </div>
@@ -69,25 +69,26 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
-                    <h5 class="card-heading">My courses</h5>
-                    <a href="<?= base_url('courses') ?>" class="card-link-sm">All courses <?= icon('arrow', 14) ?></a>
+                    <h5 class="card-heading">My modules</h5>
+                    <a href="<?= base_url('programs') ?>" class="card-link-sm">All programs <?= icon('arrow', 14) ?></a>
                 </div>
-                <?php if (empty($courses)): ?>
+                <?php if (empty($modules)): ?>
                     <div class="empty-state">
-                        You haven't applied for a course yet.<br>
-                        <a href="<?= base_url('courses') ?>" class="btn btn-primary btn-sm mt-3">Browse courses</a>
+                        You haven't applied for a module yet.<br>
+                        <a href="<?= base_url('programs') ?>" class="btn btn-primary btn-sm mt-3">Browse programs</a>
                     </div>
                 <?php else: ?>
-                    <ul class="course-list">
-                    <?php foreach ($courses as $c): ?>
+                    <ul class="module-list">
+                    <?php foreach ($modules as $c): ?>
                         <li>
-                            <div class="course-dot"><?= html_escape(initials($c['name'])) ?></div>
+                            <div class="module-dot"><?= html_escape(initials($c['name'])) ?></div>
                             <div class="flex-grow-1 min-w-0">
                                 <div class="fw-semibold text-truncate"><?= html_escape($c['name']) ?></div>
+                                <div class="small text-muted text-truncate"><?= html_escape($c['program_name']) ?></div>
                                 <?= status_badge($c['enrollment_status']) ?>
                             </div>
                             <?php if ($c['enrollment_status'] === 'active'): ?>
-                                <a href="<?= base_url('student_materials/course/' . $c['id']) ?>" class="btn btn-outline-primary btn-sm">Open</a>
+                                <a href="<?= base_url('student_materials/module/' . $c['id']) ?>" class="btn btn-outline-primary btn-sm">Open</a>
                             <?php elseif ($c['enrollment_status'] === 'pending_payment'): ?>
                                 <?php if (in_array((int) $c['enrollment_id'], $proof_pending, true)): ?>
                                     <span class="small text-muted text-end">Proof sent,<br>awaiting review</span>
@@ -117,10 +118,10 @@
                         <li>
                             <span class="stat-icon stat-icon-sm bg-soft-green"><?= icon('file', 16) ?></span>
                             <div class="flex-grow-1 min-w-0">
-                                <a href="<?= base_url('student_materials/course/' . $m['course_id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none">
+                                <a href="<?= base_url('student_materials/module/' . $m['module_id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none">
                                     <?= html_escape($m['title']) ?>
                                 </a>
-                                <small class="text-muted"><?= html_escape($m['course_name']) ?> &middot; <?= html_escape(time_ago($m['created_at'])) ?></small>
+                                <small class="text-muted"><?= html_escape($m['module_name']) ?> &middot; <?= html_escape(time_ago($m['created_at'])) ?></small>
                             </div>
                         </li>
                     <?php endforeach; ?>
@@ -150,7 +151,7 @@
                             </div>
                             <div class="flex-grow-1 min-w-0">
                                 <a href="<?= base_url('student_assignments/view/' . $d['id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none"><?= html_escape($d['title']) ?></a>
-                                <small class="text-muted"><?= html_escape($d['course_name']) ?> &middot; <?= $d['state'] === 'overdue' ? 'was due ' : 'due ' ?><?= html_escape(due_in($d['due_at'])) ?></small>
+                                <small class="text-muted"><?= html_escape($d['module_name']) ?> &middot; <?= $d['state'] === 'overdue' ? 'was due ' : 'due ' ?><?= html_escape(due_in($d['due_at'])) ?></small>
                             </div>
                             <a href="<?= base_url('student_assignments/view/' . $d['id']) ?>" class="btn btn-sm <?= $d['state'] === 'overdue' ? 'btn-outline-danger' : 'btn-outline-primary' ?>">Open</a>
                         </li>
@@ -176,7 +177,7 @@
                             <div class="due-date"><strong><?= date('j', strtotime($x['opens_at'])) ?></strong><small><?= date('M', strtotime($x['opens_at'])) ?></small></div>
                             <div class="flex-grow-1 min-w-0">
                                 <a href="<?= base_url('student_exams/view/' . $x['id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none"><?= html_escape($x['title']) ?></a>
-                                <small class="text-muted"><?= html_escape($x['course_name']) ?> &middot;
+                                <small class="text-muted"><?= html_escape($x['module_name']) ?> &middot;
                                     <?= $x['state'] === 'scheduled' ? 'opens ' . html_escape(due_in($x['opens_at'])) : ($x['state'] === 'writing' ? 'in progress' : 'open until ' . html_escape(date('H:i', strtotime($x['closes_at'])))) ?></small>
                             </div>
                             <?php if ($x['state'] === 'scheduled'): ?>

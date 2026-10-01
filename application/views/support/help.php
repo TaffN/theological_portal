@@ -5,10 +5,10 @@
     $email = setting('org_email');
     $addr  = array_filter([setting('org_address'), setting('org_city'), setting('org_province'), setting('org_country')]);
     $faqs = [
-        ['I paid, but my course hasn\'t opened yet.', 'An administrator checks every proof of payment against the EcoCash or bank statement, usually within one working day. You\'ll get a notification the moment it\'s approved. If your proof was rejected, the reason is shown on your course card with an Upload again button.'],
-        ['How do I pay my fees?', 'Pay by EcoCash or bank transfer using the details on the payment page, screenshot the confirmation, then upload it from Courses → Submit proof of payment.' . (setting('pay_reference_hint') ? ' ' . setting('pay_reference_hint') : '')],
+        ['I paid, but my module hasn\'t opened yet.', 'An administrator checks every proof of payment against the EcoCash or bank statement, usually within one working day. You\'ll get a notification the moment it\'s approved. If your proof was rejected, the reason is shown on your module card with an Upload again button.'],
+        ['How do I pay my fees?', 'Pay by EcoCash or bank transfer using the details on the payment page, screenshot the confirmation, then upload it from Modules → Submit proof of payment.' . (setting('pay_reference_hint') ? ' ' . setting('pay_reference_hint') : '')],
         ['I forgot my password.', 'Tap "Forgot password?" on the login page. The administrator will reset it and send you a new one on WhatsApp.'],
-        ['Where do I find my course notes?', 'Open Materials from the menu. You\'ll also get a notification whenever your lecturer posts something new.'],
+        ['Where do I find my module notes?', 'Open Materials from the menu. You\'ll also get a notification whenever your lecturer posts something new.'],
         ['Where is my student ID card?', 'Open My Profile. Your card is there with a QR code that staff can scan to confirm it\'s genuine. Add a clear photo first.'],
         ['Can I use the portal on my phone?', 'Yes. It\'s designed for phones. In your browser menu choose "Add to Home screen" and it opens like an app.'],
         ['Something isn\'t working.', 'Use Report a problem (in your account menu, or the button below). The page you\'re on is attached automatically so the team can fix it quickly.'],

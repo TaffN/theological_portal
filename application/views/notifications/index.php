@@ -18,7 +18,7 @@
 <div class="page-head">
     <div>
         <h1 class="page-title">Notifications</h1>
-        <p class="page-sub">Updates about your payments, courses and new materials.</p>
+        <p class="page-sub">Updates about your payments, modules and new materials.</p>
     </div>
 </div>
 

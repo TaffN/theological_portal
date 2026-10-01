@@ -1,5 +1,5 @@
-<p class="mb-3"><a href="<?= base_url('student_materials') ?>" class="back-link">&larr; My Materials</a></p>
-<h1 class="page-title mb-4"><?= html_escape($course['name']) ?></h1>
+<?= module_crumbs($module, 'Materials') ?: '<p class="mb-3"><a href="' . base_url('student_materials') . '" class="back-link">&larr; My Materials</a></p>' ?>
+<h1 class="page-title mb-4"><?= html_escape($module['name']) ?></h1>
 
 <?php if (empty($materials)): ?>
     <p class="text-muted">No materials posted yet.</p>

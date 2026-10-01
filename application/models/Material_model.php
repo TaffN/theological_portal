@@ -23,10 +23,10 @@ class Material_model extends CI_Model
         return $this->db->insert_id();
     }
 
-    public function for_course($courseId)
+    public function for_module($moduleId)
     {
         return $this->db
-            ->where('course_id', $courseId)
+            ->where('module_id', $moduleId)
             ->order_by('created_at', 'DESC')
             ->get($this->table)
             ->result_array();

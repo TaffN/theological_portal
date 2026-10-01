@@ -41,7 +41,7 @@ class Student_exams extends Student_Controller
         $this->load->view('templates/header', ['title' => 'Exams']);
         $this->load->view('student/exams_index', [
             'groups'     => $groups,
-            'hasCourses' => $this->db->where('user_id', $this->current_user_id)->where('status', 'active')->count_all_results('enrollments') > 0,
+            'hasModules' => $this->db->where('user_id', $this->current_user_id)->where('status', 'active')->count_all_results('enrollments') > 0,
         ]);
         $this->load->view('templates/footer');
     }
@@ -97,7 +97,7 @@ class Student_exams extends Student_Controller
             return redirect('student_exams/view/' . $id);
         }
         $this->session->set_userdata('exam_lock_' . $attempt['id'], $attempt['session_token']);
-        $this->audit->log('attempt.started', 'attempt', $attempt['id'], 'Started exam "' . $exam['title'] . '" (' . $exam['course_name'] . ')');
+        $this->audit->log('attempt.started', 'attempt', $attempt['id'], 'Started exam "' . $exam['title'] . '" (' . $exam['module_name'] . ')');
         redirect('student_exams/take/' . $id);
     }
 
@@ -198,7 +198,7 @@ class Student_exams extends Student_Controller
             }
             $auto = $this->input->post('auto') || ! Exam_attempt_model::is_open($attempt);
             $this->Exam_attempt_model->finalize($attempt['id'], $auto ? 'time_up' : 'student');
-            $this->audit->log('attempt.submitted', 'attempt', $attempt['id'], ($auto ? 'Time ran out on ' : 'Handed in ') . '"' . $exam['title'] . '" (' . $exam['course_name'] . ')');
+            $this->audit->log('attempt.submitted', 'attempt', $attempt['id'], ($auto ? 'Time ran out on ' : 'Handed in ') . '"' . $exam['title'] . '" (' . $exam['module_name'] . ')');
             $this->session->unset_userdata('exam_lock_' . $attempt['id']);
             $this->session->set_flashdata('success', $auto ? 'Time is up. Your answers have been handed in.' : 'Handed in. Well done! Your result will appear here once your lecturer releases it.');
         }
@@ -213,9 +213,9 @@ class Student_exams extends Student_Controller
         if (! $exam || $exam['status'] !== 'published') {
             show_404();
         }
-        if (! $this->Enrollment_model->has_active_access($this->current_user_id, $exam['course_id'])) {
-            $this->session->set_flashdata('error', 'You do not have access to that course yet.');
-            redirect('courses');
+        if (! $this->Enrollment_model->has_active_access($this->current_user_id, $exam['module_id'])) {
+            $this->session->set_flashdata('error', 'You do not have access to that module yet.');
+            redirect('programs');
         }
         return $exam;
     }
@@ -259,7 +259,7 @@ class Student_exams extends Student_Controller
             return null;
         }
         $exam = $this->Exam_model->find($attempt['exam_id']);
-        if (! $exam || ! $this->Enrollment_model->has_active_access($this->current_user_id, $exam['course_id'])) {
+        if (! $exam || ! $this->Enrollment_model->has_active_access($this->current_user_id, $exam['module_id'])) {
             $this->_json(['ok' => false, 'error' => 'no_access'], 403);
             return null;
         }

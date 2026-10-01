@@ -39,26 +39,26 @@ class Calendar_model extends CI_Model
     }
 
     /**
-     * Every item between two dates (inclusive, 'Y-m-d') for these courses,
+     * Every item between two dates (inclusive, 'Y-m-d') for these modules,
      * sorted by day and time. $withCollege adds college-wide events.
      */
-    public function items($from, $to, array $courseIds, $withCollege = true)
+    public function items($from, $to, array $moduleIds, $withCollege = true)
     {
         $items = [];
         $fromDt = $from . ' 00:00:00';
         $toDt   = $to . ' 23:59:59';
 
         // 1. Events staff added
-        $this->db->select('e.*, c.name AS course_name')->from('calendar_events e')->join('courses c', 'c.id = e.course_id', 'left')
+        $this->db->select('e.*, c.name AS module_name')->from('calendar_events e')->join('modules c', 'c.id = e.module_id', 'left')
             ->where('e.starts_at <=', $toDt)->where('COALESCE(e.ends_at, e.starts_at) >=', $fromDt);
         $this->db->group_start();
         if ($withCollege) {
-            $this->db->where('e.course_id IS NULL', null, false);
+            $this->db->where('e.module_id IS NULL', null, false);
         } else {
             $this->db->where('1 = 0', null, false);
         }
-        if ($courseIds) {
-            $this->db->or_where_in('e.course_id', $courseIds);
+        if ($moduleIds) {
+            $this->db->or_where_in('e.module_id', $moduleIds);
         }
         $this->db->group_end();
         foreach ($this->db->get()->result_array() as $e) {
@@ -77,31 +77,31 @@ class Calendar_model extends CI_Model
                     'end'    => $e['ends_at'] && ! $e['all_day'] && date('Y-m-d', $end) === $day ? date('H:i', $end) : null,
                     'title'  => $e['title'],
                     'kind'   => $e['event_type'],
-                    'course' => $e['course_name'],
+                    'module' => $e['module_name'],
                     'where'  => $e['location'],
                     'link'   => $e['meeting_link'],
                     'notes'  => $e['description'],
                     'id'     => (int) $e['id'],
-                    'course_id' => $e['course_id'] ? (int) $e['course_id'] : null,
+                    'module_id' => $e['module_id'] ? (int) $e['module_id'] : null,
                     'url'    => null,
                 ];
             }
         }
 
-        if (! $courseIds) {
+        if (! $moduleIds) {
             return $this->sort($items);
         }
 
         // 2. Assignment due dates
         if ($this->db->table_exists('assignments')) {
-            $rows = $this->db->select('a.id, a.title, a.due_at, c.name AS course_name')->from('assignments a')->join('courses c', 'c.id = a.course_id')
-                ->where_in('a.course_id', $courseIds)->where('a.due_at >=', $fromDt)->where('a.due_at <=', $toDt)->get()->result_array();
+            $rows = $this->db->select('a.id, a.title, a.due_at, c.name AS module_name')->from('assignments a')->join('modules c', 'c.id = a.module_id')
+                ->where_in('a.module_id', $moduleIds)->where('a.due_at >=', $fromDt)->where('a.due_at <=', $toDt)->get()->result_array();
             $role = $this->session->userdata('role');
             foreach ($rows as $a) {
                 $items[] = [
                     'date' => date('Y-m-d', strtotime($a['due_at'])), 'time' => date('H:i', strtotime($a['due_at'])), 'end' => null,
-                    'title' => 'Due: ' . $a['title'], 'kind' => 'assignment', 'course' => $a['course_name'], 'where' => null, 'link' => null, 'notes' => null,
-                    'id' => null, 'course_id' => null,
+                    'title' => 'Due: ' . $a['title'], 'kind' => 'assignment', 'module' => $a['module_name'], 'where' => null, 'link' => null, 'notes' => null,
+                    'id' => null, 'module_id' => null,
                     'url' => $role === 'admin' ? null : base_url(($role === 'student' ? 'student_assignments/view/' : 'lecturer_assignments/view/') . $a['id']),
                 ];
             }
@@ -109,8 +109,8 @@ class Calendar_model extends CI_Model
 
         // 3. Exam windows (published exams only)
         if ($this->db->table_exists('exams')) {
-            $rows = $this->db->select('x.id, x.title, x.opens_at, x.closes_at, x.duration_minutes, c.name AS course_name')->from('exams x')->join('courses c', 'c.id = x.course_id')
-                ->where_in('x.course_id', $courseIds)->where('x.status', 'published')
+            $rows = $this->db->select('x.id, x.title, x.opens_at, x.closes_at, x.duration_minutes, c.name AS module_name')->from('exams x')->join('modules c', 'c.id = x.module_id')
+                ->where_in('x.module_id', $moduleIds)->where('x.status', 'published')
                 ->where('x.opens_at <=', $toDt)->where('x.closes_at >=', $fromDt)->get()->result_array();
             $role = $this->session->userdata('role');
             foreach ($rows as $x) {
@@ -120,15 +120,15 @@ class Calendar_model extends CI_Model
                 if ($openDay >= $from && $openDay <= $to) {
                     $items[] = [
                         'date' => $openDay, 'time' => date('H:i', strtotime($x['opens_at'])), 'end' => $openDay === $closeDay ? date('H:i', strtotime($x['closes_at'])) : null,
-                        'title' => 'Exam: ' . $x['title'] . ' (' . (int) $x['duration_minutes'] . ' min)', 'kind' => 'exam', 'course' => $x['course_name'],
-                        'where' => null, 'link' => null, 'notes' => null, 'id' => null, 'course_id' => null, 'url' => $url,
+                        'title' => 'Exam: ' . $x['title'] . ' (' . (int) $x['duration_minutes'] . ' min)', 'kind' => 'exam', 'module' => $x['module_name'],
+                        'where' => null, 'link' => null, 'notes' => null, 'id' => null, 'module_id' => null, 'url' => $url,
                     ];
                 }
                 if ($closeDay !== $openDay && $closeDay >= $from && $closeDay <= $to) {
                     $items[] = [
                         'date' => $closeDay, 'time' => date('H:i', strtotime($x['closes_at'])), 'end' => null,
-                        'title' => 'Exam closes: ' . $x['title'], 'kind' => 'exam', 'course' => $x['course_name'],
-                        'where' => null, 'link' => null, 'notes' => null, 'id' => null, 'course_id' => null, 'url' => $url,
+                        'title' => 'Exam closes: ' . $x['title'], 'kind' => 'exam', 'module' => $x['module_name'],
+                        'where' => null, 'link' => null, 'notes' => null, 'id' => null, 'module_id' => null, 'url' => $url,
                     ];
                 }
             }
@@ -138,9 +138,9 @@ class Calendar_model extends CI_Model
     }
 
     /** Upcoming items from today, e.g. for dashboards and Ezra. */
-    public function upcoming(array $courseIds, $days = 14, $limit = 8)
+    public function upcoming(array $moduleIds, $days = 14, $limit = 8)
     {
-        return array_slice($this->items(date('Y-m-d'), date('Y-m-d', strtotime('+' . (int) $days . ' days')), $courseIds), 0, $limit);
+        return array_slice($this->items(date('Y-m-d'), date('Y-m-d', strtotime('+' . (int) $days . ' days')), $moduleIds), 0, $limit);
     }
 
     private function sort(array $items)

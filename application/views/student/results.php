@@ -1,7 +1,7 @@
 <div class="page-head">
     <div>
         <h1 class="page-title">My results</h1>
-        <p class="page-sub">Your overall result for each course, once your lecturer publishes it. Marks for single assignments and exams are on their own pages.</p>
+        <p class="page-sub">Your overall result for each module, once your lecturer publishes it. Marks for single assignments and exams are on their own pages.</p>
     </div>
     <?php if (! empty($results)): ?>
         <a href="<?= base_url('student_results/statement') ?>" class="btn btn-primary"><?= icon('file', 16) ?> Statement of results</a>
@@ -11,7 +11,7 @@
 <?php if (empty($results)): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('award', 28) ?></span><br>
-        No results yet. When your lecturer publishes your overall result for a course, it appears here and you'll get an alert.
+        No results yet. When your lecturer publishes your overall result for a module, it appears here and you'll get an alert.
     </div></div>
 <?php else: ?>
     <div class="row g-3">
@@ -22,7 +22,7 @@
                     <div class="d-flex align-items-start gap-3 mb-3">
                         <div class="result-score"><span><?= html_escape(score_fmt(round($r['final_pct'], 1))) ?></span><small>%</small></div>
                         <div class="min-w-0">
-                            <h5 class="card-heading mb-1"><?= html_escape($r['course_name']) ?></h5>
+                            <h5 class="card-heading mb-1"><?= html_escape($r['module_name']) ?></h5>
                             <?= grade_badge($r['grade']) ?>
                             <small class="text-muted d-block mt-1">Published <?= html_escape(date('j F Y', strtotime($r['published_at']))) ?></small>
                         </div>

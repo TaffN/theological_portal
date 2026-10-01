@@ -3,25 +3,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * The college library: books, articles, commentaries, sermons, theses,
- * audio and video that every paid-up student can use, whatever their course.
- * (Course materials stay with each course.)
+ * audio and video that every paid-up student can use, whatever their module.
+ * (Module materials stay with each module.)
  */
 class Library_model extends CI_Model
 {
     public static $categories = ['Books', 'Articles', 'Commentaries', 'Sermons', 'Theses', 'Audio', 'Video', 'Other'];
 
-    public function search($q = '', $category = '', $courseId = null, $limit = 200)
+    public function search($q = '', $category = '', $moduleId = null, $limit = 200)
     {
-        $this->db->select('l.*, c.name AS course_name, u.name AS uploader_name')
-            ->from('library_files l')->join('courses c', 'c.id = l.course_id', 'left')->join('users u', 'u.id = l.uploaded_by', 'left');
+        $this->db->select('l.*, c.name AS module_name, u.name AS uploader_name')
+            ->from('library_files l')->join('modules c', 'c.id = l.module_id', 'left')->join('users u', 'u.id = l.uploaded_by', 'left');
         if ($q !== '') {
             $this->db->group_start()->like('l.title', $q)->or_like('l.author', $q)->or_like('l.description', $q)->group_end();
         }
         if ($category !== '') {
             $this->db->where('l.category', $category);
         }
-        if ($courseId) {
-            $this->db->where('l.course_id', (int) $courseId);
+        if ($moduleId) {
+            $this->db->where('l.module_id', (int) $moduleId);
         }
         return $this->db->order_by('l.created_at', 'DESC')->limit($limit)->get()->result_array();
     }
@@ -60,7 +60,7 @@ class Library_model extends CI_Model
     /** Short list for Ezra: what's in the library (newest first). */
     public function catalogue($limit = 60)
     {
-        return $this->db->select('l.id, l.title, l.author, l.category, c.name AS course_name')->from('library_files l')
-            ->join('courses c', 'c.id = l.course_id', 'left')->order_by('l.created_at', 'DESC')->limit($limit)->get()->result_array();
+        return $this->db->select('l.id, l.title, l.author, l.category, c.name AS module_name')->from('library_files l')
+            ->join('modules c', 'c.id = l.module_id', 'left')->order_by('l.created_at', 'DESC')->limit($limit)->get()->result_array();
     }
 }

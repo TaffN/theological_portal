@@ -10,7 +10,7 @@
     $opensDefault  = $editing ? $dt($e['opens_at']) : date('Y-m-d', strtotime('+7 days')) . 'T09:00';
     $closesDefault = $editing ? $dt($e['closes_at']) : date('Y-m-d', strtotime('+7 days')) . 'T17:00';
     $shuffle = $isPost ? (bool) $CI->input->post('shuffle') : ($editing ? (bool) $e['shuffle'] : true);
-    $action  = $editing ? base_url('lecturer_exams/edit/' . $e['id']) : base_url('lecturer_exams/create/' . $course['id']);
+    $action  = $editing ? base_url('lecturer_exams/edit/' . $e['id']) : base_url('lecturer_exams/create/' . $module['id']);
     $back    = $editing ? base_url('lecturer_exams/view/' . $e['id']) : base_url('lecturer_exams');
 ?>
 <p class="mb-3"><a href="<?= $back ?>" class="back-link">&larr; <?= $editing ? html_escape($e['title']) : 'Exams' ?></a></p>
@@ -20,7 +20,7 @@
         <div class="card">
             <div class="card-body">
                 <h1 class="page-title mb-1"><?= $editing ? 'Exam details' : 'New exam' ?></h1>
-                <p class="text-muted mb-4"><?= html_escape($course['name']) ?><?= $editing ? '' : ' &middot; you\'ll add the questions next; students only see it once you publish' ?></p>
+                <p class="text-muted mb-4"><?= html_escape($module['name']) ?><?= $editing ? '' : ' &middot; you\'ll add the questions next; students only see it once you publish' ?></p>
 
                 <form method="post" action="<?= $action ?>">
                     <div class="mb-3">

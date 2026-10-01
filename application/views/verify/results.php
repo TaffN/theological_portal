@@ -11,7 +11,7 @@
     <?php else: ?>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <?php endif; ?>
-    <link href="<?= base_url('assets/css/app.css') ?>?v=11" rel="stylesheet">
+    <link href="<?= base_url('assets/css/app.css') ?>?v=12" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg') ?>">
 </head>
 <body class="auth-body">
@@ -34,11 +34,11 @@
             <?php if ($results): ?>
                 <p class="small text-muted mt-3 mb-2">These are the results <?= html_escape($org) ?> has published for this student today. They should match the printed statement exactly.</p>
                 <table class="table statement-table text-start align-middle mb-0">
-                    <thead><tr><th>Course</th><th class="text-end">Final</th><th>Grade</th></tr></thead>
+                    <thead><tr><th>Module</th><th class="text-end">Final</th><th>Grade</th></tr></thead>
                     <tbody>
                     <?php foreach ($results as $r): ?>
                         <tr>
-                            <td><span class="fw-semibold"><?= html_escape($r['course_name']) ?></span><small class="text-muted d-block">Published <?= html_escape(date('j M Y', strtotime($r['published_at']))) ?></small></td>
+                            <td><span class="fw-semibold"><?= html_escape($r['module_name']) ?></span><small class="text-muted d-block">Published <?= html_escape(date('j M Y', strtotime($r['published_at']))) ?></small></td>
                             <td class="text-end fw-bold"><?= pct($r['final_pct']) ?></td>
                             <td><?= grade_badge($r['grade']) ?></td>
                         </tr>

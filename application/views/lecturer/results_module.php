@@ -11,11 +11,11 @@
     foreach ($bands as $b) { if ($b[0] !== 'Fail') { $bandText[] = $b[0] . ' ' . score_fmt($b[1]) . '%+'; } }
     $bandText[] = 'Fail below ' . score_fmt($bands[2][1]) . '%';
 ?>
-<p class="mb-3"><a href="<?= base_url('lecturer_results') ?>" class="back-link">&larr; Results</a></p>
+<?= module_crumbs($module, 'Results') ?: '<p class="mb-3"><a href="' . base_url('lecturer_results') . '" class="back-link">&larr; Results</a></p>' ?>
 
 <div class="page-head">
     <div class="min-w-0">
-        <h1 class="page-title"><?= html_escape($course['name']) ?></h1>
+        <h1 class="page-title"><?= html_escape($module['name']) ?></h1>
         <p class="page-sub mb-0"><?= (int) $calc['assignments'] ?> assignment<?= $calc['assignments'] == 1 ? '' : 's' ?> and <?= (int) $calc['exams'] ?> exam<?= $calc['exams'] == 1 ? '' : 's' ?> have finished and count towards the result.</p>
     </div>
 </div>
@@ -25,14 +25,14 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="card-head"><h5 class="card-heading"><?= icon('layers', 18) ?> Weighting</h5></div>
-                <form method="post" action="<?= base_url('lecturer_results/weights/' . $course['id']) ?>" data-weights>
+                <form method="post" action="<?= base_url('lecturer_results/weights/' . $module['id']) ?>" data-weights>
                     <label class="form-label" for="aw">Assignments count for</label>
                     <div class="d-flex align-items-center gap-3 mb-2">
                         <input type="range" class="form-range flex-grow-1" id="aw" name="assignment_weight" min="0" max="100" step="5" value="<?= (int) $aw ?>"
                                oninput="this.form.querySelector('[data-aw]').textContent=this.value;this.form.querySelector('[data-ew]').textContent=100-this.value">
                         <span class="weight-chip"><span data-aw><?= (int) $aw ?></span>%</span>
                     </div>
-                    <p class="small text-muted mb-3">Exams count for <strong><span data-ew><?= (int) $ew ?></span>%</strong>. If a course has only assignments or only exams, that part counts 100%.</p>
+                    <p class="small text-muted mb-3">Exams count for <strong><span data-ew><?= (int) $ew ?></span>%</strong>. If a module has only assignments or only exams, that part counts 100%.</p>
                     <button type="submit" class="btn btn-outline-primary btn-sm">Save weighting</button>
                 </form>
             </div>
@@ -66,9 +66,9 @@
         </div>
     </div>
     <?php if (empty($calc['rows'])): ?>
-        <div class="empty-state pt-2">No students have access to this course yet.</div>
+        <div class="empty-state pt-2">No students have access to this module yet.</div>
     <?php else: ?>
-    <form method="post" action="<?= base_url('lecturer_results/publish/' . $course['id']) ?>" id="publish-form"
+    <form method="post" action="<?= base_url('lecturer_results/publish/' . $module['id']) ?>" id="publish-form"
           data-confirm="Publish the ticked results? Each student will be notified and will see their grade, marks and your remarks." data-confirm-ok="Publish results">
         <ul class="result-list">
         <?php foreach ($calc['rows'] as $r): ?>

@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Read-only figures for the administrators' Reports pages. Every method takes
- * the same optional filters: a course id and a year (of publishing / paying).
+ * the same optional filters: a module id and a year (of publishing / paying).
  * "Passed" means a published overall result whose grade isn't Fail.
  */
 class Report_model extends CI_Model
@@ -21,23 +21,26 @@ class Report_model extends CI_Model
     /** Years that have published results, newest first. */
     public function result_years()
     {
-        if (! $this->db->table_exists('course_results')) {
+        if (! $this->db->table_exists('module_results')) {
             return [];
         }
         return array_column($this->db->select('DISTINCT YEAR(published_at) AS y', false)->where('status', 'published')
-            ->where('published_at IS NOT NULL', null, false)->order_by('y', 'DESC')->get('course_results')->result_array(), 'y');
+            ->where('published_at IS NOT NULL', null, false)->order_by('y', 'DESC')->get('module_results')->result_array(), 'y');
     }
 
     /** Published results with the student's province (or another profile field), filtered. */
-    private function results_query($courseId, $year, $field = 'province')
+    private function results_query($moduleId, $year, $field = 'province', $programId = null)
     {
         $field = isset(self::$groupings[$field]) ? $field : 'province';
-        $this->db->select("COALESCE(NULLIF(p.$field, ''), 'Not given') AS grp, cr.grade, cr.final_pct, cr.course_id, cr.student_id", false)
-            ->from('course_results cr')
+        $this->db->select("COALESCE(NULLIF(p.$field, ''), 'Not given') AS grp, cr.grade, cr.final_pct, cr.module_id, cr.student_id", false)
+            ->from('module_results cr')
             ->join('user_profiles p', 'p.user_id = cr.student_id', 'left')
             ->where('cr.status', 'published');
-        if ($courseId) {
-            $this->db->where('cr.course_id', (int) $courseId);
+        if ($moduleId) {
+            $this->db->where('cr.module_id', (int) $moduleId);
+        }
+        if ($programId) {
+            $this->db->join('modules pm', 'pm.id = cr.module_id')->where('pm.program_id', (int) $programId);
         }
         if ($year) {
             $this->db->where('YEAR(cr.published_at) =', (int) $year, false);
@@ -50,10 +53,10 @@ class Report_model extends CI_Model
      * Returns rows [group, results, passed, failed, rate, average] sorted by results, largest first,
      * plus totals.
      */
-    public function pass_rates($courseId = null, $year = null, $field = 'province')
+    public function pass_rates($moduleId = null, $year = null, $field = 'province', $programId = null)
     {
         $groups = [];
-        foreach ($this->results_query($courseId, $year, $field) as $r) {
+        foreach ($this->results_query($moduleId, $year, $field, $programId) as $r) {
             $g = $r['grp'];
             if (! isset($groups[$g])) {
                 $groups[$g] = ['group' => $g, 'results' => 0, 'passed' => 0, 'sum' => 0.0];
@@ -80,57 +83,60 @@ class Report_model extends CI_Model
         return ['rows' => $groups, 'total' => $total];
     }
 
-    /** How many of each grade, overall, and a line per course. */
-    public function grades($courseId = null, $year = null)
+    /** How many of each grade, overall, and a line per module. */
+    public function grades($moduleId = null, $year = null, $programId = null)
     {
         $order = ['Distinction' => 0, 'Merit' => 0, 'Pass' => 0, 'Fail' => 0];
-        $byCourse = [];
-        $rows = $this->results_query($courseId, $year);
+        $byModule = [];
+        $rows = $this->results_query($moduleId, $year, 'province', $programId);
         $names = [];
-        foreach ($this->db->select('id, name')->get('courses')->result_array() as $c) {
+        foreach ($this->db->select('id, name')->get('modules')->result_array() as $c) {
             $names[$c['id']] = $c['name'];
         }
         foreach ($rows as $r) {
             $grade = isset($order[$r['grade']]) ? $r['grade'] : 'Fail';
             $order[$grade]++;
-            $cid = $r['course_id'];
-            if (! isset($byCourse[$cid])) {
-                $byCourse[$cid] = ['course' => isset($names[$cid]) ? $names[$cid] : '?', 'Distinction' => 0, 'Merit' => 0, 'Pass' => 0, 'Fail' => 0, 'results' => 0, 'sum' => 0.0];
+            $cid = $r['module_id'];
+            if (! isset($byModule[$cid])) {
+                $byModule[$cid] = ['module' => isset($names[$cid]) ? $names[$cid] : '?', 'Distinction' => 0, 'Merit' => 0, 'Pass' => 0, 'Fail' => 0, 'results' => 0, 'sum' => 0.0];
             }
-            $byCourse[$cid][$grade]++;
-            $byCourse[$cid]['results']++;
-            $byCourse[$cid]['sum'] += (float) $r['final_pct'];
+            $byModule[$cid][$grade]++;
+            $byModule[$cid]['results']++;
+            $byModule[$cid]['sum'] += (float) $r['final_pct'];
         }
-        foreach ($byCourse as &$c) {
+        foreach ($byModule as &$c) {
             $c['rate'] = round(($c['results'] - $c['Fail']) / $c['results'] * 100, 1);
             $c['average'] = round($c['sum'] / $c['results'], 1);
         }
         unset($c);
-        usort($byCourse, function ($a, $b) { return strcmp($a['course'], $b['course']); });
-        return ['grades' => $order, 'courses' => $byCourse];
+        usort($byModule, function ($a, $b) { return strcmp($a['module'], $b['module']); });
+        return ['grades' => $order, 'modules' => $byModule];
     }
 
     /**
      * Students grouped by a profile field. $scope: 'enrolled' = with at least
-     * one paid-up course (optionally a given course), 'all' = every active student account.
+     * one paid-up module (optionally a given module), 'all' = every active student account.
      */
-    public function students_by($field, $courseId = null, $scope = 'enrolled')
+    public function students_by($field, $moduleId = null, $scope = 'enrolled', $programId = null)
     {
         $field = isset(self::$groupings[$field]) ? $field : 'province';
         $this->db->select("COALESCE(NULLIF(p.$field, ''), 'Not given') AS grp, COUNT(DISTINCT u.id) AS n", false)
             ->from('users u')->join('user_profiles p', 'p.user_id = u.id', 'left')
             ->where('u.role', 'student')->where('u.status', 'active');
-        if ($scope === 'enrolled' || $courseId) {
+        if ($scope === 'enrolled' || $moduleId || $programId) {
             $this->db->join('enrollments e', 'e.user_id = u.id AND e.status = \'active\'', 'inner', false);
-            if ($courseId) {
-                $this->db->where('e.course_id', (int) $courseId);
+            if ($moduleId) {
+                $this->db->where('e.module_id', (int) $moduleId);
+            }
+            if ($programId) {
+                $this->db->join('modules pm', 'pm.id = e.module_id')->where('pm.program_id', (int) $programId);
             }
         }
         $rows = $this->db->group_by('grp')->order_by('n', 'DESC')->get()->result_array();
         return array_map(function ($r) { return ['group' => $r['grp'], 'students' => (int) $r['n']]; }, $rows);
     }
 
-    /** Approved fees per month for the last 12 months, and totals per course. */
+    /** Approved fees per month for the last 12 months, and totals per module. */
     public function fees($year = null)
     {
         $months = [];
@@ -155,17 +161,17 @@ class Report_model extends CI_Model
         }
 
         $this->db->select("c.name, COUNT(p.id) AS payments, SUM(p.amount) AS total", false)
-            ->from('payments p')->join('enrollments e', 'e.id = p.enrollment_id')->join('courses c', 'c.id = e.course_id')->where('p.status', 'approved');
+            ->from('payments p')->join('enrollments e', 'e.id = p.enrollment_id')->join('modules c', 'c.id = e.module_id')->where('p.status', 'approved');
         if ($year) {
             $this->db->where('YEAR(COALESCE(p.reviewed_at, p.submitted_at)) =', (int) $year, false);
         }
-        $courses = $this->db->group_by('c.id')->order_by('total', 'DESC')->get()->result_array();
+        $modules = $this->db->group_by('c.id')->order_by('total', 'DESC')->get()->result_array();
 
         return [
             'months'  => $months,
-            'courses' => $courses,
+            'modules' => $modules,
             'pending' => $this->db->where('status', 'pending')->count_all_results('payments'),
-            'total'   => array_sum(array_map('floatval', array_column($courses, 'total'))),
+            'total'   => array_sum(array_map('floatval', array_column($modules, 'total'))),
         ];
     }
 
@@ -188,7 +194,7 @@ class Report_model extends CI_Model
     /** Headline numbers for the Reports home page. */
     public function headline()
     {
-        $pass = $this->db->table_exists('course_results') ? $this->pass_rates() : ['total' => ['results' => 0, 'rate' => null]];
+        $pass = $this->db->table_exists('module_results') ? $this->pass_rates() : ['total' => ['results' => 0, 'rate' => null]];
         return [
             'students' => $this->db->where('role', 'student')->where('status', 'active')->count_all_results('users'),
             'enrolled' => $this->db->select('COUNT(DISTINCT user_id) AS n', false)->where('status', 'active')->get('enrollments')->row()->n,

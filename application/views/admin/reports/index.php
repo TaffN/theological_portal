@@ -1,7 +1,7 @@
 <div class="row g-3 mb-4">
     <?php foreach ([
-        ['Active students', number_format($h['students']), 'users', 'bg-soft-navy', number_format((int) $h['enrolled']) . ' with a paid-up course'],
-        ['Published results', number_format($h['results']), 'award', 'bg-soft-green', 'across all courses'],
+        ['Active students', number_format($h['students']), 'users', 'bg-soft-navy', number_format((int) $h['enrolled']) . ' with a paid-up module'],
+        ['Published results', number_format($h['results']), 'award', 'bg-soft-green', 'across all modules'],
         ['Pass rate', $h['passrate'] === null ? '&ndash;' : score_fmt($h['passrate']) . '%', 'check', 'bg-soft-gold', 'of published results'],
         ['Fees this year', money($h['fees']), 'dollar', 'bg-soft-blue', 'approved payments in ' . date('Y')],
     ] as $k): ?>
@@ -16,10 +16,10 @@
 <div class="row g-3">
     <?php foreach ([
         ['pass_rates', 'award', 'Pass rates by region', 'Which provinces our students pass in, as a pie chart and bars. Also by gender, denomination or education.'],
-        ['grades', 'layers', 'Grades', 'How many Distinctions, Merits, Passes and Fails, and each course\'s pass rate and average.'],
+        ['grades', 'layers', 'Grades', 'How many Distinctions, Merits, Passes and Fails, and each module\'s pass rate and average.'],
         ['students', 'users', 'Students', 'Where our students come from and who they are: province, gender, city, denomination, education.'],
-        ['attendance', 'check-square', 'Attendance', 'Attendance rate per course from the lecturers\' registers.'],
-        ['fees', 'dollar', 'Fees', 'Fees collected per month and per course, and payments still to check.'],
+        ['attendance', 'check-square', 'Attendance', 'Attendance rate per module from the lecturers\' registers.'],
+        ['fees', 'dollar', 'Fees', 'Fees collected per month and per module, and payments still to check.'],
         ['documents', 'file', 'Documents', 'Identity documents and qualifications: verified, waiting and missing.'],
     ] as $r): ?>
         <div class="col-md-6 col-xl-4">

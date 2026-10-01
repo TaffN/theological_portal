@@ -1,7 +1,7 @@
 <div class="page-head">
     <div>
         <h1 class="page-title">Lecturers</h1>
-        <p class="page-sub">Create lecturer accounts, then assign them to courses on the Courses page.</p>
+        <p class="page-sub">Create lecturer accounts, then assign them to modules on the Modules page.</p>
     </div>
 </div>
 
@@ -26,14 +26,14 @@
     <?php else: ?>
     <div class="table-responsive">
         <table class="table table-clean align-middle mb-0">
-            <thead><tr><th>Lecturer</th><th>Phone</th><th>Courses</th><th>Last seen</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <thead><tr><th>Lecturer</th><th>Phone</th><th>Modules</th><th>Last seen</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             <?php foreach ($lecturers as $l): ?>
                 <tr>
                     <td><div class="d-flex align-items-center gap-2"><?= avatar_html($l['name'], $l['id'], $l['photo_path'] ? $l['photo_updated_at'] : null, 'avatar-sm') ?>
                         <div class="min-w-0"><a href="<?= base_url('admin_users/card/' . $l['id']) ?>" class="fw-semibold text-reset text-decoration-none d-block"><?= html_escape($l['name']) ?></a><small class="text-muted"><span class="id-chip"><?= html_escape($l['id_number']) ?></span> <?= html_escape($l['email']) ?></small></div></div></td>
                     <td><?= $l['phone'] ? html_escape($l['phone']) : '<span class="text-muted">—</span>' ?></td>
-                    <td><?= (int) $l['course_count'] ?></td>
+                    <td><?= (int) $l['module_count'] ?></td>
                     <td class="text-nowrap"><?= $l['last_login_at'] ? html_escape(time_ago($l['last_login_at'])) : '<span class="text-muted">Never</span>' ?></td>
                     <td><?= $l['status'] === 'active' ? '<span class="pill pill-success">Active</span>' : '<span class="pill pill-danger">Deactivated</span>' ?></td>
                     <td class="text-end text-nowrap">

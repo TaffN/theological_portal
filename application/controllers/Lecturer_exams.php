@@ -5,7 +5,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Stage 5: lecturers write exams, publish them, watch them live
  * (invigilation), mark short answers and release results.
  *
- * Every action checks Course_lecturer_model::is_assigned(). Questions are
+ * Every action checks Module_lecturer_model::is_assigned(). Questions are
  * locked once any student has started, so nobody's paper changes under them.
  */
 class Lecturer_exams extends Lecturer_Controller
@@ -16,7 +16,7 @@ class Lecturer_exams extends Lecturer_Controller
     {
         parent::__construct();
         $this->load->library(['form_validation', 'notifier']);
-        $this->load->model(['Exam_model', 'Exam_attempt_model', 'Course_lecturer_model', 'Course_model']);
+        $this->load->model(['Exam_model', 'Exam_attempt_model', 'Module_lecturer_model', 'Module_model']);
         $this->load->helper('ui');
     }
 
@@ -25,12 +25,12 @@ class Lecturer_exams extends Lecturer_Controller
         $this->Exam_attempt_model->finalize_expired();
 
         $groups = [];
-        foreach ($this->Course_lecturer_model->courses_for_lecturer($this->current_user_id) as $c) {
-            $groups[$c['id']] = ['course' => $c, 'exams' => []];
+        foreach ($this->Module_lecturer_model->modules_for_lecturer($this->current_user_id) as $c) {
+            $groups[$c['id']] = ['module' => $c, 'exams' => []];
         }
         foreach ($this->Exam_model->for_lecturer($this->current_user_id) as $e) {
-            if (isset($groups[$e['course_id']])) {
-                $groups[$e['course_id']]['exams'][] = $e;
+            if (isset($groups[$e['module_id']])) {
+                $groups[$e['module_id']]['exams'][] = $e;
             }
         }
 
@@ -41,24 +41,24 @@ class Lecturer_exams extends Lecturer_Controller
 
     /* ------------------------------------------------------ EXAM DETAILS */
 
-    public function create($courseId)
+    public function create($moduleId)
     {
-        $course = $this->_my_course($courseId);
+        $module = $this->_my_module($moduleId);
 
         if ($this->input->method() === 'post' && $this->_validate_exam(null)) {
             $data = $this->_exam_data(true);
-            $data['course_id']   = $course['id'];
+            $data['module_id']   = $module['id'];
             $data['lecturer_id'] = $this->current_user_id;
             $data['status']      = 'draft';
             $id = $this->Exam_model->create($data);
 
-            $this->audit->log('exam.created', 'exam', $id, 'Created exam "' . $data['title'] . '" (draft) in ' . $course['name']);
+            $this->audit->log('exam.created', 'exam', $id, 'Created exam "' . $data['title'] . '" (draft) in ' . $module['name']);
             $this->session->set_flashdata('success', 'Exam created as a draft. Now add the questions; students can\'t see it until you publish it.');
             return redirect('lecturer_exams/view/' . $id);
         }
 
         $this->load->view('templates/header', ['title' => 'New exam']);
-        $this->load->view('lecturer/exam_form', ['course' => $course, 'e' => null, 'locked' => false]);
+        $this->load->view('lecturer/exam_form', ['module' => $module, 'e' => null, 'locked' => false]);
         $this->load->view('templates/footer');
     }
 
@@ -72,11 +72,11 @@ class Lecturer_exams extends Lecturer_Controller
             $this->Exam_model->update($id, $data);
 
             $timesChanged = strtotime($data['opens_at']) !== strtotime($exam['opens_at']) || strtotime($data['closes_at']) !== strtotime($exam['closes_at']);
-            $this->audit->log('exam.updated', 'exam', $id, 'Edited exam "' . $data['title'] . '" in ' . $exam['course_name']
+            $this->audit->log('exam.updated', 'exam', $id, 'Edited exam "' . $data['title'] . '" in ' . $exam['module_name']
                 . ($timesChanged ? ', window now ' . date('j M H:i', strtotime($data['opens_at'])) . ' – ' . date('j M H:i', strtotime($data['closes_at'])) : ''));
             if ($timesChanged && $exam['status'] === 'published') {
-                $this->notifier->notify_course($exam['course_id'],
-                    'Exam time changed: "' . $data['title'] . '" (' . $exam['course_name'] . ') now opens ' . date('D j M, H:i', strtotime($data['opens_at'])),
+                $this->notifier->notify_module($exam['module_id'],
+                    'Exam time changed: "' . $data['title'] . '" (' . $exam['module_name'] . ') now opens ' . date('D j M, H:i', strtotime($data['opens_at'])),
                     base_url('student_exams/view/' . $id));
             }
 
@@ -86,7 +86,7 @@ class Lecturer_exams extends Lecturer_Controller
 
         $this->load->view('templates/header', ['title' => 'Edit exam']);
         $this->load->view('lecturer/exam_form', [
-            'course' => ['id' => $exam['course_id'], 'name' => $exam['course_name']],
+            'module' => ['id' => $exam['module_id'], 'name' => $exam['module_name']],
             'e'      => $exam,
             'locked' => $locked,
         ]);
@@ -144,10 +144,10 @@ class Lecturer_exams extends Lecturer_Controller
         }
 
         $this->Exam_model->update($id, ['status' => 'published', 'published_at' => date('Y-m-d H:i:s')]);
-        $this->audit->log('exam.published', 'exam', $id, 'Published exam "' . $exam['title'] . '" in ' . $exam['course_name']
+        $this->audit->log('exam.published', 'exam', $id, 'Published exam "' . $exam['title'] . '" in ' . $exam['module_name']
             . ', open ' . date('j M H:i', strtotime($exam['opens_at'])) . ' – ' . date('j M H:i', strtotime($exam['closes_at'])));
-        $sent = $this->notifier->notify_course($exam['course_id'],
-            'New exam in ' . $exam['course_name'] . ': "' . $exam['title'] . '", opens ' . date('D j M, H:i', strtotime($exam['opens_at']))
+        $sent = $this->notifier->notify_module($exam['module_id'],
+            'New exam in ' . $exam['module_name'] . ': "' . $exam['title'] . '", opens ' . date('D j M, H:i', strtotime($exam['opens_at']))
                 . ' (' . (int) $exam['duration_minutes'] . ' minutes)',
             base_url('student_exams/view/' . $id));
 
@@ -177,7 +177,7 @@ class Lecturer_exams extends Lecturer_Controller
             return redirect('lecturer_exams/view/' . $id);
         }
         $this->Exam_model->delete($id);
-        $this->audit->log('exam.deleted', 'exam', $id, 'Deleted exam "' . $exam['title'] . '" from ' . $exam['course_name']);
+        $this->audit->log('exam.deleted', 'exam', $id, 'Deleted exam "' . $exam['title'] . '" from ' . $exam['module_name']);
         $this->session->set_flashdata('success', 'Exam deleted.');
         redirect('lecturer_exams');
     }
@@ -383,20 +383,20 @@ class Lecturer_exams extends Lecturer_Controller
         return ['rows' => $rows, 'counts' => $counts];
     }
 
-    private function _my_course($courseId)
+    private function _my_module($moduleId)
     {
-        $course = $this->Course_model->find($courseId);
-        if (! $course || ! $this->Course_lecturer_model->is_assigned($courseId, $this->current_user_id)) {
-            show_error('You are not assigned to that course.', 403);
+        $module = $this->Module_model->find($moduleId);
+        if (! $module || ! $this->Module_lecturer_model->is_assigned($moduleId, $this->current_user_id)) {
+            show_error('You are not assigned to that module.', 403);
         }
-        return $course;
+        return $module;
     }
 
     /** $postOnly: actions that change things only through a button (POST), never a plain link. */
     private function _my_exam($id, $postOnly = false)
     {
         $exam = $this->Exam_model->find($id);
-        if (! $exam || ! $this->Course_lecturer_model->is_assigned($exam['course_id'], $this->current_user_id)
+        if (! $exam || ! $this->Module_lecturer_model->is_assigned($exam['module_id'], $this->current_user_id)
             || ($postOnly && $this->input->method() !== 'post')) {
             show_404();
         }

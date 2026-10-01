@@ -9,7 +9,7 @@
                     <?= icon('card', 16) ?> Review <?= (int) $stats['pending_payments'] ?> pending payment<?= $stats['pending_payments'] == 1 ? '' : 's' ?>
                 </a>
             <?php endif; ?>
-            <a href="<?= base_url('admin_courses') ?>" class="btn btn-glass btn-sm"><?= icon('plus', 16) ?> Add course</a>
+            <a href="<?= base_url('admin_modules') ?>" class="btn btn-glass btn-sm"><?= icon('plus', 16) ?> Add module</a>
             <a href="<?= base_url('admin_users/lecturers') ?>" class="btn btn-glass btn-sm"><?= icon('users', 16) ?> Add lecturer</a>
         </div>
     </div>
@@ -77,10 +77,10 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
-                    <h5 class="card-heading">Enrollments by course</h5>
-                    <span class="card-sub">Paid-up students per course</span>
+                    <h5 class="card-heading">Enrollments by module</h5>
+                    <span class="card-sub">Paid-up students per module</span>
                 </div>
-                <?= svg_donut_chart($by_course['labels'], $by_course['values'], [
+                <?= svg_donut_chart($by_module['labels'], $by_module['values'], [
                     'center_label' => 'students',
                     'empty'        => 'No paid enrollments yet.',
                 ]) ?>
@@ -102,7 +102,7 @@
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-clean align-middle mb-0">
-                            <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Student</th><th>Module</th><th>Amount</th><th>Status</th></tr></thead>
                             <tbody>
                             <?php foreach ($payments as $p): ?>
                                 <tr>
@@ -110,7 +110,7 @@
                                         <div class="fw-semibold"><?= html_escape($p['student_name']) ?></div>
                                         <small class="text-muted"><?= html_escape(time_ago($p['submitted_at'])) ?></small>
                                     </td>
-                                    <td><?= html_escape($p['course_name']) ?></td>
+                                    <td><?= html_escape($p['module_name']) ?></td>
                                     <td><?= money($p['amount']) ?></td>
                                     <td><?= status_badge($p['status']) ?></td>
                                 </tr>
@@ -156,7 +156,7 @@
             <div class="card-body">
                 <div class="card-head">
                     <h5 class="card-heading">Newest students</h5>
-                    <span class="card-sub"><?= (int) $stats['courses'] ?> courses &middot; <?= (int) $stats['lecturers'] ?> lecturers</span>
+                    <span class="card-sub"><?= (int) $stats['programs'] ?> program<?= $stats['programs'] == 1 ? '' : 's' ?> &middot; <?= (int) $stats['modules'] ?> modules &middot; <?= (int) $stats['lecturers'] ?> lecturers</span>
                 </div>
                 <?php if (empty($new_students)): ?>
                     <div class="empty-state">No students have registered yet.</div>
@@ -180,7 +180,7 @@
 </div>
 
 <?php
-    $actIcons = ['auth' => ['user', 'bg-soft-navy'], 'payment' => ['card', 'bg-soft-green'], 'course' => ['book', 'bg-soft-blue'],
+    $actIcons = ['auth' => ['user', 'bg-soft-navy'], 'payment' => ['card', 'bg-soft-green'], 'module' => ['book', 'bg-soft-blue'],
                  'material' => ['file', 'bg-soft-gold'], 'assignment' => ['edit', 'bg-soft-gold'], 'submission' => ['upload', 'bg-soft-blue'], 'exam' => ['clock', 'bg-soft-gold'], 'attempt' => ['clock', 'bg-soft-blue'], 'result' => ['award', 'bg-soft-green'], 'grading' => ['layers', 'bg-soft-gold'], 'ezra' => ['message', 'bg-soft-blue'], 'discussion' => ['chat', 'bg-soft-blue'], 'calendar' => ['calendar', 'bg-soft-gold'], 'library' => ['library', 'bg-soft-navy'], 'attendance' => ['check-square', 'bg-soft-green'], 'document' => ['file', 'bg-soft-blue'], 'report' => ['chart', 'bg-soft-navy'], 'user' => ['users', 'bg-soft-navy'], 'enrollment' => ['book', 'bg-soft-green'],
                  'announcement' => ['bell', 'bg-soft-gold'], 'support' => ['alert', 'bg-soft-red'], 'error' => ['alert', 'bg-soft-red']];
 ?>

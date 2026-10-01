@@ -106,16 +106,16 @@ class User_model extends CI_Model
         return null;
     }
 
-    /** Course names shown on someone's ID card. */
-    public function card_courses(array $user)
+    /** Module names shown on someone's ID card. */
+    public function card_modules(array $user)
     {
         if ($user['role'] === 'lecturer') {
-            $rows = $this->db->select('courses.name')->from('course_lecturers')
-                ->join('courses', 'courses.id = course_lecturers.course_id')
-                ->where('course_lecturers.user_id', $user['id'])->get()->result_array();
+            $rows = $this->db->select('modules.name')->from('module_lecturers')
+                ->join('modules', 'modules.id = module_lecturers.module_id')
+                ->where('module_lecturers.user_id', $user['id'])->get()->result_array();
         } elseif ($user['role'] === 'student') {
-            $rows = $this->db->select('courses.name')->from('enrollments')
-                ->join('courses', 'courses.id = enrollments.course_id')
+            $rows = $this->db->select('modules.name')->from('enrollments')
+                ->join('modules', 'modules.id = enrollments.module_id')
                 ->where('enrollments.user_id', $user['id'])->where('enrollments.status', 'active')->get()->result_array();
         } else {
             $rows = [];

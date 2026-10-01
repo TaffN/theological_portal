@@ -38,7 +38,7 @@
     <?php else: ?>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <?php endif; ?>
-    <link href="<?= base_url('assets/css/app.css') ?>?v=11" rel="stylesheet">
+    <link href="<?= base_url('assets/css/app.css') ?>?v=12" rel="stylesheet">
 
     <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg') ?>">
     <link rel="icon" type="image/png" sizes="192x192" href="<?= base_url('assets/img/icon-192.png') ?>">
@@ -175,7 +175,7 @@
             <h2 class="hero-title">Grow in knowledge.<br><span>Study from anywhere.</span></h2>
             <ul class="hero-list">
                 <li><span class="hero-ic"><?= icon('phone', 18) ?></span><div><strong>Made for your phone</strong>Read notes, submit work and sit exams on the go.</div></li>
-                <li><span class="hero-ic"><?= icon('folder', 18) ?></span><div><strong>Everything in one place</strong>No more hunting through WhatsApp for course materials.</div></li>
+                <li><span class="hero-ic"><?= icon('folder', 18) ?></span><div><strong>Everything in one place</strong>No more hunting through WhatsApp for module materials.</div></li>
                 <li><span class="hero-ic"><?= icon('card', 18) ?></span><div><strong>Simple fee payments</strong>Pay by EcoCash or bank transfer and upload your proof.</div></li>
             </ul>
         </div>

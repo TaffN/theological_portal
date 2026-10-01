@@ -8,7 +8,7 @@
 
     $dueDefault = $editing ? date('Y-m-d\TH:i', strtotime($a['due_at'])) : date('Y-m-d', strtotime('+7 days')) . 'T17:00';
     $allowLate  = $isPost ? (bool) $CI->input->post('allow_late') : ($editing ? (bool) $a['allow_late'] : true);
-    $action     = $editing ? base_url('lecturer_assignments/edit/' . $a['id']) : base_url('lecturer_assignments/create/' . $course['id']);
+    $action     = $editing ? base_url('lecturer_assignments/edit/' . $a['id']) : base_url('lecturer_assignments/create/' . $module['id']);
 ?>
 <p class="mb-3">
     <a href="<?= $editing ? base_url('lecturer_assignments/view/' . $a['id']) : base_url('lecturer_assignments') ?>" class="back-link">&larr; <?= $editing ? html_escape($a['title']) : 'Assignments' ?></a>
@@ -19,7 +19,7 @@
         <div class="card">
             <div class="card-body">
                 <h1 class="page-title mb-1"><?= $editing ? 'Edit assignment' : 'New assignment' ?></h1>
-                <p class="text-muted mb-4"><?= html_escape($course['name']) ?><?= $editing ? '' : ' &middot; students with access to this course are notified when you save' ?></p>
+                <p class="text-muted mb-4"><?= html_escape($module['name']) ?><?= $editing ? '' : ' &middot; students with access to this module are notified when you save' ?></p>
 
                 <?php if (! empty($uploadError)): ?>
                     <div class="notice notice-danger"><?= icon('alert', 16) ?> <span><?= html_escape($uploadError) ?> Please choose the file again.</span></div>

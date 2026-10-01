@@ -7,7 +7,7 @@
 <div class="page-head">
     <div class="min-w-0">
         <h1 class="page-title"><?= html_escape($e['title']) ?></h1>
-        <p class="page-sub mb-0"><?= html_escape($e['course_name']) ?> &middot;
+        <p class="page-sub mb-0"><?= html_escape($e['module_name']) ?> &middot;
             <?= html_escape(date('D j M, H:i', strtotime($e['opens_at']))) ?> – <?= html_escape(date('D j M, H:i', strtotime($e['closes_at']))) ?>
             &middot; <?= (int) $e['duration_minutes'] ?> minutes</p>
     </div>
@@ -68,7 +68,7 @@
         </div>
     </div>
     <?php if (empty($roster)): ?>
-        <div class="empty-state pt-2">No students have access to this course yet.</div>
+        <div class="empty-state pt-2">No students have access to this module yet.</div>
     <?php else: ?>
     <div class="table-responsive">
         <table class="table table-clean align-middle mb-0">

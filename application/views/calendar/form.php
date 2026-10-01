@@ -8,7 +8,7 @@
 ?>
 <p class="mb-3"><a href="<?= base_url('calendar?m=' . substr($date, 0, 7)) ?>" class="back-link">&larr; Calendar</a></p>
 <div class="page-head"><div><h1 class="page-title"><?= $e ? 'Edit event' : 'Add an event' ?></h1>
-    <p class="page-sub">Students on the course are told about new events and changed times.</p></div></div>
+    <p class="page-sub">Students on the module are told about new events and changed times.</p></div></div>
 
 <form method="post" action="<?= base_url('calendar/save' . ($e ? '/' . $e['id'] : '')) ?>" class="card">
     <div class="card-body">
@@ -24,10 +24,10 @@
                 </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label" for="ce-course">For</label>
-                <select class="form-select" id="ce-course" name="course_id">
-                    <?php if ($college): ?><option value="" <?= $e && $e['course_id'] === null ? 'selected' : '' ?>>The whole college</option><?php endif; ?>
-                    <?php foreach ($courses as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $e && (int) $e['course_id'] === (int) $c['id'] ? 'selected' : '' ?>><?= html_escape($c['name']) ?></option><?php endforeach; ?>
+                <label class="form-label" for="ce-module">For</label>
+                <select class="form-select" id="ce-module" name="module_id">
+                    <?php if ($college): ?><option value="" <?= $e && $e['module_id'] === null ? 'selected' : '' ?>>The whole college</option><?php endif; ?>
+                    <?php foreach ($modules as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $e && (int) $e['module_id'] === (int) $c['id'] ? 'selected' : '' ?>><?= html_escape(module_label($c)) ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div class="col-6 col-md-3">

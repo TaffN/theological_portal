@@ -5,11 +5,11 @@
     </div>
 </div>
 
-<?php if (! $hasCourses): ?>
+<?php if (! $hasModules): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('edit', 28) ?></span><br>
-        Assignments appear once you're enrolled in a course and your payment has been approved.<br>
-        <a href="<?= base_url('courses') ?>" class="btn btn-primary btn-sm mt-3">Browse courses</a>
+        Assignments appear once you're enrolled in a module and your payment has been approved.<br>
+        <a href="<?= base_url('programs') ?>" class="btn btn-primary btn-sm mt-3">Browse programs</a>
     </div></div>
 <?php else: ?>
 
@@ -39,7 +39,7 @@
                             <span class="flex-grow-1 min-w-0">
                                 <span class="issue-title"><?= html_escape($a['title']) ?></span>
                                 <span class="issue-meta">
-                                    <?= html_escape($a['course_name']) ?> &middot;
+                                    <?= html_escape($a['module_name']) ?> &middot;
                                     <?php if ($a['state'] === 'submitted' || $a['state'] === 'graded'): ?>
                                         handed in <?= html_escape(time_ago($a['sub_submitted_at'])) ?>
                                     <?php else: ?>

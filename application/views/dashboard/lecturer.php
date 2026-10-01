@@ -16,8 +16,8 @@
         <div class="card stat-card">
             <div class="stat-icon bg-soft-navy"><?= icon('book', 22) ?></div>
             <div>
-                <div class="stat-value"><?= count($courses) ?></div>
-                <div class="stat-label">My courses</div>
+                <div class="stat-value"><?= count($modules) ?></div>
+                <div class="stat-label">My modules</div>
             </div>
         </div>
     </div>
@@ -55,20 +55,20 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="card-head">
-                    <h5 class="card-heading">Students per course</h5>
+                    <h5 class="card-heading">Students per module</h5>
                     <span class="card-sub">Paid-up, active students</span>
                 </div>
-                <?php if (empty($courses)): ?>
-                    <div class="empty-state">You haven't been assigned to a course yet. Ask the administrator to assign you.</div>
+                <?php if (empty($modules)): ?>
+                    <div class="empty-state">You haven't been assigned to a module yet. Ask the administrator to assign you.</div>
                 <?php else: ?>
-                    <?= svg_bar_chart(array_column($courses, 'name'), array_column($courses, 'students'), [
+                    <?= svg_bar_chart(array_column($modules, 'name'), array_column($modules, 'students'), [
                         'color' => 'var(--c2)',
-                        'label' => 'Students per course',
-                        'empty' => 'No active students in your courses yet.',
+                        'label' => 'Students per module',
+                        'empty' => 'No active students in your modules yet.',
                     ]) ?>
                     <div class="d-flex flex-wrap gap-2 mt-3">
-                        <?php foreach ($courses as $c): ?>
-                            <a href="<?= base_url('lecturer_materials/course/' . $c['id']) ?>" class="btn btn-outline-primary btn-sm">
+                        <?php foreach ($modules as $c): ?>
+                            <a href="<?= base_url('lecturer_materials/module/' . $c['id']) ?>" class="btn btn-outline-primary btn-sm">
                                 <?= html_escape($c['name']) ?>
                             </a>
                         <?php endforeach; ?>
@@ -92,10 +92,10 @@
                         <li>
                             <span class="stat-icon stat-icon-sm bg-soft-gold"><?= icon('file', 16) ?></span>
                             <div class="flex-grow-1 min-w-0">
-                                <a href="<?= base_url('lecturer_materials/course/' . $m['course_id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none">
+                                <a href="<?= base_url('lecturer_materials/module/' . $m['module_id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none">
                                     <?= html_escape($m['title']) ?>
                                 </a>
-                                <small class="text-muted"><?= html_escape($m['course_name']) ?> &middot; <?= html_escape(time_ago($m['created_at'])) ?></small>
+                                <small class="text-muted"><?= html_escape($m['module_name']) ?> &middot; <?= html_escape(time_ago($m['created_at'])) ?></small>
                             </div>
                         </li>
                     <?php endforeach; ?>

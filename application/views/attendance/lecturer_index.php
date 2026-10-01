@@ -1,14 +1,14 @@
 <div class="page-head">
     <div>
         <h1 class="page-title">Attendance</h1>
-        <p class="page-sub">Take the register for each class. Students see their own attendance, and the office sees every course.</p>
+        <p class="page-sub">Take the register for each class. Students see their own attendance, and the office sees every module.</p>
     </div>
 </div>
-<?php if (! $courses): ?>
-    <div class="card"><div class="empty-state"><span class="empty-icon bg-soft-navy"><?= icon('check-square', 28) ?></span><br>You aren't assigned to any course yet.</div></div>
+<?php if (! $modules): ?>
+    <div class="card"><div class="empty-state"><span class="empty-icon bg-soft-navy"><?= icon('check-square', 28) ?></span><br>You aren't assigned to any module yet.</div></div>
 <?php else: ?>
     <div class="row g-3">
-    <?php foreach ($courses as $c): ?>
+    <?php foreach ($modules as $c): ?>
         <div class="col-md-6 col-xl-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -21,7 +21,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <a href="<?= base_url('lecturer_attendance/take/' . $c['id']) ?>" class="btn btn-primary btn-sm"><?= icon('check-square', 15) ?> Take register</a>
-                        <a href="<?= base_url('lecturer_attendance/course/' . $c['id']) ?>" class="btn btn-light btn-sm">View</a>
+                        <a href="<?= base_url('lecturer_attendance/module/' . $c['id']) ?>" class="btn btn-light btn-sm">View</a>
                     </div>
                 </div>
             </div>

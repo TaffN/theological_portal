@@ -1,4 +1,4 @@
-<?php $this->load->view('admin/reports/_filters', ['show' => ['by', 'course', 'scope']]); $label = $groupings[$by]; $total = array_sum(array_column($rows, 'students')); ?>
+<?php $this->load->view('admin/reports/_filters', ['show' => ['by', 'program', 'module', 'scope']]); $label = $groupings[$by]; $total = array_sum(array_column($rows, 'students')); ?>
 <?php if (! $rows): ?>
     <div class="card"><div class="empty-state">No students match these filters.</div></div>
 <?php else: ?>

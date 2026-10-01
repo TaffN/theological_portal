@@ -84,7 +84,7 @@
                 <select name="category" class="form-select mb-3">
                     <option value="bug">Something isn't working</option>
                     <option value="payment">Payment or fees</option>
-                    <option value="access">Can't see a course or material</option>
+                    <option value="access">Can't see a module or material</option>
                     <option value="account">Login or account</option>
                     <option value="idea">Suggestion</option>
                     <option value="other">Something else</option>

@@ -21,9 +21,9 @@
     var history  = load();
 
     var greeting = {
-        student:  "Hello! I'm **Ezra**, your study companion. Ask me about your courses, exams, payments or a Bible passage. I also understand Shona and Ndebele.",
+        student:  "Hello! I'm **Ezra**, your study companion. Ask me about your modules, exams, payments or a Bible passage. I also understand Shona and Ndebele.",
         lecturer: "Hello! I'm **Ezra**. I can walk you through setting assignments and exams, taking the register, or help you prepare a lesson.",
-        admin:    "Hello! I'm **Ezra**. Ask me how to approve payments, verify documents, set up courses and lecturers, or anything else in the portal."
+        admin:    "Hello! I'm **Ezra**. Ask me how to approve payments, verify documents, set up modules and lecturers, or anything else in the portal."
     };
 
     /* ------------------------------------------------ storage */

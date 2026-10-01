@@ -6,7 +6,7 @@
     $canEdit = function ($it) use ($manageable) {
         if (! $it['id']) { return false; }
         if ($manageable === null) { return true; }
-        return $it['course_id'] !== null && in_array($it['course_id'], $manageable, true);
+        return $it['module_id'] !== null && in_array($it['module_id'], $manageable, true);
     };
 ?>
 <div class="page-head">
@@ -66,7 +66,7 @@
                                     </div>
                                     <small class="text-muted">
                                         <?= $it['time'] ? html_escape($it['time']) . ($it['end'] ? '–' . html_escape($it['end']) : '') : 'All day' ?>
-                                        &middot; <?= html_escape($kinds[$it['kind']]) ?> &middot; <?= html_escape($it['course'] ?: 'Whole college') ?>
+                                        &middot; <?= html_escape($kinds[$it['kind']]) ?> &middot; <?= html_escape($it['module'] ?: 'Whole college') ?>
                                         <?php if ($it['where']): ?>&middot; <?= icon('map-pin', 12) ?> <?= html_escape($it['where']) ?><?php endif; ?>
                                     </small>
                                     <?php if ($it['notes']): ?><div class="small mt-1"><?= post_format($it['notes']) ?></div><?php endif; ?>

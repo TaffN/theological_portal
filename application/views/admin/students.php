@@ -18,7 +18,7 @@
     <?php else: ?>
     <div class="table-responsive">
         <table class="table table-clean align-middle mb-0" id="students-table">
-            <thead><tr><th>Student</th><th>Phone</th><th>Courses</th><th>Last seen</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <thead><tr><th>Student</th><th>Phone</th><th>Modules</th><th>Last seen</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             <?php foreach ($students as $s): ?>
                 <tr class="<?= $s['reset_requested_at'] ? 'row-attention' : '' ?>">
@@ -33,7 +33,7 @@
                     </td>
                     <td class="text-nowrap"><?= $s['phone'] ? html_escape($s['phone']) : '<span class="text-muted">—</span>' ?></td>
                     <td class="text-nowrap">
-                        <?= (int) $s['active_courses'] ?> active
+                        <?= (int) $s['active_modules'] ?> active
                         <?php if ($s['awaiting']): ?><br><small class="text-muted"><?= (int) $s['awaiting'] ?> awaiting payment</small><?php endif; ?>
                     </td>
                     <td class="text-nowrap"><?= $s['last_login_at'] ? html_escape(time_ago($s['last_login_at'])) : '<span class="text-muted">Never</span>' ?></td>

@@ -14,9 +14,9 @@ class Exam_model extends CI_Model
 
     public function find($id)
     {
-        return $this->db->select('exams.*, courses.name AS course_name')
+        return $this->db->select('exams.*, modules.name AS module_name')
             ->from($this->table)
-            ->join('courses', 'courses.id = exams.course_id')
+            ->join('modules', 'modules.id = exams.module_id')
             ->where('exams.id', $id)
             ->get()->row_array();
     }
@@ -40,28 +40,28 @@ class Exam_model extends CI_Model
         return $this->db->where('id', $id)->delete($this->table);
     }
 
-    /** Every exam in the lecturer's courses, with counts for the list page. */
+    /** Every exam in the lecturer's modules, with counts for the list page. */
     public function for_lecturer($lecturerId)
     {
         return $this->db
-            ->select("exams.*, courses.name AS course_name,
+            ->select("exams.*, modules.name AS module_name,
                 (SELECT COUNT(*) FROM exam_questions q WHERE q.exam_id = exams.id) AS question_total,
                 (SELECT COUNT(*) FROM exam_attempts a WHERE a.exam_id = exams.id) AS attempts,
                 (SELECT COUNT(*) FROM exam_attempts a WHERE a.exam_id = exams.id AND a.submitted_at IS NOT NULL AND a.graded_at IS NULL) AS to_mark", false)
             ->from($this->table)
-            ->join('course_lecturers cl', 'cl.course_id = exams.course_id')
-            ->join('courses', 'courses.id = exams.course_id')
+            ->join('module_lecturers cl', 'cl.module_id = exams.module_id')
+            ->join('modules', 'modules.id = exams.module_id')
             ->where('cl.user_id', $lecturerId)
             ->order_by('exams.opens_at', 'DESC')
             ->get()->result_array();
     }
 
-    /** Handed-in scripts with short answers still to mark, across a lecturer's courses. */
+    /** Handed-in scripts with short answers still to mark, across a lecturer's modules. */
     public function to_mark_count($lecturerId)
     {
         return $this->db->from('exam_attempts a')
             ->join('exams', 'exams.id = a.exam_id')
-            ->join('course_lecturers cl', 'cl.course_id = exams.course_id')
+            ->join('module_lecturers cl', 'cl.module_id = exams.module_id')
             ->where('cl.user_id', $lecturerId)
             ->where('a.submitted_at IS NOT NULL', null, false)
             ->where('a.graded_at IS NULL', null, false)
@@ -69,19 +69,19 @@ class Exam_model extends CI_Model
     }
 
     /**
-     * Published exams in every course the student has active (paid) access to,
+     * Published exams in every module the student has active (paid) access to,
      * with the student's own attempt fields (att_*) if they have started.
      */
     public function for_student($studentId)
     {
         return $this->db
-            ->select('exams.*, courses.name AS course_name,
+            ->select('exams.*, modules.name AS module_name,
                 a.id AS att_id, a.started_at AS att_started_at, a.deadline_at AS att_deadline_at,
                 a.submitted_at AS att_submitted_at, a.total_score AS att_total_score,
                 a.max_score AS att_max_score, a.graded_at AS att_graded_at')
             ->from($this->table)
-            ->join('enrollments e', "e.course_id = exams.course_id AND e.status = 'active'", 'inner', false)
-            ->join('courses', 'courses.id = exams.course_id')
+            ->join('enrollments e', "e.module_id = exams.module_id AND e.status = 'active'", 'inner', false)
+            ->join('modules', 'modules.id = exams.module_id')
             ->join('exam_attempts a', 'a.exam_id = exams.id AND a.student_id = ' . (int) $studentId, 'left', false)
             ->where('e.user_id', $studentId)
             ->where('exams.status', 'published')

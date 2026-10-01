@@ -101,7 +101,7 @@ if (! function_exists('_nav_items_for')) {
                     $dashboard,
                     ['key' => 'admin_payments', 'label' => 'Payments', 'url' => 'admin_payments', 'icon' => 'card', 'badge' => 'payments', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'admin_users', 'label' => 'Students', 'url' => 'admin_users/students', 'icon' => 'users', 'badge' => 'resets', 'section' => 'Menu', 'mobile' => true, 'exact' => true],
-                    ['key' => 'admin_courses', 'label' => 'Courses', 'url' => 'admin_courses', 'icon' => 'layers', 'section' => 'Menu'],
+                    ['key' => 'admin_programs', 'label' => 'Programs', 'url' => 'admin_programs', 'icon' => 'layers', 'section' => 'Menu', 'also' => ['admin_modules']],
                     ['key' => 'admin_users', 'label' => 'Lecturers', 'url' => 'admin_users/lecturers', 'icon' => 'user', 'section' => 'Menu', 'exact' => true],
                     ['key' => 'admin_results', 'label' => 'Results', 'url' => 'admin_results', 'icon' => 'award', 'section' => 'Menu'],
                     ['key' => 'admin_attendance', 'label' => 'Attendance', 'url' => 'admin_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
@@ -120,7 +120,7 @@ if (! function_exists('_nav_items_for')) {
             case 'lecturer':
                 return [
                     $dashboard,
-                    ['key' => 'lecturer_materials', 'label' => 'My Courses', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
+                    ['key' => 'lecturer_materials', 'label' => 'My Modules', 'url' => 'lecturer_materials', 'icon' => 'book', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_assignments', 'label' => 'Assignments', 'url' => 'lecturer_assignments', 'icon' => 'edit', 'badge' => 'marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_exams', 'label' => 'Exams', 'url' => 'lecturer_exams', 'icon' => 'clock', 'badge' => 'exam_marking', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'lecturer_attendance', 'label' => 'Attendance', 'url' => 'lecturer_attendance', 'icon' => 'check-square', 'section' => 'Menu'],
@@ -134,7 +134,7 @@ if (! function_exists('_nav_items_for')) {
             default: // student
                 return [
                     $dashboard,
-                    ['key' => 'courses', 'label' => 'Courses', 'url' => 'courses', 'icon' => 'book', 'section' => 'Menu'],
+                    ['key' => 'programs', 'label' => 'Programs', 'url' => 'programs', 'icon' => 'book', 'section' => 'Menu', 'also' => ['modules']],
                     ['key' => 'student_assignments', 'label' => 'Assignments', 'url' => 'student_assignments', 'icon' => 'edit', 'badge' => 'assignments', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_exams', 'label' => 'Exams', 'url' => 'student_exams', 'icon' => 'clock', 'badge' => 'exams', 'section' => 'Menu', 'mobile' => true],
                     ['key' => 'student_materials', 'label' => 'Materials', 'url' => 'student_materials', 'icon' => 'folder', 'section' => 'Menu', 'mobile' => true],
@@ -156,7 +156,64 @@ if (! function_exists('nav_is_active')) {
         if (! empty($item['exact'])) {
             return $uri === $item['url'] || strpos($uri, $item['url'] . '/') === 0;
         }
-        return $segment === $item['key'];
+        return $segment === $item['key'] || (! empty($item['also']) && in_array($segment, $item['also'], true));
+    }
+}
+
+/**
+ * Breadcrumb trail: crumbs([['Programs', 'programs'], ['Diploma in Theology', 'programs/diploma'], ['Church History']]).
+ * An item with no address is the current page.
+ */
+if (! function_exists('crumbs')) {
+    function crumbs(array $items)
+    {
+        $parts = [];
+        foreach ($items as $i => $it) {
+            $label = html_escape($it[0]);
+            $parts[] = isset($it[1]) && $it[1] !== null
+                ? '<a href="' . base_url($it[1]) . '">' . $label . '</a>'
+                : '<span aria-current="page">' . $label . '</span>';
+        }
+        return '<nav class="crumbs" aria-label="Breadcrumb">' . implode('<span class="crumb-sep" aria-hidden="true">&rsaquo;</span>', $parts) . '</nav>';
+    }
+}
+
+/**
+ * Program > Module trail for a module's own pages, linked to what this role can open:
+ * students to the program page, administrators to the program's module list, lecturers see plain text.
+ * $leaf = an optional last item (the current sub-page, e.g. "Materials").
+ */
+if (! function_exists('module_crumbs')) {
+    function module_crumbs(array $module, $leaf = null)
+    {
+        if (empty($module['program_name'])) {
+            return '';
+        }
+        $CI =& get_instance();
+        $role = $CI->session->userdata('role');
+        $items = [];
+        if ($role === 'student') {
+            $items[] = ['Programs', 'programs'];
+            $items[] = [$module['program_name'], 'programs/' . $module['program_slug']];
+        } elseif ($role === 'admin') {
+            $items[] = ['Programs', 'admin_programs'];
+            $items[] = [$module['program_name'], 'admin_programs/' . (int) $module['program_id'] . '/modules'];
+        } else {
+            $items[] = [$module['program_name']];
+        }
+        $items[] = $leaf === null ? [$module['name']] : [$module['name'], null];
+        if ($leaf !== null) {
+            $items[] = [$leaf];
+        }
+        return crumbs($items);
+    }
+}
+
+/** "Module name" with its program, for pickers: "Church History (General Program)". */
+if (! function_exists('module_label')) {
+    function module_label(array $m)
+    {
+        return $m['name'] . (! empty($m['program_name']) ? ' (' . $m['program_name'] . ')' : '');
     }
 }
 
@@ -373,8 +430,9 @@ if (! function_exists('palette_items')) {
             case 'admin':
                 $items[] = ['Actions', 'Review pending payments', base_url('admin_payments'), 'card', 'Payments'];
                 $items[] = ['Actions', 'Payment history', base_url('admin_payments/history'), 'clock', 'Payments'];
-                $items[] = ['Actions', 'Add a course', base_url('admin_courses'), 'plus', 'Courses'];
-                $items[] = ['Actions', 'Assign a lecturer to a course', base_url('admin_courses'), 'users', 'Courses'];
+                $items[] = ['Actions', 'Add a program', base_url('admin_programs'), 'plus', 'Programs'];
+                $items[] = ['Actions', 'Add a module to a program', base_url('admin_programs'), 'plus', 'Programs'];
+                $items[] = ['Actions', 'Assign a lecturer to a module', base_url('admin_programs'), 'users', 'Programs'];
                 $items[] = ['Actions', 'Create a lecturer account', base_url('admin_users/lecturers'), 'users', 'Lecturers'];
                 $items[] = ['Actions', 'Reset a student\'s password', base_url('admin_users/students'), 'lock', 'Students'];
                 $items[] = ['Actions', 'Post an announcement', base_url('admin_announcements'), 'bell', 'Announcements'];
@@ -388,7 +446,7 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Export all student details (CSV)', base_url('admin_users/export_students'), 'upload', 'Students'];
                 $items[] = ['Actions', 'Add a college event or holiday', base_url('calendar/add'), 'calendar', 'Calendar'];
                 $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
-                $items[] = ['Actions', 'Attendance per course (CSV)', base_url('admin_attendance'), 'check-square', 'Attendance'];
+                $items[] = ['Actions', 'Attendance per module (CSV)', base_url('admin_attendance'), 'check-square', 'Attendance'];
                 $items[] = ['Actions', 'Verify uploaded documents', base_url('admin_documents'), 'file', 'Documents'];
                 $items[] = ['Actions', 'Who is missing a document', base_url('admin_documents?tab=missing'), 'file', 'Documents'];
                 $items[] = ['Actions', 'Pass rates by province (pie chart)', base_url('admin_reports/pass_rates'), 'chart', 'Reports'];
@@ -397,13 +455,13 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Fees report', base_url('admin_reports/fees'), 'chart', 'Reports'];
                 break;
             case 'lecturer':
-                $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Courses'];
+                $items[] = ['Actions', 'Post a new material', base_url('lecturer_materials'), 'plus', 'My Modules'];
                 $items[] = ['Actions', 'Set a new assignment', base_url('lecturer_assignments'), 'plus', 'Assignments'];
                 $items[] = ['Actions', 'Mark handed-in work', base_url('lecturer_assignments'), 'check', 'Assignments'];
                 $items[] = ['Actions', 'Create an exam', base_url('lecturer_exams'), 'plus', 'Exams'];
                 $items[] = ['Actions', 'Invigilate a running exam', base_url('lecturer_exams'), 'eye', 'Exams'];
                 $items[] = ['Actions', 'Mark exam scripts / release results', base_url('lecturer_exams'), 'award', 'Exams'];
-                $items[] = ['Actions', 'Publish course results', base_url('lecturer_results'), 'award', 'Results'];
+                $items[] = ['Actions', 'Publish module results', base_url('lecturer_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Change assignment / exam weighting', base_url('lecturer_results'), 'layers', 'Results'];
                 $items[] = ['Actions', 'Take the register', base_url('lecturer_attendance'), 'check-square', 'Attendance'];
                 $items[] = ['Actions', 'Upload my ID or qualifications', base_url('documents'), 'file', 'My documents'];
@@ -412,14 +470,14 @@ if (! function_exists('palette_items')) {
                 $items[] = ['Actions', 'Add a book to the library', base_url('library'), 'library', 'Library'];
                 break;
             default:
-                $items[] = ['Actions', 'Apply for a course', base_url('courses'), 'book', 'Courses'];
-                $items[] = ['Actions', 'Upload proof of payment', base_url('courses'), 'upload', 'Courses'];
+                $items[] = ['Actions', 'Apply for a module', base_url('programs'), 'book', 'Programs'];
+                $items[] = ['Actions', 'Upload proof of payment', base_url('programs'), 'upload', 'Programs'];
                 $items[] = ['Actions', 'Open my materials', base_url('student_materials'), 'folder', 'Materials'];
                 $items[] = ['Actions', 'Hand in an assignment', base_url('student_assignments'), 'upload', 'Assignments'];
                 $items[] = ['Actions', 'See my marks and feedback', base_url('student_assignments'), 'award', 'Assignments'];
                 $items[] = ['Actions', 'Start or continue an exam', base_url('student_exams'), 'clock', 'Exams'];
                 $items[] = ['Actions', 'See my exam results', base_url('student_exams'), 'award', 'Exams'];
-                $items[] = ['Actions', 'My course results', base_url('student_results'), 'award', 'Results'];
+                $items[] = ['Actions', 'My module results', base_url('student_results'), 'award', 'Results'];
                 $items[] = ['Actions', 'Print my statement of results', base_url('student_results/statement'), 'file', 'Results'];
                 $items[] = ['Actions', 'Download a payment receipt', base_url('payments'), 'file', 'Payments'];
                 $items[] = ['Actions', 'See my attendance', base_url('student_attendance'), 'check-square', 'Attendance'];

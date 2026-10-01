@@ -3,12 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * The college library, for every role.
- *   library                 - search and browse (?q=, ?category=, ?course=)
+ *   library                 - search and browse (?q=, ?category=, ?module=)
  *   library/upload          - POST (lecturers and administrators)
  *   library/open/{id}       - download the file / open the link (counts it)
  *   library/delete/{id}     - POST (whoever added it, or an administrator)
  *
- * Students can use the library once at least one of their courses is paid up.
+ * Students can use the library once at least one of their modules is paid up.
  */
 class Library extends Auth_Controller
 {
@@ -18,7 +18,7 @@ class Library extends Auth_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model(['Library_model', 'Course_model']);
+        $this->load->model(['Library_model', 'Module_model']);
         $this->load->helper('ui');
         if (! $this->db->table_exists('library_files')) {   // code updated, database not yet (visit /migrate)
             $this->session->set_flashdata('error', 'The library needs a database update first. An administrator should run the latest update (/migrate).');
@@ -34,18 +34,18 @@ class Library extends Auth_Controller
         if (! in_array($category, Library_model::$categories, true)) {
             $category = '';
         }
-        $courseId = (int) $this->input->get('course');
+        $moduleId = (int) $this->input->get('module');
 
         $this->load->view('templates/header', ['title' => 'Library']);
         $this->load->view('library/index', [
             'allowed'    => $allowed,
-            'files'      => $allowed ? $this->Library_model->search($q, $category, $courseId ?: null) : [],
+            'files'      => $allowed ? $this->Library_model->search($q, $category, $moduleId ?: null) : [],
             'counts'     => $allowed ? $this->Library_model->counts() : [],
             'q'          => $q,
             'category'   => $category,
-            'courseId'   => $courseId,
+            'moduleId'   => $moduleId,
             'categories' => Library_model::$categories,
-            'courses'    => $this->Course_model->for_user($this->current_user_id, $this->current_role === 'student' ? 'student' : 'admin'),
+            'modules'    => $this->Module_model->for_user($this->current_user_id, $this->current_role === 'student' ? 'student' : 'admin'),
             'canUpload'  => $this->current_role !== 'student',
             'types'      => str_replace('|', ', ', self::TYPES),
             'maxMb'      => self::MAX_KB / 1024,
@@ -61,7 +61,7 @@ class Library extends Auth_Controller
         $title    = trim((string) $this->input->post('title'));
         $category = (string) $this->input->post('category');
         $link     = trim((string) $this->input->post('external_link'));
-        $courseId = (int) $this->input->post('course_id');
+        $moduleId = (int) $this->input->post('module_id');
 
         if ($title === '' || mb_strlen($title) > 200 || ! in_array($category, Library_model::$categories, true)) {
             $this->session->set_flashdata('error', 'Please give a title and choose a category.');
@@ -86,7 +86,7 @@ class Library extends Auth_Controller
             'author'        => mb_substr(trim((string) $this->input->post('author')), 0, 200) ?: null,
             'category'      => $category,
             'description'   => trim((string) $this->input->post('description')) ?: null,
-            'course_id'     => $courseId && $this->Course_model->find($courseId) ? $courseId : null,
+            'module_id'     => $moduleId && $this->Module_model->find($moduleId) ? $moduleId : null,
             'file_path'     => $file ? $file['path'] : null,
             'original_name' => $file ? $file['name'] : null,
             'file_size'     => $file ? (int) @filesize(FCPATH . $file['path']) : 0,
@@ -133,9 +133,9 @@ class Library extends Auth_Controller
         redirect('library');
     }
 
-    /** Staff always; students with at least one paid-up course. */
+    /** Staff always; students with at least one paid-up module. */
     private function can_read()
     {
-        return $this->current_role !== 'student' || count($this->Course_model->ids_for_user($this->current_user_id, 'student')) > 0;
+        return $this->current_role !== 'student' || count($this->Module_model->ids_for_user($this->current_user_id, 'student')) > 0;
     }
 }

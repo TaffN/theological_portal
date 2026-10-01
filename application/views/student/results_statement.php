@@ -33,11 +33,11 @@
 
     <div class="table-responsive">
         <table class="table statement-table align-middle mb-0">
-            <thead><tr><th>Course</th><th class="text-end">Assignments</th><th class="text-end">Exams</th><th class="text-end">Final</th><th>Grade</th><th class="text-end">Published</th></tr></thead>
+            <thead><tr><th>Module</th><th class="text-end">Assignments</th><th class="text-end">Exams</th><th class="text-end">Final</th><th>Grade</th><th class="text-end">Published</th></tr></thead>
             <tbody>
             <?php foreach ($results as $r): ?>
                 <tr>
-                    <td><span class="fw-semibold"><?= html_escape($r['course_name']) ?></span><?= $r['duration_text'] ? '<small class="text-muted d-block">' . html_escape($r['duration_text']) . '</small>' : '' ?></td>
+                    <td><span class="fw-semibold"><?= html_escape($r['module_name']) ?></span><?= $r['duration_text'] ? '<small class="text-muted d-block">' . html_escape($r['duration_text']) . '</small>' : '' ?></td>
                     <td class="text-end"><?= pct($r['assignment_pct']) ?></td>
                     <td class="text-end"><?= pct($r['exam_pct']) ?></td>
                     <td class="text-end fw-bold"><?= pct($r['final_pct']) ?></td>

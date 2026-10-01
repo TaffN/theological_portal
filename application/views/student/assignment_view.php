@@ -9,7 +9,7 @@
 <div class="page-head">
     <div class="min-w-0">
         <h1 class="page-title"><?= html_escape($a['title']) ?></h1>
-        <p class="page-sub mb-0"><?= html_escape($a['course_name']) ?> &middot;
+        <p class="page-sub mb-0"><?= html_escape($a['module_name']) ?> &middot;
             <?= $past ? 'Was due' : 'Due' ?> <strong class="text-body"><?= html_escape(date('l j M Y, H:i', strtotime($a['due_at']))) ?></strong>
             (<?= html_escape(due_in($a['due_at'])) ?>) &middot; out of <?= (int) $a['max_score'] ?></p>
     </div>
@@ -46,7 +46,7 @@
                 <?php if ($a['instructions']): ?>
                     <div class="prose"><?= nl2br(html_escape($a['instructions'])) ?></div>
                 <?php elseif (! $a['attachment_path']): ?>
-                    <p class="text-muted mb-0">Your lecturer didn't add written instructions. Check the course materials or ask them.</p>
+                    <p class="text-muted mb-0">Your lecturer didn't add written instructions. Check the module materials or ask them.</p>
                 <?php endif; ?>
                 <?php if ($a['attachment_path']): ?>
                     <a href="<?= base_url('student_assignments/attachment/' . $a['id']) ?>" target="_blank" class="attach-row mt-3">

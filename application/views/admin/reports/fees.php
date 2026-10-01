@@ -9,8 +9,8 @@
 </div></div>
 <div class="card"><div class="table-responsive">
     <table class="table report-table mb-0">
-        <thead><tr><th>Course</th><th class="text-end">Approved payments</th><th class="text-end">Total</th></tr></thead>
-        <tbody><?php foreach ($data['courses'] as $c): ?><tr><td><?= html_escape($c['name']) ?></td><td class="text-end"><?= (int) $c['payments'] ?></td><td class="text-end"><?= money($c['total']) ?></td></tr><?php endforeach; ?></tbody>
-        <tfoot><tr><th>All courses</th><th></th><th class="text-end"><?= money($data['total']) ?></th></tr></tfoot>
+        <thead><tr><th>Module</th><th class="text-end">Approved payments</th><th class="text-end">Total</th></tr></thead>
+        <tbody><?php foreach ($data['modules'] as $c): ?><tr><td><?= html_escape($c['name']) ?></td><td class="text-end"><?= (int) $c['payments'] ?></td><td class="text-end"><?= money($c['total']) ?></td></tr><?php endforeach; ?></tbody>
+        <tfoot><tr><th>All modules</th><th></th><th class="text-end"><?= money($data['total']) ?></th></tr></tfoot>
     </table>
 </div></div>

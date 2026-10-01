@@ -7,7 +7,7 @@
 <div class="page-head">
     <div class="min-w-0">
         <h1 class="page-title"><?= html_escape($a['title']) ?></h1>
-        <p class="page-sub mb-0"><?= html_escape($a['course_name']) ?> &middot;
+        <p class="page-sub mb-0"><?= html_escape($a['module_name']) ?> &middot;
             <?= $past ? 'Closed' : 'Due' ?> <?= html_escape(date('l j M Y, H:i', strtotime($a['due_at']))) ?> (<?= html_escape(due_in($a['due_at'])) ?>)
             &middot; out of <?= (int) $a['max_score'] ?> &middot; <?= $a['allow_late'] ? 'late work accepted' : 'no late work' ?></p>
     </div>
@@ -52,7 +52,7 @@
         </div>
     </div>
     <?php if (empty($roster)): ?>
-        <div class="empty-state pt-2">No students have access to this course yet. They appear here once their payment is approved.</div>
+        <div class="empty-state pt-2">No students have access to this module yet. They appear here once their payment is approved.</div>
     <?php else: ?>
     <ul class="submission-list">
     <?php foreach ($roster as $r): ?>
@@ -90,7 +90,7 @@
                         </button>
                     <?php elseif ($r['phone']): ?>
                         <a class="btn btn-sm btn-light" target="_blank" rel="noopener" title="Send a WhatsApp reminder"
-                           href="<?= html_escape(wa_link($r['phone'], 'Hello ' . display_first_name($r['name']) . ', a reminder that "' . $a['title'] . '" (' . $a['course_name'] . ') was due ' . date('D j M, H:i', strtotime($a['due_at'])) . '. Please hand it in on the portal: ' . base_url('student_assignments/view/' . $a['id']))) ?>">Remind</a>
+                           href="<?= html_escape(wa_link($r['phone'], 'Hello ' . display_first_name($r['name']) . ', a reminder that "' . $a['title'] . '" (' . $a['module_name'] . ') was due ' . date('D j M, H:i', strtotime($a['due_at'])) . '. Please hand it in on the portal: ' . base_url('student_assignments/view/' . $a['id']))) ?>">Remind</a>
                     <?php endif; ?>
                 </div>
             </div>

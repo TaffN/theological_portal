@@ -8,21 +8,21 @@
 <?php if (empty($groups)): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('clock', 28) ?></span><br>
-        You haven't been assigned to a course yet. Ask the administrator to assign you, then you can set exams here.
+        You haven't been assigned to a module yet. Ask the administrator to assign you, then you can set exams here.
     </div></div>
 <?php endif; ?>
 
 <?php foreach ($groups as $g): ?>
-    <?php $c = $g['course']; ?>
+    <?php $c = $g['module']; ?>
     <div class="card mb-4">
         <div class="card-body pb-0">
             <div class="card-head">
-                <h5 class="card-heading"><span class="course-dot course-dot-sm"><?= html_escape(initials($c['name'])) ?></span> <?= html_escape($c['name']) ?></h5>
+                <h5 class="card-heading"><span class="module-dot module-dot-sm"><?= html_escape(initials($c['name'])) ?></span> <?= html_escape($c['name']) ?></h5>
                 <a href="<?= base_url('lecturer_exams/create/' . $c['id']) ?>" class="btn btn-primary btn-sm"><?= icon('plus', 16) ?> New exam</a>
             </div>
         </div>
         <?php if (empty($g['exams'])): ?>
-            <div class="empty-state pt-2">No exams in this course yet.</div>
+            <div class="empty-state pt-2">No exams in this module yet.</div>
         <?php else: ?>
             <ul class="issue-list">
             <?php foreach ($g['exams'] as $e): ?>

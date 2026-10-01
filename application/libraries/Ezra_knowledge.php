@@ -25,9 +25,9 @@ class Ezra_knowledge
             'keywords' => ['pay', 'payment', 'proof', 'fees', 'fee', 'ecocash', 'bank', 'receipt', 'transfer', 'bhadhara', 'mari', 'kubhadhara', 'ukubhadala', 'imali', 'bhadala'],
             'title' => ['en' => 'How to submit proof of payment', 'sn' => 'Maitiro ekutumira humbowo hwekubhadhara', 'nd' => 'Indlela yokuthumela ubufakazi bokubhadala'],
             'steps' => [
-                'en' => ['Pay the course fee by EcoCash or bank transfer (the account details are on the upload page).', 'Take a clear photo or screenshot of the payment message or bank slip.', 'Go to **Courses** and tap **Upload proof** on your course.', 'Choose the amount and method, add the photo and tap **Submit**.', 'The office checks it. When it is approved the course opens and you get a receipt under **Payments**. If it is not accepted, the reason is shown and you can upload again.'],
-                'sn' => ['Bhadharai mari yekosi neEcoCash kana kuburikidza nebhangi (ruzivo rweakaundi ruri papeji yekuisa humbowo).', 'Torai mufananidzo wakajeka wemeseji yekubhadhara kana slip yebhangi.', 'Endai ku **Courses** mobva madzvanya **Upload proof** pakosi yenyu.', 'Sarudzai mari nenzira yamakabhadhara nayo, isai mufananidzo modzvanya **Submit**.', 'Hofisi inozviongorora. Kana zvabvumirwa kosi inovhurika uye munowana risiti pa **Payments**.'],
-                'nd' => ['Bhadala imali yesifundo nge-EcoCash loba ngebhanga (imininingwane ye-akhawunti isekhasini lokulayisha).', 'Thatha isithombe esicacileyo somlayezo wokubhadala loba i-slip yebhanga.', 'Iya ku **Courses** ubusucindezela **Upload proof** esifundweni sakho.', 'Khetha imali lendlela obhadale ngayo, faka isithombe ucindezele **Submit**.', 'Ihhovisi liyakuhlola. Nxa kwamukelwe isifundo siyavuleka njalo uthola irisidi ku **Payments**.'],
+                'en' => ['Pay the module fee by EcoCash or bank transfer (the account details are on the upload page).', 'Take a clear photo or screenshot of the payment message or bank slip.', 'Go to **Programs**, open your program and tap **Submit proof of payment** on your module.', 'Choose the amount and method, add the photo and tap **Submit**.', 'The office checks it. When it is approved the module opens and you get a receipt under **Payments**. If it is not accepted, the reason is shown and you can upload again.'],
+                'sn' => ['Bhadharai mari yekosi neEcoCash kana kuburikidza nebhangi (ruzivo rweakaundi ruri papeji yekuisa humbowo).', 'Torai mufananidzo wakajeka wemeseji yekubhadhara kana slip yebhangi.', 'Endai ku **Programs**, vhurai program yenyu mobva madzvanya **Submit proof of payment** pakosi yenyu.', 'Sarudzai mari nenzira yamakabhadhara nayo, isai mufananidzo modzvanya **Submit**.', 'Hofisi inozviongorora. Kana zvabvumirwa kosi inovhurika uye munowana risiti pa **Payments**.'],
+                'nd' => ['Bhadala imali yesifundo nge-EcoCash loba ngebhanga (imininingwane ye-akhawunti isekhasini lokulayisha).', 'Thatha isithombe esicacileyo somlayezo wokubhadala loba i-slip yebhanga.', 'Iya ku **Programs**, uvule i-program yakho ubusucindezela **Submit proof of payment** esifundweni sakho.', 'Khetha imali lendlela obhadale ngayo, faka isithombe ucindezele **Submit**.', 'Ihhovisi liyakuhlola. Nxa kwamukelwe isifundo siyavuleka njalo uthola irisidi ku **Payments**.'],
             ],
         ],
         [
@@ -35,19 +35,19 @@ class Ezra_knowledge
             'keywords' => ['pay', 'payment', 'proof', 'approve', 'reject', 'fees', 'receipt', 'pending', 'bhadhara', 'mari', 'imali', 'bhadala'],
             'title' => ['en' => 'How to approve or reject a payment', 'sn' => 'Maitiro ekubvumira kana kuramba kubhadhara', 'nd' => 'Indlela yokwamukela loba ukwala inkokhelo'],
             'steps' => [
-                'en' => ['Open **Payments** in the menu (the badge shows how many are waiting).', 'Look at the proof picture on each card and check the money arrived.', 'Tap **Approve**: the course opens for the student and a receipt is created.', 'Or tap **Reject** and write the reason; the student sees it and can upload again.', 'Old payments and receipts are under **History**.'],
+                'en' => ['Open **Payments** in the menu (the badge shows how many are waiting).', 'Look at the proof picture on each card and check the money arrived.', 'Tap **Approve**: the module opens for the student and a receipt is created.', 'Or tap **Reject** and write the reason; the student sees it and can upload again.', 'Old payments and receipts are under **History**.'],
                 'sn' => ['Vhurai **Payments** mumenu.', 'Tarisai mufananidzo wehumbowo muone kana mari yasvika.', 'Dzvanyai **Approve**: kosi inovhurirwa mudzidzi.', 'Kana kuti dzvanyai **Reject** monyora chikonzero.'],
                 'nd' => ['Vula **Payments** kumenyu.', 'Khangela isithombe sobufakazi ubone ukuthi imali ifikile.', 'Cindezela **Approve**: isifundo siyavulelwa umfundi.', 'Loba cindezela **Reject** ubhale isizatho.'],
             ],
         ],
         [
             'id' => 'enrol', 'roles' => ['student'],
-            'keywords' => ['enrol', 'enroll', 'enrolment', 'enrollment', 'apply', 'register', 'join', 'course', 'courses', 'kunyoresa', 'nyoresa', 'kosi', 'ukubhalisa', 'bhalisa', 'isifundo', 'izifundo'],
-            'title' => ['en' => 'How to enrol in a course', 'sn' => 'Maitiro ekunyoresa kukosi', 'nd' => 'Indlela yokubhalisela isifundo'],
+            'keywords' => ['enrol', 'enroll', 'enrolment', 'enrollment', 'apply', 'register', 'join', 'module', 'modules', 'course', 'courses', 'program', 'programs', 'kunyoresa', 'nyoresa', 'kosi', 'ukubhalisa', 'bhalisa', 'isifundo', 'izifundo'],
+            'title' => ['en' => 'How to enrol in a module', 'sn' => 'Maitiro ekunyoresa kukosi', 'nd' => 'Indlela yokubhalisela isifundo'],
             'steps' => [
-                'en' => ['Open **Courses** (on a phone: **More** then **Courses**).', 'Read the course details and fee, then tap **Apply**.', 'Pay the fee and upload your proof of payment (ask me "how do I pay?").', 'When the office approves your payment the course opens: materials, assignments and exams appear.', 'You may study more than one course at a time.'],
-                'sn' => ['Vhurai **Courses** (parunhare: **More** wozoti **Courses**).', 'Verengai nezvekosi nemari yayo, modzvanya **Apply**.', 'Bhadharai motumira humbowo hwekubhadhara.', 'Hofisi yabvumira, kosi inovhurika.'],
-                'nd' => ['Vula **Courses** (efonini: **More** bese **Courses**).', 'Bala ngesifundo lemali yaso, ubusucindezela **Apply**.', 'Bhadala ubusuthumela ubufakazi bokubhadala.', 'Nxa ihhovisi selivumile, isifundo siyavuleka.'],
+                'en' => ['Open **Programs** (on a phone: **More** then **Programs**).', 'Tap a program to see its modules. Read the module details and fee, then tap **Apply now** on the module you want.', 'Pay the fee and upload your proof of payment (ask me "how do I pay?").', 'When the office approves your payment the module opens: materials, assignments and exams appear.', 'You may study more than one module at a time.'],
+                'sn' => ['Vhurai **Programs** (parunhare: **More** wozoti **Programs**).', 'Dzvanyai program yacho muone makosi ayo. Verengai nezvekosi nemari yayo, modzvanya **Apply now**.', 'Bhadharai motumira humbowo hwekubhadhara.', 'Hofisi yabvumira, kosi inovhurika.'],
+                'nd' => ['Vula **Programs** (efonini: **More** bese **Programs**).', 'Cindezela i-program ubone izifundo zayo. Bala ngesifundo lemali yaso, ubusucindezela **Apply now**.', 'Bhadala ubusuthumela ubufakazi bokubhadala.', 'Nxa ihhovisi selivumile, isifundo siyavuleka.'],
             ],
         ],
         [
@@ -55,7 +55,7 @@ class Ezra_knowledge
             'keywords' => ['grade', 'grades', 'mark', 'marks', 'marked', 'score', 'feedback', 'assignment', 'assignments', 'mamaki', 'maki', 'amaphuzu', 'imaki', 'basa'],
             'title' => ['en' => 'How to check your assignment marks', 'sn' => 'Maitiro ekuona mamaki eassignment', 'nd' => 'Indlela yokubona amaphuzu e-assignment'],
             'steps' => [
-                'en' => ['Open **Assignments** in the menu or bottom bar.', 'Go to the **Handed in** tab.', 'Marked work shows your mark, the percentage and your lecturer\'s feedback.', '"Waiting to be marked" means the lecturer hasn\'t marked it yet; you get an alert when they do.', 'Your overall course result is on the **Results** page once the lecturer publishes it.'],
+                'en' => ['Open **Assignments** in the menu or bottom bar.', 'Go to the **Handed in** tab.', 'Marked work shows your mark, the percentage and your lecturer\'s feedback.', '"Waiting to be marked" means the lecturer hasn\'t marked it yet; you get an alert when they do.', 'Your overall module result is on the **Results** page once the lecturer publishes it.'],
                 'sn' => ['Vhurai **Assignments**.', 'Endai ku **Handed in**.', 'Basa rakamakwa rinoratidza mamaki enyu nemashoko emudzidzisi.', 'Munowana alert kana ramakwa.'],
                 'nd' => ['Vula **Assignments**.', 'Iya ku **Handed in**.', 'Umsebenzi osumakiwe utshengisa amaphuzu akho lamazwi omfundisi.', 'Uthola i-alert nxa usumakiwe.'],
             ],
@@ -75,7 +75,7 @@ class Ezra_knowledge
             'keywords' => ['assignment', 'assignments', 'set', 'create', 'upload', 'homework', 'mark', 'marking', 'basa', 'umsebenzi'],
             'title' => ['en' => 'How to set (upload) an assignment', 'sn' => 'Maitiro ekuisa assignment', 'nd' => 'Indlela yokufaka i-assignment'],
             'steps' => [
-                'en' => ['Open **Assignments** and tap **New assignment** on the course.', 'Type the title and instructions; attach a question paper if you have one.', 'Set the due date and time, the marks it is out of, and whether late work is accepted.', 'Tap **Save**. Paid-up students on the course are notified.', 'To mark: open the assignment, open each student\'s work, give a mark and feedback, and save.'],
+                'en' => ['Open **Assignments** and tap **New assignment** on the module.', 'Type the title and instructions; attach a question paper if you have one.', 'Set the due date and time, the marks it is out of, and whether late work is accepted.', 'Tap **Save**. Paid-up students on the module are notified.', 'To mark: open the assignment, open each student\'s work, give a mark and feedback, and save.'],
                 'sn' => ['Vhurai **Assignments** modzvanya **New assignment**.', 'Nyorai zita nemirairo, isai zuva rekupedzisira nemamaki.', 'Dzvanyai **Save**; vadzidzi vanoziviswa.'],
                 'nd' => ['Vula **Assignments** ucindezele **New assignment**.', 'Bhala ibizo lemilayo, ufake usuku lokucina lamaphuzu.', 'Cindezela **Save**; abafundi bayaziswa.'],
             ],
@@ -85,7 +85,7 @@ class Ezra_knowledge
             'keywords' => ['exam', 'exams', 'test', 'quiz', 'create', 'question', 'questions', 'publish', 'invigilate', 'bvunzo', 'miedzo', 'uhlolo', 'ukuhlolwa'],
             'title' => ['en' => 'How to create an online exam', 'sn' => 'Maitiro ekugadzira bvunzo', 'nd' => 'Indlela yokwenza uhlolo'],
             'steps' => [
-                'en' => ['Open **Exams** and tap **New exam** on your course.', 'Set the window (opens / closes), the time allowed and, if you like, a question pool and shuffling.', 'Add questions: multiple choice (marked automatically) or short answer (you mark them).', 'Tap **Publish**. Students are notified. You can\'t change questions once someone starts.', 'Use **Invigilate** while it runs; afterwards mark the short answers and tap **Release results**.'],
+                'en' => ['Open **Exams** and tap **New exam** on your module.', 'Set the window (opens / closes), the time allowed and, if you like, a question pool and shuffling.', 'Add questions: multiple choice (marked automatically) or short answer (you mark them).', 'Tap **Publish**. Students are notified. You can\'t change questions once someone starts.', 'Use **Invigilate** while it runs; afterwards mark the short answers and tap **Release results**.'],
                 'sn' => ['Vhurai **Exams** modzvanya **New exam**.', 'Isai nguva yekuvhura nekuvhara nenguva yekunyora.', 'Wedzerai mibvunzo, modzvanya **Publish**.'],
                 'nd' => ['Vula **Exams** ucindezele **New exam**.', 'Faka isikhathi sokuvula lokuvala lesikhathi sokubhala.', 'Engeza imibuzo, ucindezele **Publish**.'],
             ],
@@ -95,9 +95,19 @@ class Ezra_knowledge
             'keywords' => ['exam', 'exams', 'test', 'create', 'bvunzo', 'uhlolo', 'lecturer', 'assign'],
             'title' => ['en' => 'How exams are created (admin)', 'sn' => 'Magadzirirwo anoitwa bvunzo', 'nd' => 'Indlela uhlolo olwenziwa ngayo'],
             'steps' => [
-                'en' => ['Exams are written by the course\'s lecturer, so first make sure the course has one.', 'Open **Courses** (admin), find the course and **assign a lecturer** (add one under **Lecturers** if needed).', 'The lecturer then opens **Exams** > **New exam**, adds the questions and publishes it.', 'Students on the course are notified and can sit it in the time window.', 'You can follow results under **Results** and **Reports**.'],
-                'sn' => ['Bvunzo dzinogadzirwa nemudzidzisi wekosi.', 'Vhurai **Courses** mupe kosi mudzidzisi.', 'Mudzidzisi anovhura **Exams** > **New exam**.'],
-                'nd' => ['Uhlolo lwenziwa ngumfundisi wesifundo.', 'Vula **Courses** unike isifundo umfundisi.', 'Umfundisi uvula **Exams** > **New exam**.'],
+                'en' => ['Exams are written by the module\'s lecturer, so first make sure the module has one.', 'Open **Programs**, open the program, find the module and **assign a lecturer** (add one under **Lecturers** if needed).', 'The lecturer then opens **Exams** > **New exam**, adds the questions and publishes it.', 'Students on the module are notified and can sit it in the time window.', 'You can follow results under **Results** and **Reports**.'],
+                'sn' => ['Bvunzo dzinogadzirwa nemudzidzisi wekosi.', 'Vhurai **Programs**, vhurai program, mupe kosi mudzidzisi.', 'Mudzidzisi anovhura **Exams** > **New exam**.'],
+                'nd' => ['Uhlolo lwenziwa ngumfundisi wesifundo.', 'Vula **Programs**, uvule i-program, unike isifundo umfundisi.', 'Umfundisi uvula **Exams** > **New exam**.'],
+            ],
+        ],
+        [
+            'id' => 'programs', 'roles' => ['admin'],
+            'keywords' => ['program', 'programs', 'programme', 'module', 'modules', 'course', 'courses', 'diploma', 'create', 'add', 'lecturer', 'assign', 'kosi', 'makosi', 'isifundo', 'izifundo'],
+            'title' => ['en' => 'How to add a program and its modules', 'sn' => 'Maitiro ekuwedzera program nemakosi ayo', 'nd' => 'Indlela yokwengeza i-program lezifundo zayo'],
+            'steps' => [
+                'en' => ['Open **Programs** in the menu. A program is a qualification, for example a Diploma in Theology.', 'Type the name, the duration and a short description, then tap **Add program**.', 'Tap **Modules** on the program, then add each module with its fee and (if you like) a code and credits.', 'On each module card, choose a lecturer and tap **Assign**. Use the arrows to set the order the modules are shown in.', 'Students now see the program under **Programs** and apply for the modules they want. Use **Close** to stop new applications without removing anyone.'],
+                'sn' => ['Vhurai **Programs** mumenu. Program inzvimbo yedzidzo, semuenzaniso Diploma in Theology.', 'Nyorai zita, nguva yekudzidza nemashoko mashomanana, modzvanya **Add program**.', 'Dzvanyai **Modules** pa program, mowedzera kosi imwe neimwe nemari yayo.', 'Pakadhi rekosi, sarudzai mudzidzisi modzvanya **Assign**.'],
+                'nd' => ['Vula **Programs** kumenyu. I-program yikufundela, isibonelo i-Diploma in Theology.', 'Bhala ibizo, isikhathi lencazelo emfitshane, ucindezele **Add program**.', 'Cindezela **Modules** ku-program, wengeze isifundo ngasinye lemali yaso.', 'Ekhadini lesifundo, khetha umfundisi ucindezele **Assign**.'],
             ],
         ],
         [
@@ -135,7 +145,7 @@ class Ezra_knowledge
             'keywords' => ['result', 'results', 'statement', 'transcript', 'pass', 'passed', 'fail', 'certificate', 'mhedzisiro', 'zvibodzwa', 'imiphumela', 'phumelele'],
             'title' => ['en' => 'How to see your results and print a statement', 'sn' => 'Maitiro ekuona mhedzisiro yenyu', 'nd' => 'Indlela yokubona imiphumela yakho'],
             'steps' => [
-                'en' => ['Open **Results** in the menu (on a phone: **More** then **Results**).', 'Each course shows your final %, grade, remarks and what the mark is made of.', 'Results appear only after your lecturer publishes them.', 'Tap **Statement of results** to print it or save it as PDF. Its QR code lets anyone check it is genuine.'],
+                'en' => ['Open **Results** in the menu (on a phone: **More** then **Results**).', 'Each module shows your final %, grade, remarks and what the mark is made of.', 'Results appear only after your lecturer publishes them.', 'Tap **Statement of results** to print it or save it as PDF. Its QR code lets anyone check it is genuine.'],
                 'sn' => ['Vhurai **Results**.', 'Kosi imwe neimwe inoratidza % nemagiredhi.', 'Dzvanyai **Statement of results** kuti muprinte.'],
                 'nd' => ['Vula **Results**.', 'Isifundo ngasinye sitshengisa i-% legreyidi.', 'Cindezela **Statement of results** ukuze uprinte.'],
             ],
@@ -145,7 +155,7 @@ class Ezra_knowledge
             'keywords' => ['attendance', 'register', 'roll', 'present', 'absent', 'class', 'kupinda', 'ukungena', 'irejista'],
             'title' => ['en' => 'How to take the register (attendance)', 'sn' => 'Maitiro ekutora rejista', 'nd' => 'Indlela yokuthatha irejista'],
             'steps' => [
-                'en' => ['Open **Attendance** and tap **Take register** on the course.', 'Check the date and add the topic.', 'Everyone starts as present: tap **Late**, **Absent** or **Excused** where needed.', 'Tap **Save**. You can correct it later.', 'The course page shows each student\'s rate; below 75% you get a WhatsApp check-in button.'],
+                'en' => ['Open **Attendance** and tap **Take register** on the module.', 'Check the date and add the topic.', 'Everyone starts as present: tap **Late**, **Absent** or **Excused** where needed.', 'Tap **Save**. You can correct it later.', 'The module page shows each student\'s rate; below 75% you get a WhatsApp check-in button.'],
                 'sn' => ['Vhurai **Attendance** modzvanya **Take register**.', 'Vese vanotanga vari "present"; dzvanyai **Absent** kana **Late**.', 'Dzvanyai **Save**.'],
                 'nd' => ['Vula **Attendance** ucindezele **Take register**.', 'Bonke baqala be "present"; cindezela **Absent** loba **Late**.', 'Cindezela **Save**.'],
             ],
@@ -155,7 +165,7 @@ class Ezra_knowledge
             'keywords' => ['attendance', 'register', 'absent', 'present', 'kupinda', 'ukungena'],
             'title' => ['en' => 'How to check your attendance', 'sn' => 'Maitiro ekuona kupinda kwenyu makirasi', 'nd' => 'Indlela yokubona ukungena kwakho emakilasini'],
             'steps' => [
-                'en' => ['Open **Attendance** (on a phone: **More** then **Attendance**).', 'Each course shows your attendance rate and every class mark.', 'Excused absences don\'t count against you. Talk to your lecturer if a mark is wrong.'],
+                'en' => ['Open **Attendance** (on a phone: **More** then **Attendance**).', 'Each module shows your attendance rate and every class mark.', 'Excused absences don\'t count against you. Talk to your lecturer if a mark is wrong.'],
                 'sn' => ['Vhurai **Attendance**.', 'Kosi imwe neimwe inoratidza chiyero chekupinda kwenyu.'],
                 'nd' => ['Vula **Attendance**.', 'Isifundo ngasinye sitshengisa izinga lokungena kwakho.'],
             ],
@@ -165,7 +175,7 @@ class Ezra_knowledge
             'keywords' => ['calendar', 'timetable', 'schedule', 'event', 'events', 'class', 'classes', 'holiday', 'date', 'dates', 'karenda', 'zuva', 'ikhalenda', 'usuku'],
             'title' => ['en' => 'How to use the calendar', 'sn' => 'Maitiro ekushandisa karenda', 'nd' => 'Indlela yokusebenzisa ikhalenda'],
             'steps' => [
-                'en' => ['Open **Calendar** (under Campus; on a phone: **More** then **Calendar**).', 'The month grid shows classes, events and holidays; assignment due dates and exam times appear by themselves.', 'Tap a day to see its list; online classes have a **Join** link.', 'Lecturers and the office add events with **Add event**; students are told about new course events.'],
+                'en' => ['Open **Calendar** (under Campus; on a phone: **More** then **Calendar**).', 'The month grid shows classes, events and holidays; assignment due dates and exam times appear by themselves.', 'Tap a day to see its list; online classes have a **Join** link.', 'Lecturers and the office add events with **Add event**; students are told about new module events.'],
                 'sn' => ['Vhurai **Calendar**.', 'Inoratidza makirasi, zviitiko, mazuva eassignment nebvunzo.'],
                 'nd' => ['Vula **Calendar**.', 'Itshengisa amakilasi, imicimbi, izinsuku ze-assignment lohlolo.'],
             ],
@@ -201,7 +211,7 @@ class Ezra_knowledge
         'Stuck on a reading? Ask in **Discussions**: your classmates probably have the same question.',
         'Upload a clear photo of your National ID under **My documents** so the office can verify you.',
         'Your lecturer\'s feedback is under **Assignments** > **Handed in**. Read it before the next task.',
-        'Find commentaries and sermons for your course in the **Library**.',
+        'Find commentaries and sermons for your module in the **Library**.',
         'Tap the bell to see your alerts: new materials, marks and events all show there.',
         '"Study to show yourself approved to God" (2 Timothy 2:15). A little every day beats a lot the night before.',
         'Add the portal to your home screen: in your browser menu choose **Add to Home screen**.',

@@ -5,10 +5,10 @@
  */
 $CI =& get_instance();
 if ($CI->db->table_exists('calendar_events') && $CI->db->table_exists('discussions')):
-    $CI->load->model(['Calendar_model', 'Discussion_model', 'Course_model']);
+    $CI->load->model(['Calendar_model', 'Discussion_model', 'Module_model']);
     $uid  = (int) $CI->session->userdata('user_id');
     $role = $CI->session->userdata('role');
-    $cids = $CI->Course_model->ids_for_user($uid, $role);
+    $cids = $CI->Module_model->ids_for_user($uid, $role);
     $seen = [];   // a holiday week is one line, not one per day
     $events = array_values(array_filter($CI->Calendar_model->upcoming($cids, 14, 30), function ($it) use (&$seen) {
         if ($it['id'] === null || isset($seen[$it['id']])) { return false; }
@@ -34,7 +34,7 @@ if ($CI->db->table_exists('calendar_events') && $CI->db->table_exists('discussio
                             <div class="due-date"><strong><?= date('j', strtotime($e['date'])) ?></strong><small><?= date('M', strtotime($e['date'])) ?></small></div>
                             <div class="flex-grow-1 min-w-0">
                                 <div class="fw-semibold text-truncate"><?= html_escape($e['title']) ?></div>
-                                <small class="text-muted"><?= $e['time'] ? html_escape(date('D', strtotime($e['date'])) . ' ' . $e['time']) : 'All day' ?> &middot; <?= html_escape($e['course'] ?: 'Whole college') ?></small>
+                                <small class="text-muted"><?= $e['time'] ? html_escape(date('D', strtotime($e['date'])) . ' ' . $e['time']) : 'All day' ?> &middot; <?= html_escape($e['module'] ?: 'Whole college') ?></small>
                             </div>
                             <?php if ($e['link']): ?><a href="<?= html_escape($e['link']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Join</a><?php endif; ?>
                         </li>
@@ -60,7 +60,7 @@ if ($CI->db->table_exists('calendar_events') && $CI->db->table_exists('discussio
                             <span class="mini-icon bg-soft-blue"><?= icon('chat', 16) ?></span>
                             <div class="flex-grow-1 min-w-0">
                                 <a href="<?= base_url('discussions/view/' . $t['id']) ?>" class="fw-semibold text-truncate d-block text-reset text-decoration-none"><?= html_escape($t['title']) ?></a>
-                                <small class="text-muted"><?= html_escape($t['author_name']) ?> &middot; <?= html_escape($t['course_name'] ?: 'General') ?><?= isset($t['reply_count']) ? ' &middot; ' . (int) $t['reply_count'] . ' repl' . ($t['reply_count'] == 1 ? 'y' : 'ies') : '' ?></small>
+                                <small class="text-muted"><?= html_escape($t['author_name']) ?> &middot; <?= html_escape($t['module_name'] ?: 'General') ?><?= isset($t['reply_count']) ? ' &middot; ' . (int) $t['reply_count'] . ' repl' . ($t['reply_count'] == 1 ? 'y' : 'ies') : '' ?></small>
                             </div>
                         </li>
                     <?php endforeach; ?>

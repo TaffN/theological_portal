@@ -1,5 +1,5 @@
 <h1 class="auth-title">Create your account</h1>
-<p class="auth-sub">Register once, then apply for any course.</p>
+<p class="auth-sub">Register once, then apply for any module.</p>
 
 <form method="post" action="<?= base_url('auth/register') ?>" data-loading>
     <div class="mb-3">

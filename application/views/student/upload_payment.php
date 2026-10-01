@@ -3,14 +3,14 @@
     $hasEcocash = $p('pay_ecocash_number') !== '';
     $hasBank    = $p('pay_bank_account') !== '';
 ?>
-<p class="mb-3"><a href="<?= base_url('courses') ?>" class="back-link">&larr; Courses</a></p>
+<p class="mb-3"><a href="<?= base_url('programs') ?>" class="back-link">&larr; Modules</a></p>
 
 <div class="row g-3 justify-content-center">
     <div class="col-lg-7">
         <div class="card">
             <div class="card-body">
                 <h1 class="page-title mb-1">Submit proof of payment</h1>
-                <p class="text-muted mb-4"><?= html_escape($course['name']) ?> &middot; <strong class="text-body"><?= money($course['fee_amount']) ?></strong></p>
+                <p class="text-muted mb-4"><?= html_escape($module['name']) ?> &middot; <strong class="text-body"><?= money($module['fee_amount']) ?></strong></p>
 
                 <?php if ($latest && $latest['status'] === 'rejected'): ?>
                     <div class="notice notice-danger mb-4">
@@ -84,9 +84,9 @@
                     <div class="notice notice-info mt-3 mb-0"><?= icon('alert', 16) ?> <span><?= html_escape($p('pay_reference_hint')) ?></span></div>
                 <?php endif; ?>
                 <ol class="steps mt-3 mb-0">
-                    <li>Pay <?= money($course['fee_amount']) ?> using either option.</li>
+                    <li>Pay <?= money($module['fee_amount']) ?> using either option.</li>
                     <li>Screenshot the confirmation message or slip.</li>
-                    <li>Upload it here. Your course opens once it's approved.</li>
+                    <li>Upload it here. Your module opens once it's approved.</li>
                 </ol>
             </div>
         </div>

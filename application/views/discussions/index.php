@@ -1,23 +1,23 @@
 <?php
     $boardName = 'All boards';
     if ($board === 'general') { $boardName = 'General'; }
-    foreach ($courses as $c) { if ((string) $c['id'] === $board) { $boardName = $c['name']; } }
+    foreach ($modules as $c) { if ((string) $c['id'] === $board) { $boardName = $c['name']; } }
     $qs = function ($b) use ($q) { $p = array_filter(['board' => $b, 'q' => $q], 'strlen'); return $p ? '?' . http_build_query($p) : ''; };
 ?>
 <div class="page-head">
     <div>
         <h1 class="page-title">Discussions</h1>
-        <p class="page-sub">Ask questions, share insights and talk about what you're studying. Each course has its own board; <strong>General</strong> is for the whole college.</p>
+        <p class="page-sub">Ask questions, share insights and talk about what you're studying. Each module has its own board; <strong>General</strong> is for the whole college.</p>
     </div>
-    <?php if ($general || $courses): ?>
+    <?php if ($general || $modules): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#new-topic" aria-expanded="false"><?= icon('plus', 16) ?> New topic</button>
     <?php endif; ?>
 </div>
 
-<?php if (! $general && ! $courses): ?>
+<?php if (! $general && ! $modules): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('message', 28) ?></span><br>
-        Discussions open once your first course is paid up and approved.
+        Discussions open once your first module is paid up and approved.
     </div></div>
 <?php else: ?>
 
@@ -30,8 +30,8 @@
                     <label class="form-label" for="d-board">Board</label>
                     <select class="form-select" id="d-board" name="board" required>
                         <?php if ($general): ?><option value="general" <?= $board === 'general' ? 'selected' : '' ?>>General (whole college)</option><?php endif; ?>
-                        <?php foreach ($courses as $c): ?>
-                            <option value="<?= (int) $c['id'] ?>" <?= (string) $c['id'] === $board ? 'selected' : '' ?>><?= html_escape($c['name']) ?></option>
+                        <?php foreach ($modules as $c): ?>
+                            <option value="<?= (int) $c['id'] ?>" <?= (string) $c['id'] === $board ? 'selected' : '' ?>><?= html_escape(module_label($c)) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -54,7 +54,7 @@
     <nav class="tabs tabs-scroll" aria-label="Boards">
         <a href="<?= base_url('discussions') . $qs('') ?>" class="tab <?= $board === '' ? 'active' : '' ?>">All</a>
         <?php if ($general): ?><a href="<?= base_url('discussions') . $qs('general') ?>" class="tab <?= $board === 'general' ? 'active' : '' ?>">General</a><?php endif; ?>
-        <?php foreach ($courses as $c): ?>
+        <?php foreach ($modules as $c): ?>
             <a href="<?= base_url('discussions') . $qs((string) $c['id']) ?>" class="tab <?= (string) $c['id'] === $board ? 'active' : '' ?>"><?= html_escape($c['name']) ?></a>
         <?php endforeach; ?>
     </nav>
@@ -84,7 +84,7 @@
                         </div>
                         <small class="text-muted">
                             <?= html_escape($t['author_name']) ?><?= $t['author_role'] !== 'student' ? ' <span class="role-tag">' . html_escape(ucfirst($t['author_role'])) . '</span>' : '' ?>
-                            &middot; <?= html_escape($t['course_name'] ?: 'General') ?> &middot; <?= html_escape(time_ago($t['last_activity_at'])) ?>
+                            &middot; <?= html_escape($t['module_name'] ?: 'General') ?> &middot; <?= html_escape(time_ago($t['last_activity_at'])) ?>
                         </small>
                     </div>
                     <span class="reply-count <?= $t['reply_count'] ? '' : 'is-zero' ?>" title="Replies"><?= icon('message', 14) ?> <?= (int) $t['reply_count'] ?></span>

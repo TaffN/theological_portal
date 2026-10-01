@@ -13,7 +13,7 @@
 
 <div class="card">
     <?php if (empty($rows)): ?>
-        <div class="empty-state">No students have access to this course yet.</div>
+        <div class="empty-state">No students have access to this module yet.</div>
     <?php else: ?>
     <ul class="invigilate-list">
     <?php foreach ($rows as $r): ?>

@@ -49,7 +49,7 @@ class Dashboard extends Auth_Controller
         return [
             'stats'         => $this->Dashboard_model->admin_stats(),
             'fees'          => $this->Dashboard_model->fees_by_month(6),
-            'by_course'     => $this->Dashboard_model->enrollments_by_course(),
+            'by_module'     => $this->Dashboard_model->enrollments_by_module(),
             'status_counts' => $this->Dashboard_model->enrollment_status_counts(),
             'payments'      => $this->Dashboard_model->recent_payments(6),
             'new_students'  => $this->Dashboard_model->recent_students(5),
@@ -65,11 +65,11 @@ class Dashboard extends Auth_Controller
     private function _student_data()
     {
         $uid     = $this->current_user_id;
-        $courses = $this->Enrollment_model->courses_for_student($uid);
+        $modules = $this->Enrollment_model->modules_for_student($uid);
 
         $active = 0;
         $awaiting = 0;
-        foreach ($courses as $c) {
+        foreach ($modules as $c) {
             if ($c['enrollment_status'] === 'active') {
                 $active++;
             } elseif ($c['enrollment_status'] === 'pending_payment') {
@@ -78,14 +78,14 @@ class Dashboard extends Auth_Controller
         }
 
         return [
-            'courses'        => $courses,
+            'modules'        => $modules,
             'active_count'   => $active,
             'awaiting_count' => $awaiting,
             'proof_pending'  => $this->Dashboard_model->student_enrollments_with_pending_proof($uid),
             'new_materials'  => $this->Dashboard_model->student_new_materials_count($uid, 7),
             'unread'         => $this->Dashboard_model->unread_notifications($uid),
             'materials'      => $this->Dashboard_model->student_recent_materials($uid, 5),
-            'checklist'      => $this->Dashboard_model->student_checklist($uid, $courses),
+            'checklist'      => $this->Dashboard_model->student_checklist($uid, $modules),
             'due'            => $this->_assignments() ? array_slice($this->Assignment_model->student_outstanding($uid), 0, 5) : [],
             'exams'          => $this->_student_exams($uid),
         ];
@@ -94,11 +94,11 @@ class Dashboard extends Auth_Controller
     private function _lecturer_data()
     {
         $uid     = $this->current_user_id;
-        $courses = $this->Dashboard_model->lecturer_courses_with_counts($uid);
+        $modules = $this->Dashboard_model->lecturer_modules_with_counts($uid);
 
         return [
-            'courses'        => $courses,
-            'student_total'  => array_sum(array_column($courses, 'students')),
+            'modules'        => $modules,
+            'student_total'  => array_sum(array_column($modules, 'students')),
             'material_count' => $this->Dashboard_model->lecturer_materials_count($uid),
             'materials'      => $this->Dashboard_model->lecturer_recent_materials($uid, 5),
             'unread'         => $this->Dashboard_model->unread_notifications($uid),

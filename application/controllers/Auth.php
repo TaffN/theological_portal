@@ -109,7 +109,7 @@ class Auth extends CI_Controller
                     'photo'     => null,
                 ]);
                 $this->session->set_flashdata('success', 'Welcome! Your account has been created' . (! empty($newUser['id_number']) ? '. Your student number is ' . $newUser['id_number'] . '.' : '.'));
-                return redirect('courses');
+                return redirect('programs');
             }
         }
 

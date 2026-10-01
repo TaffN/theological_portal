@@ -96,7 +96,7 @@ class Auth_Controller extends CI_Controller
 
 /**
  * Extend this in any controller that only Admins should reach,
- * e.g.: class Courses extends Admin_Controller { ... }
+ * e.g.: class Modules extends Admin_Controller { ... }
  */
 class Admin_Controller extends Auth_Controller
 {

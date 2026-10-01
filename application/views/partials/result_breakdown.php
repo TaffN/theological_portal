@@ -1,5 +1,5 @@
 <?php
-    // $items: the marks a result is based on (Result_model::compute_for_course / course_results.breakdown).
+    // $items: the marks a result is based on (Result_model::compute_for_module / module_results.breakdown).
     $items = isset($items) && is_array($items) ? $items : [];
 ?>
 <?php if (empty($items)): ?>

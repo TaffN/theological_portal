@@ -2,27 +2,27 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Discussion boards: one per course, plus the college-wide "General" board
- * (course_id NULL) that every student with a paid-up course and all staff can use.
+ * Discussion boards: one per module, plus the college-wide "General" board
+ * (module_id NULL) that every student with a paid-up module and all staff can use.
  */
 class Discussion_model extends CI_Model
 {
     /** Topics on the boards this person can see, newest activity first (pinned first). */
-    public function topics(array $courseIds, $courseId = null, $search = '', $limit = 50)
+    public function topics(array $moduleIds, $moduleId = null, $search = '', $limit = 50)
     {
-        $this->db->select('d.*, u.name AS author_name, u.role AS author_role, u.id_number, u.photo_path, u.photo_updated_at, c.name AS course_name', false)
+        $this->db->select('d.*, u.name AS author_name, u.role AS author_role, u.id_number, u.photo_path, u.photo_updated_at, c.name AS module_name', false)
             ->from('discussions d')
             ->join('users u', 'u.id = d.user_id')
-            ->join('courses c', 'c.id = d.course_id', 'left');
+            ->join('modules c', 'c.id = d.module_id', 'left');
 
-        if ($courseId === 'general') {
-            $this->db->where('d.course_id IS NULL', null, false);
-        } elseif ($courseId) {
-            $this->db->where('d.course_id', (int) $courseId);
+        if ($moduleId === 'general') {
+            $this->db->where('d.module_id IS NULL', null, false);
+        } elseif ($moduleId) {
+            $this->db->where('d.module_id', (int) $moduleId);
         } else {
-            $this->db->group_start()->where('d.course_id IS NULL', null, false);
-            if ($courseIds) {
-                $this->db->or_where_in('d.course_id', $courseIds);
+            $this->db->group_start()->where('d.module_id IS NULL', null, false);
+            if ($moduleIds) {
+                $this->db->or_where_in('d.module_id', $moduleIds);
             }
             $this->db->group_end();
         }
@@ -34,8 +34,8 @@ class Discussion_model extends CI_Model
 
     public function find($id)
     {
-        return $this->db->select('d.*, u.name AS author_name, u.role AS author_role, u.id_number, u.photo_path, u.photo_updated_at, c.name AS course_name', false)
-            ->from('discussions d')->join('users u', 'u.id = d.user_id')->join('courses c', 'c.id = d.course_id', 'left')
+        return $this->db->select('d.*, u.name AS author_name, u.role AS author_role, u.id_number, u.photo_path, u.photo_updated_at, c.name AS module_name', false)
+            ->from('discussions d')->join('users u', 'u.id = d.user_id')->join('modules c', 'c.id = d.module_id', 'left')
             ->where('d.id', (int) $id)->get()->row_array();
     }
 
@@ -51,11 +51,11 @@ class Discussion_model extends CI_Model
         return $this->db->where('id', (int) $id)->get('discussion_replies')->row_array();
     }
 
-    public function create($courseId, $userId, $title, $body)
+    public function create($moduleId, $userId, $title, $body)
     {
         $now = date('Y-m-d H:i:s');
         $this->db->insert('discussions', [
-            'course_id' => $courseId ?: null, 'user_id' => $userId, 'title' => $title, 'body' => $body,
+            'module_id' => $moduleId ?: null, 'user_id' => $userId, 'title' => $title, 'body' => $body,
             'last_activity_at' => $now, 'created_at' => $now, 'updated_at' => $now,
         ]);
         return $this->db->insert_id();
@@ -99,15 +99,15 @@ class Discussion_model extends CI_Model
         return array_values(array_unique(array_map('intval', $ids)));
     }
 
-    /** Topics in these courses with no reply yet (for the lecturer's dashboard and Ezra). */
-    public function unanswered(array $courseIds, $limit = 10)
+    /** Topics in these modules with no reply yet (for the lecturer's dashboard and Ezra). */
+    public function unanswered(array $moduleIds, $limit = 10)
     {
-        if (! $courseIds) {
+        if (! $moduleIds) {
             return [];
         }
-        return $this->db->select('d.id, d.title, d.created_at, c.name AS course_name, u.name AS author_name')
-            ->from('discussions d')->join('courses c', 'c.id = d.course_id')->join('users u', 'u.id = d.user_id')
-            ->where_in('d.course_id', $courseIds)->where('d.reply_count', 0)
+        return $this->db->select('d.id, d.title, d.created_at, c.name AS module_name, u.name AS author_name')
+            ->from('discussions d')->join('modules c', 'c.id = d.module_id')->join('users u', 'u.id = d.user_id')
+            ->where_in('d.module_id', $moduleIds)->where('d.reply_count', 0)
             ->order_by('d.created_at', 'DESC')->limit($limit)->get()->result_array();
     }
 

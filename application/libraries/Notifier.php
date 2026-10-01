@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Sends an in-app notification (always) and an email (best-effort) to every
- * actively-enrolled student in a course. Used now for "new material posted",
+ * actively-enrolled student in a module. Used now for "new material posted",
  * and reused in later stages for assignments/exams/results.
  *
  * Email sending failures are logged, not thrown - a broken mail server
@@ -19,9 +19,9 @@ class Notifier
         $this->CI->load->model(['Enrollment_model', 'Notification_model']);
     }
 
-    public function notify_course($courseId, $message, $link = null)
+    public function notify_module($moduleId, $message, $link = null)
     {
-        $students = $this->CI->Enrollment_model->active_students_for_course($courseId);
+        $students = $this->CI->Enrollment_model->active_students_for_module($moduleId);
 
         foreach ($students as $student) {
             $this->CI->Notification_model->create($student['id'], $message, $link);

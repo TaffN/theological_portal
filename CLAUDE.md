@@ -1,13 +1,13 @@
 # CLAUDE.md: Theological Center Learning Portal
 
 Handover notes so any Claude session can continue this project without losing context.
-Last updated: 27 September 2026 (after Portal **v12** = Ezra as a floating widget on local Ollama; database migration **20**, unchanged).
+Last updated: 1 October 2026 (after Portal **v13** = Program > Module structure; database migration **21**).
 
 ---
 
 ## 1. Who and what
 
-**The client** is an online Theological Center in Zimbabwe. Today it shares course
+**The client** is an online Theological Center in Zimbabwe. Today it shares module
 materials and collects student work over **WhatsApp**. This portal replaces that with a
 proper learning platform that works well on phones (most students use mobile data).
 
@@ -81,17 +81,18 @@ The user's laptop is still the first *real* run, so expect them to report PHP no
 
 | Stage | Scope | Status |
 |---|---|---|
-| 1 | DB schema, users/roles, courses, enrollments, role-gated base controllers | ✅ Done |
+| 1 | DB schema, users/roles, modules, enrollments, role-gated base controllers | ✅ Done |
 | 2 | Fees & access gating: proof-of-payment upload, admin approve/reject | ✅ Done |
-| 3 | Course materials + notifications (in-app, optional email) | ✅ Done |
+| 3 | Module materials + notifications (in-app, optional email) | ✅ Done |
 | (extras) | Admin screens, dashboards + charts, modern UI + dark mode, error reporting, audit trail, IDs, photos, QR ID cards, org settings, extended profiles, help page | ✅ Done (v4/v5) |
 | 4 | **Assignments**: lecturers set them, students submit, lecturers mark + feedback (+ Administrators screen) | ✅ Done (v6) |
 | 5 | **Online exams**: timed, open/close window, MCQ + short answer, pools/shuffling, device lock, activity flags, live invigilation, marking, release results | ✅ Done (v7) |
-| 6 | **Results**: per-course weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
+| 6 | **Results**: per-module weighting, calculated overall result + grade, publish/withdraw, student results page, printable statement of results with QR verification, admin overview + CSV | ✅ Done (v8) |
 | 7 | **Ezra** AI study assistant (students first): chat page, own-data context, statement of faith, monthly cap + daily limit, exam pause, admin usage/settings page (see §11) | ✅ Built (v9), needs an API key |
-| 8 | **Campus modules** (v10): Discussions (course boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
+| 8 | **Campus modules** (v10): Discussions (module boards + General), Calendar (events + auto due dates/exams), Library (college-wide), Attendance (registers, rates, CSV); menus for all roles; Ezra knows them | ✅ Built (v10) |
 | 9 | **Documents + Reports** (v11): students/lecturers upload ID copies and qualifications, admins verify/reject, required documents per role; admin Reports (pass rates by province with pie + bars, grades, students by region/gender/…, attendance, fees, documents; print + CSV) | ✅ Built (v11) |
 | 10 | **Ezra widget on a local model** (v12): Ezra removed from all menus; floating green chat button on every signed-in page; `askEzra()` abstraction (`ai_provider` = local Ollama or the old Claude code); knowledge base of how-to guides in English/Shona/Ndebele with a no-AI fallback; Tip of the Day on the student dashboard (see §11) | ✅ Built (v12), merged |
+| 11 | **Program > Module** (v13): the flat "course" became a **module** inside a **program** (e.g. Diploma in Theology > Old Testament Survey). Migration 021 moves the data (same ids), renames `course_id` to `module_id` everywhere; Programs listing + program page with its modules for students; admin Programs and nested Modules CRUD; breadcrumbs; report/library/calendar pickers show the program (see §12) | ✅ Built (v13), on the branch, **not merged** |
 | Go-live | Hosting, HTTPS, SMTP email, production hardening (see §8) | ⏳ |
 
 **Current state:** v8 (Stage 6 results) and v9 (Ezra) were **merged into `main` on 27 September 2026** (fast-forward,
@@ -103,6 +104,7 @@ For Ezra they also need an Anthropic API key in `application/config/ezra.php` (s
 **v11 (documents + reports, migration 20)** was tested by the user and **merged into `main`** (27 Sep 2026). `main` is now at
 migration 20; laptop: `git checkout main` → `git pull origin main` → back up DB → `/migrate` (→ 20). New work goes on the branch again. Manuals v2.0 (v10 + v11) follow on `docs/user-manuals`.
 **v12 (Ezra floating widget + local Ollama, no migration)** was tested by the user (without Ollama, guides only) and **merged into `main`** (27 Sep 2026). Laptop: `git checkout main` → `git pull origin main` (no `/migrate`). Real AI answers need Ollama + `ollama pull llama3.2` (the user will install it on WiFi). **To do:** the manuals' Ezra sections still describe the old Ask Ezra page; update them (manuals v2.1) on `docs/user-manuals`. Lesson from v12 testing: the user's laptop already had the branch from earlier rounds, so `git checkout` alone gave them old code; always include `git pull origin <branch>` in test steps.
+**v13 (Program > Module, migration 21)** is on `claude/inspiring-ramanujan-y9isjf`, tested in the sandbox on a copy of the real test data (row counts identical before/after, rollback `down()` and a fresh install both verified) and waiting for the user. Laptop: `git fetch origin` → `git checkout claude/inspiring-ramanujan-y9isjf` → `git pull origin claude/inspiring-ramanujan-y9isjf` → **back up the DB (phpMyAdmin → Export)** → visit `/migrate` (→ 21). The user's real courses become modules of one auto-created "General Program"; they can rename it or create programs and move modules (Admin > Programs > Edit module). Manuals (v2.1) and the exams/Ezra texts still say "course" in places: manuals v2.2 is a to-do.
 Note: `/migrate` calls `migration->latest()`, so it always goes *up* to the newest file; the number in
 `config/migration.php` is only what the page prints. There is no "go back a version" button.
 
@@ -140,7 +142,8 @@ theological_portal/
 │   ├── submissions/ (students' handed-in work; denied, served by the assignments controllers)
 │   ├── photos/     (profile photos; .htaccess deny; served by Photo controller)
 │   ├── library/    (college library files; deny; served by Library/open after the access check)
-│   └── documents/  (ID copies/qualifications; deny; served by Documents/file to the owner or an admin)
+│   ├── documents/  (ID copies/qualifications; deny; served by Documents/file to the owner or an admin)
+│   └── programs/   (program thumbnails, JPG/PNG ≤ 1 MB; deny; served by Programs/thumbnail/{id} to any signed-in student)
 └── application/
     ├── config/     autoload, config, database, migration (version 20), routes, ai_config.php (v12: ai_provider local|claude, ai_model, ai_endpoint, ai_timeout),
     │               ezra.sample.php (→ copy to git-ignored ezra.php with the API key, Claude mode only),
@@ -150,7 +153,7 @@ theological_portal/
     │   ├── MY_Exceptions.php        routes PHP errors / exceptions / DB errors / internal 404s into error_reports
     │   └── Portal_error_handlers.php  replacement _exception_handler (friendly 500 + reference code)
     ├── controllers/  (see §5)
-    ├── models/       Course_model, Course_lecturer_model, Enrollment_model, Payment_model,
+    ├── models/       Program_model (programs, slugs, counts, delete guard), Module_model (program join, order, code, usage), Module_lecturer_model, Enrollment_model, Payment_model,
     │                 Material_model, Notification_model, User_model, Dashboard_model,
     │                 Error_model, Receipt_model, Assignment_model (assignments + submissions),
     │                 Exam_model (exams + questions), Exam_attempt_model (sitting, clock, marking, activity),
@@ -166,15 +169,15 @@ theological_portal/
         ├── templates/  header.php, footer.php   (the whole app shell)
         ├── partials/   id_card.php, result_breakdown.php, ezra_widget.php (v12, loaded by footer.php when signed in)
         ├── dashboard/  admin, student, lecturer, _announcements, _checklist, _campus (v10: coming up + discussions)
-        ├── admin/      payments_pending, courses, students, lecturers, admins, user_card, _credentials,
-        │               announcements, errors, error_view, audit, settings, results, results_course, ezra
-        ├── student/    courses, upload_payment, payments, materials_index, materials_course,
+        ├── admin/      payments_pending, programs, program_form, modules (one program's modules), module_form, students, lecturers, admins, user_card, _credentials,
+        │               announcements, errors, error_view, audit, settings, results, results_module, ezra
+        ├── student/    programs, program_view (the modules grid + Apply), upload_payment, payments, materials_index, materials_module,
         │               assignments_index, assignment_view, exams_index, exam_view, exam_take, exam_blocked,
         │               results, results_statement
-        ├── lecturer/   materials_index, materials_course, assignments_index, assignment_form,
+        ├── lecturer/   materials_index, materials_module, assignments_index, assignment_form,
         │               assignment_view, exams_index, exam_form, exam_view, exam_question_form,
         │               exam_invigilate, _invigilate_rows (refreshed via AJAX), exam_attempt, results_index,
-        │               results_course, dashboard (legacy)
+        │               results_module, dashboard (legacy)
         ├── profile/    index, _about_form
         ├── payments/   receipt
         ├── support/    help, report, forgot
@@ -183,7 +186,7 @@ theological_portal/
         ├── discussions/ index (boards, search, new topic), view (thread, replies, moderation)
         ├── calendar/   index (month grid + day-by-day list), form (add/edit event)
         ├── library/    index (categories, search, add form, cards)
-        ├── attendance/ lecturer_index, course (shared with admin), take (register), student, admin_index
+        ├── attendance/ lecturer_index, module (shared with admin), take (register), student, admin_index
         ├── documents/  index (My documents: required checklist, upload, list)
         ├── admin/reports/ _nav (tabs + print/CSV), _filters, index, pass_rates, grades, students, attendance, fees, documents
         │   (+ admin/documents.php review queue, partials/user_documents.php on the admin user card)
@@ -201,28 +204,29 @@ theological_portal/
 |---|---|---|
 | `Auth` | CI_Controller | login (lockout, `after_login` redirect, session regenerate), register (privacy consent), logout |
 | `Dashboard` | Auth_Controller | one URL, different dashboard per role |
-| `Courses` | Student_Controller | browse/apply; shows lecturers, rejection reasons |
+| `Programs` | Student_Controller | `index` (open programs as cards), `view/{slug}` (routes `programs/{slug}` and `programs/{slug}/modules`: that program's open modules with Apply / proof / Open), `thumbnail/{id}` |
+| `Modules` | Student_Controller | POST `apply/{id}` (module AND its program must be active; duplicate apply refused); `index` redirects to `programs` |
 | `Payments` | Student_Controller | `upload/{enrollment_id}`, `index` (My Payments), `receipt/{id}` |
-| `Student_materials` | Student_Controller | `course/{id}`, `download/{id}`; both re-check `has_active_access()` |
+| `Student_materials` | Student_Controller | `module/{id}`, `download/{id}`; both re-check `has_active_access()` |
 | `Lecturer_materials` | Lecturer_Controller | post/delete materials; `is_assigned()` guard; notifies students |
-| `Lecturer_assignments` | Lecturer_Controller | `index`, `create/{course}`, `edit/{id}`, `delete/{id}` (POST, only with no submissions), `view/{id}` (marking sheet), `grade/{submission}` (POST), `submission_file/{submission}`, `attachment/{id}`; `is_assigned()` on everything |
+| `Lecturer_assignments` | Lecturer_Controller | `index`, `create/{module}`, `edit/{id}`, `delete/{id}` (POST, only with no submissions), `view/{id}` (marking sheet), `grade/{submission}` (POST), `submission_file/{submission}`, `attachment/{id}`; `is_assigned()` on everything |
 | `Student_assignments` | Student_Controller | `index` (to hand in / done), `view/{id}`, `submit/{id}` (POST), `attachment/{id}`, `my_file/{id}`; `has_active_access()` on everything |
-| `Lecturer_exams` | Lecturer_Controller | `index`, `create/{course}`, `edit/{id}`, `view/{id}` (questions + students + results), `question/{exam}[/{q}]`, `delete_question`, `move_question/{q}/up\|down`, `publish`, `unpublish`, `delete` (last three POST; unpublish/delete only before anyone starts), `invigilate/{id}`, `live/{id}` (HTML fragment polled every 10 s), `reset_device/{attempt}`, `attempt/{attempt}` (script, marking, activity log), `release/{id}` |
+| `Lecturer_exams` | Lecturer_Controller | `index`, `create/{module}`, `edit/{id}`, `view/{id}` (questions + students + results), `question/{exam}[/{q}]`, `delete_question`, `move_question/{q}/up\|down`, `publish`, `unpublish`, `delete` (last three POST; unpublish/delete only before anyone starts), `invigilate/{id}`, `live/{id}` (HTML fragment polled every 10 s), `reset_device/{attempt}`, `attempt/{attempt}` (script, marking, activity log), `release/{id}` |
 | `Student_exams` | Student_Controller | `index`, `view/{id}` (rules + pledge / continue / waiting / result), `start/{id}` (POST), `take/{id}`, AJAX POST `save/{attempt}` `ping/{attempt}` `event/{attempt}` (JSON), `submit/{attempt}` (POST) |
-| `Lecturer_results` | Lecturer_Controller | `index`, `course/{id}` (weighting + everyone's calculated result + remarks), POST `weights/{course}`, `publish/{course}` (ticked students), `withdraw/{result}` |
+| `Lecturer_results` | Lecturer_Controller | `index`, `module/{id}` (weighting + everyone's calculated result + remarks), POST `weights/{module}`, `publish/{module}` (ticked students), `withdraw/{result}` |
 | `Student_results` | Student_Controller | `index` (published results with breakdown), `statement` (printable, QR) |
-| `Admin_results` | Admin_Controller | `index` (per-course overview), `course/{id}`, `export[/{course}]` (CSV) |
+| `Admin_results` | Admin_Controller | `index` (per-module overview), `module/{id}`, `export[/{module}]` (CSV) |
 | `Ezra` | Auth_Controller (all roles) | v12: POST `chat` (route **`api/ezra_chat`**; JSON body `{message, history}` or form `message`; returns `{reply, html, status}` with status ok\|guide\|paused\|busy\|refused). Claude mode only (`ai_provider = 'claude'`, else redirect to the dashboard): `index` (the old chat page), POST `ask`, POST `new_thread`. Note: the controller is `Ezra`, so the library is **`Ezra_ai`** (same class name would clash) |
 | `Admin_ezra` | Admin_Controller (no menu item since v12; reach it by URL when using Claude) | `index` (spend vs cap, 6-month chart, most active by count only, settings form), POST `save`, `test` (tiny API call), `purge` |
-| `Discussions` | Auth_Controller (all roles) | `index` (?board=general\|{course}, ?q=), POST `create`, `view/{id}`, POST `reply/{id}`, `delete/{id}`, `delete_reply/{reply}`, `pin/{id}`, `lock/{id}`. Students: General (once ≥1 paid-up course) + paid-up courses; lecturers moderate their courses + General; admins everything. Topic by staff → notify_course; by student → course lecturers; reply → all participants |
-| `Calendar` | Auth_Controller (all roles) | `index` (?m=YYYY-MM), `add` (?date=), `edit/{id}`, POST `save[/{id}]`, `delete/{id}`. Lecturers: events on their courses; admins: any course or whole college (course_id NULL). New/moved course events notify students |
-| `Library` | Auth_Controller (all roles) | `index` (?q=, ?category=, ?course=), POST `upload` (staff; file ≤ 20 MB and/or link), `open/{id}` (counts downloads; file or redirect), POST `delete/{id}` (uploader or admin). Students need ≥1 paid-up course |
-| `Lecturer_attendance` | Lecturer_Controller | `index`, `course/{id}`, `take/{course}[/{session}]` (GET form, POST save), POST `delete/{session}`; `is_assigned()` |
-| `Student_attendance` | Student_Controller | `index` (rate + every mark per paid-up course) |
-| `Admin_attendance` | Admin_Controller | `index` (per course), `course/{id}` (read-only), `export/{course}` (CSV) |
+| `Discussions` | Auth_Controller (all roles) | `index` (?board=general\|{module}, ?q=), POST `create`, `view/{id}`, POST `reply/{id}`, `delete/{id}`, `delete_reply/{reply}`, `pin/{id}`, `lock/{id}`. Students: General (once ≥1 paid-up module) + paid-up modules; lecturers moderate their modules + General; admins everything. Topic by staff → notify_module; by student → module lecturers; reply → all participants |
+| `Calendar` | Auth_Controller (all roles) | `index` (?m=YYYY-MM), `add` (?date=), `edit/{id}`, POST `save[/{id}]`, `delete/{id}`. Lecturers: events on their modules; admins: any module or whole college (module_id NULL). New/moved module events notify students |
+| `Library` | Auth_Controller (all roles) | `index` (?q=, ?category=, ?module=), POST `upload` (staff; file ≤ 20 MB and/or link), `open/{id}` (counts downloads; file or redirect), POST `delete/{id}` (uploader or admin). Students need ≥1 paid-up module |
+| `Lecturer_attendance` | Lecturer_Controller | `index`, `module/{id}`, `take/{module}[/{session}]` (GET form, POST save), POST `delete/{session}`; `is_assigned()` |
+| `Student_attendance` | Student_Controller | `index` (rate + every mark per paid-up module) |
+| `Admin_attendance` | Admin_Controller | `index` (per module), `module/{id}` (read-only), `export/{module}` (CSV) |
 | `Documents` | Auth_Controller | `index` (My documents; admins → admin_documents), POST `upload` (pdf/jpg/png ≤ 5 MB; notifies admins), `file/{id}` (owner or admin; admin opens are audited), POST `delete/{id}` (owner unless verified; admins any) |
 | `Admin_documents` | Admin_Controller | `index` (?tab=pending\|verified\|rejected\|missing, ?role=, ?q=), POST `review/{id}` (action=verify\|reject, note required to reject, back=card), POST `required` (settings `docs_required_student/lecturer`) |
-| `Admin_reports` | Admin_Controller | `index`, `pass_rates` (?by=province\|gender\|city\|denomination\|education_level\|ministry_role, ?course=, ?year=), `grades`, `students` (?by, ?course, ?scope=enrolled\|all), `attendance`, `fees` (?year), `documents`, `export/{report}` (CSV, same filters) |
+| `Admin_reports` | Admin_Controller | `index`, `pass_rates` (?by=province\|gender\|city\|denomination\|education_level\|ministry_role, ?module=, ?year=), `grades`, `students` (?by, ?module, ?scope=enrolled\|all), `attendance`, `fees` (?year), `documents`, `export/{report}` (CSV, same filters) |
 | `Result_verify` | CI_Controller (public) | `/results/verify/{token}` (route): the statement's QR page, lists currently published results |
 | `Notifications` | Auth_Controller | inbox (grouped Today/Earlier), `open/{id}` |
 | `Profile` | Auth_Controller | details, `save_more` (extended profile), `change_password` |
@@ -230,7 +234,8 @@ theological_portal/
 | `Support` | CI_Controller (public) | `help`, `report` (form + AJAX), `js` (JS-error beacon), `forgot` |
 | `Verify` | CI_Controller (public) | `/verify/{token}`: ID-card QR verification page |
 | `Admin_payments` | Admin_Controller | pending cards (inline proof preview), `history`, `approve`, `reject` (reason), `view_proof`, `receipt` |
-| `Admin_courses` | Admin_Controller | create course, assign/unassign lecturers |
+| `Admin_programs` | Admin_Controller | `index` (+ add form with optional thumbnail), POST `create`, `edit/{id}`, POST `toggle/{id}` (open/close for applications), POST `delete/{id}` (only an empty program). Slug from the name (unique, changes only on rename) |
+| `Admin_modules` | Admin_Controller | always inside a program: `admin_programs/{id}/modules` (list, add form, lecturers, order arrows), `admin_programs/{id}/modules/create`, `edit/{id}` (also **moves the module to another program**), POST `toggle/{id}`, `move/{id}/up\|down`, `delete/{id}` (refused while it has enrolments, materials, assignments, exams, topics, registers or events), POST `assign`, `unassign/{module}/{user}` |
 | `Admin_users` | Admin_Controller | `students`, `lecturers`, `card/{id}`, `update_account`, `save_profile`, `reissue_card`, `export_students` (CSV), `create_lecturer`, `reset_password`, `toggle_status`; **admins**: `admins`, `create_admin`, `update_admin/{id}` (name/email/phone, self allowed), `reset_admin_password/{id}`, `toggle_admin_status/{id}` (POST only, never on yourself, so there's always an admin left) |
 | `Admin_announcements` | Admin_Controller | create / toggle / delete |
 | `Admin_errors` | Admin_Controller | list (tabs open/resolved/ignored, source filter), `view/{id}`, `update/{id}` |
@@ -250,15 +255,15 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 - Extend the right base controller (`Admin_Controller`, `Lecturer_Controller`, `Student_Controller`,
   or `Auth_Controller` for any logged-in user). The role check happens in the constructor.
   Use `$this->current_user_id` / `$this->current_role`.
-- **Student access to course content always goes through `Enrollment_model::has_active_access($userId, $courseId)`.**
+- **Student access to module content always goes through `Enrollment_model::has_active_access($userId, $moduleId)`.**
   Check it on every page *and* every file download.
-- Lecturers can only touch courses where `Course_lecturer_model::is_assigned()` is true.
+- Lecturers can only touch modules where `Module_lecturer_model::is_assigned()` is true.
 
 ### Cross-cutting libraries (autoloaded or loaded on demand)
 - **Audit**: `$this->audit->log('area.action', 'entity', $id, 'Human description', [meta])`.
   Log every meaningful action in new stages (e.g. `assignment.created`, `submission.graded`).
   Action prefixes drive icons and filters. The table is append-only.
-- **Notifier**: `$this->notifier->notify_course($courseId, $msg, $link)` (all active students)
+- **Notifier**: `$this->notifier->notify_module($moduleId, $msg, $link)` (all active students)
   and `notify_user($userId, $msg, $link)`. Creates in-app notifications; sends email only if
   `config/email.php` has `smtp_configured = true`.
 - **Settings**: `$this->settings->get('org_name')`, or the `setting('key', 'default')` helper in views.
@@ -276,12 +281,12 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   `soon` (greyed "coming soon"). No `soon` items remain since v8 (Results is live for all three roles).
   Items with `'ezra' => true` are filtered out unless `ezra_offered($role)`. **Since v12 there are no Ezra menu or palette items** ("Ask Ezra" and admin "Ezra (AI)" were removed at the user's request); Ezra is the floating widget. The filter is kept for a possible return.
   Since v10 the menus are built in `_nav_items_for()` and have a **Campus** section (Calendar, Discussions, Library, + Ask Ezra) for every role;
-  Attendance sits in each role's Menu section. Shared-module access goes through `Course_model::for_user / ids_for_user / user_can_see /
-  user_can_manage($courseId, $userId, $role)` (student = active enrollments, lecturer = assigned, admin = all).
+  Attendance sits in each role's Menu section. Shared-module access goes through `Module_model::for_user / ids_for_user / user_can_see /
+  user_can_manage($moduleId, $userId, $role)` (student = active enrollments, lecturer = assigned, admin = all).
   Badge keys (computed in `layout_context()`): `notifications, payments, errors, resets` (admin),
   `marking` (lecturer: submissions to mark), `assignments` (student: to do + overdue), `exam_marking` (lecturer:
   exam scripts to mark), `exams` (student: open to start or in progress). Phone bottom bar fits **5 items** (+ "More");
-  students' bar is Dashboard, Assignments, Exams, Materials, Alerts (Courses and Payments moved to "More").
+  students' bar is Dashboard, Assignments, Exams, Materials, Alerts (Modules and Payments moved to "More").
 - The **Ctrl+K quick-search palette** entries come from `palette_items($role)`. Add new pages and actions there.
 - Page structure: `.page-head` > `.page-title` + `.page-sub`; cards with `.card-head` / `.card-heading`;
   lists `.people-list` / `.issue-list`; status via `status_badge($status)` → `.pill`.
@@ -305,7 +310,7 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
 ### Forms and feedback
 - Set flashdata, then **`redirect()`**. Flashdata only shows on the *next* request (this was a real bug
   twice, and nearly a third time in v6: if you re-render a form in the same request, pass the error to the view). Validation errors re-rendered in the same request show automatically via the header.
-- CI's `decimal` rule rejects whole numbers ("50"); use `numeric` (fixed for course fees in v6).
+- CI's `decimal` rule rejects whole numbers ("50"); use `numeric` (fixed for module fees in v6).
 - JS adds these to **every POST form** automatically: busy spinner + double-submit lock. Since v7 this is one
   *delegated* `submit` listener on `document`, so forms injected later (e.g. the live invigilation table) get
   `data-confirm` too. Forms that handle their own submit must `preventDefault()` (the report modal does).
@@ -333,47 +338,48 @@ Routes: `default_controller = auth/login`, `login`, `logout`, `register` shortcu
   Bump `$config['migration_version']` in `config/migration.php`, then the user visits `/migrate`.
 - Code that touches new tables should guard with `$this->db->table_exists()` or `field_exists()`
   so pages don't crash before the user migrates (this happened with `photo_path`/`id_number` notices; v8's
-  results controllers redirect to the dashboard with "needs a database update" until `course_results` exists).
+  results controllers redirect to the dashboard with "needs a database update" until `module_results` exists).
   To test that state in the sandbox, `RENAME TABLE` the new table away and back (`/migrate` can't go down).
 - The user once installed code **without backing up**. Always remind them: phpMyAdmin → Export → Go first.
 
 ---
 
-## 7. Database (migration 20)
+## 7. Database (migration 21)
 
 | Table | Key columns / notes |
 |---|---|
 | `users` | id, **id_number** (unique, `TCS-/TCL-/TCA-YYYY-NNNN`), **verify_token** (unique, 20 chars, QR secret), name, email (unique), phone, photo_path, photo_updated_at, password_hash (bcrypt), role enum(admin, lecturer, student), status enum(active, inactive), last_login_at, reset_requested_at, timestamps |
 | `user_profiles` | 1:1 with users (FK cascade): title, date_of_birth, gender, national_id, alt_phone, address_line1/2, city, province, country, postal_code, emergency_name/relationship/phone, church_name, denomination, ministry_role, education_level, occupation, referral_source, qualifications, bio, privacy_consent_at |
-| `courses` | name, description, fee_amount, duration_text, status |
-| `course_lecturers` | course_id, user_id (unique pair) |
-| `enrollments` | user_id, course_id (unique pair), status enum(pending_payment, active, completed, suspended), enrolled_at |
+| `programs` | name, slug (unique), description, duration_text, thumbnail_path, status enum(active, inactive), timestamps |
+| `modules` | **program_id** (FK programs, RESTRICT), name, **code** (unique, `MOD-001` or admin-typed), description, fee_amount (the fee stays per module), duration_text, **sort_order** (the user wrote `order`, a reserved word), credits, status. Ids are the old `courses` ids. The original table is kept as `courses_legacy` (drop by hand when happy) |
+| `module_lecturers` | module_id, user_id (unique pair) |
+| `enrollments` | user_id, module_id (unique pair), status enum(pending_payment, active, completed, suspended), enrolled_at |
 | `payments` | enrollment_id, amount, method enum(ecocash, bank_transfer), proof_file_path, proof_original_name, status enum(pending, approved, rejected), admin_note (rejection reason), submitted_at, reviewed_by, reviewed_at |
-| `materials` | course_id, lecturer_id, title, description, file_path, external_link |
+| `materials` | module_id, lecturer_id, title, description, file_path, external_link |
 | `notifications` | user_id, message, link, is_read |
 | `error_reports` | reference (`ER-XXXXXX`), fingerprint (sha1 groups repeats), source enum(user, php, exception, not_found, javascript, database), severity, title, details, url, user_id, occurrences, status enum(open, resolved, ignored), admin_note, resolved_by/at, first/last_seen |
 | `audit_log` | user_id, user_name, role, action, entity_type, entity_id, description, meta (JSON), ip_address, user_agent, created_at. Failed logins use `entity_type = 'email:<address>'` for lockout counting |
 | `announcements` | title, body, audience enum(all, student, lecturer), tone enum(info, success, warning), is_active, expires_at, created_by |
 | `settings` | setting_key (PK), setting_value, updated_at. Org name/short name/initials/tagline/registration no., phone, WhatsApp, email, website, office hours, address fields, **payment details** (`pay_*`), receipt footer, ID-card validity/note, privacy notice |
-| `assignments` | course_id, lecturer_id (who set it; any lecturer on the course can manage it), title, instructions, attachment_path/name, **due_at**, max_score (default 100), allow_late (1 = a *first* submission is still accepted after the due date, flagged late) |
+| `assignments` | module_id, lecturer_id (who set it; any lecturer on the module can manage it), title, instructions, attachment_path/name, **due_at**, max_score (default 100), allow_late (1 = a *first* submission is still accepted after the due date, flagged late) |
 | `assignment_submissions` | assignment_id + student_id (**unique pair**; resubmitting replaces the row and old file, `attempts`++), file_path, original_name, answer_text (typed answer), submitted_at, is_late, score DECIMAL(6,2), feedback, graded_by, graded_at (NULL = waiting to be marked) |
-| `exams` | course_id, lecturer_id, title, instructions, **opens_at / closes_at** (window), duration_minutes, question_count (pool: NULL = all), shuffle, status enum(draft, published), published_at, results_released, released_at |
+| `exams` | module_id, lecturer_id, title, instructions, **opens_at / closes_at** (window), duration_minutes, question_count (pool: NULL = all), shuffle, status enum(draft, published), published_at, results_released, released_at |
 | `exam_questions` | exam_id, position, type enum(mcq, short), prompt, options (JSON array), correct_option (index), marks |
 | `exam_attempts` | exam_id + student_id (**unique pair** = one attempt), question_ids (JSON, this student's questions in order), option_orders (JSON {qid: [display order]}), **session_token** (device lock; NULL = next device takes over), pledge_at, started_at, **deadline_at** = min(start + duration, closes_at), submitted_at, submit_reason enum(student, time_up), max_score, auto_score (MCQ), total_score (set when fully marked), feedback, graded_by/at, flag_count, away_seconds, ip_address, user_agent, last_seen_at |
 | `exam_answers` | attempt_id + question_id (unique), answer (option index or text), is_correct, marks_awarded |
 | `exam_events` | attempt_id, type (started, left, returned, paste, bulk_insert, copy, device_blocked, device_reset, network_changed, offline, submitted), detail, seconds, created_at. **Flags** = left, paste, bulk_insert, device_blocked |
-| `course_grading` | course_id (PK), assignment_weight, exam_weight (sum 100; default 40/60 when no row) |
-| `course_results` | enrollment_id (**unique**), course_id, student_id, assignment_pct, exam_pct (NULL = none counted), assignment_weight, exam_weight (snapshotted), final_pct, grade, remarks, breakdown (JSON list of every item that counted, with mark and %), status enum(published, withdrawn), published_by/at |
+| `module_grading` | module_id (PK), assignment_weight, exam_weight (sum 100; default 40/60 when no row) |
+| `module_results` | enrollment_id (**unique**), module_id, student_id, assignment_pct, exam_pct (NULL = none counted), assignment_weight, exam_weight (snapshotted), final_pct, grade, remarks, breakdown (JSON list of every item that counted, with mark and %), status enum(published, withdrawn), published_by/at |
 | `users.results_token` | 20-char secret in the statement-of-results QR, created on first publish (separate from `verify_token`, so reissuing an ID card doesn't break statements) |
 | `ezra_messages` | user_id (FK cascade), thread_no (conversation), role enum(user, assistant), content (wiped to '' after `ezra_retention_days`; row kept for costs), status enum(ok, refused, error), model (as served), input/cache_write/cache_read/output_tokens, cost_usd DECIMAL(10,6), created_at |
-| `discussions` | course_id (NULL = General board, FK cascade), user_id, title, body, is_pinned, is_locked, reply_count (kept by `recount()`), last_activity_at |
+| `discussions` | module_id (NULL = General board, FK cascade), user_id, title, body, is_pinned, is_locked, reply_count (kept by `recount()`), last_activity_at |
 | `discussion_replies` | discussion_id (FK cascade), user_id, body, created_at |
-| `calendar_events` | course_id (NULL = whole college), title, description, event_type enum(class, event, holiday, deadline, other), location, meeting_link, starts_at, ends_at (NULL = no end), all_day, created_by. Assignment due dates and exam windows are **not** stored here: `Calendar_model::items()` reads them live |
-| `library_files` | title, author, category (Books, Articles, Commentaries, Sermons, Theses, Audio, Video, Other), description, course_id (optional "recommended for", SET NULL), file_path/original_name/file_size and/or external_link, downloads, uploaded_by |
-| `attendance_sessions` | course_id, session_date, topic, taken_by (one register) |
+| `calendar_events` | module_id (NULL = whole college), title, description, event_type enum(class, event, holiday, deadline, other), location, meeting_link, starts_at, ends_at (NULL = no end), all_day, created_by. Assignment due dates and exam windows are **not** stored here: `Calendar_model::items()` reads them live |
+| `library_files` | title, author, category (Books, Articles, Commentaries, Sermons, Theses, Audio, Video, Other), description, module_id (optional "recommended for", SET NULL), file_path/original_name/file_size and/or external_link, downloads, uploaded_by |
+| `attendance_sessions` | module_id, session_date, topic, taken_by (one register) |
 | `attendance` | session_id + student_id (**unique**), status enum(present, late, absent, excused), note, marked_at. Rate = (present + late) / (present + late + absent) |
 | `user_documents` | user_id (FK cascade), doc_type (national_id, passport, birth_certificate, qualification, transcript, ordination, reference, other), title, file_path, original_name, file_size, status enum(pending, verified, rejected), review_note, reviewed_by/at, uploaded_at |
-| `migrations` | version = 20 |
+| `migrations` | version = 21 |
 
 Migrations: 001 users · 002 courses · 003 course_lecturers · 004 enrollments · 005 seed admin
 (`admin@example.com`) · 006 payments · 007 materials · 008 notifications · 009 error_reports ·
@@ -386,9 +392,10 @@ users.results_token, settings `grade_distinction` (75), `grade_merit` (60), `gra
 `ezra_model` (claude-opus-5), `ezra_effort` (low), `ezra_bible_version` (NKJV), `ezra_retention_days` (365), `ezra_warned_month`,
 `ezra_statement_of_faith` (AG 16 Fundamental Truths summary) (+ appends an Ezra paragraph to `privacy_notice`). `ezra_purged_on` is created on first use ·
 019 discussions, discussion_replies, calendar_events, library_files, attendance_sessions, attendance (also `epub` added to config/mimes.php) ·
-020 user_documents + settings `docs_required_student` (national_id), `docs_required_lecturer` (national_id,qualification) (+ privacy_notice paragraph).
+020 user_documents + settings `docs_required_student` (national_id), `docs_required_lecturer` (national_id,qualification) (+ privacy_notice paragraph) ·
+021 programs + modules: copies `courses` into `modules` (same ids) under an auto-created "General Program", renames `course_id` to `module_id` (and FK to modules) in 11 tables, renames course_lecturers/grading/results to module_*, keeps `courses_legacy`, rewrites stored `/course/` notification links. Re-runnable if interrupted; `down()` reverses it (not reachable from /migrate).
 
-**The next schema change is migration 021.**
+**The next schema change is migration 022.**
 
 Submission rules live in `Assignment_model::can_submit()` / `student_state()` (todo, overdue, missed, submitted,
 graded): resubmit freely until the due date; after it, only a first submission and only if `allow_late`; never once marked.
@@ -401,7 +408,7 @@ exam page is opened (no cron needed). The device lock is PHP session userdata `e
 attempt until the lecturer presses **New device** (menus are hidden in exam mode, so logging out is unlikely).
 Questions lock once any attempt exists. Correct answers are never sent to the browser before results are released.
 
-**Result rules** (`Result_model::compute_for_course`): assignment % = mean of per-assignment % over assignments whose
+**Result rules** (`Result_model::compute_for_module`): assignment % = mean of per-assignment % over assignments whose
 due date has passed (not handed in = 0); exam % = mean of per-exam % over published exams that have closed (not sat = 0);
 final = weighted (a missing part → the other counts 100%); grade from settings. **Blockers** (row can't be published):
 handed-in-but-unmarked assignment, exam attempt not fully marked or exam results not released, or nothing finished yet.
@@ -421,31 +428,31 @@ fail `has_active_access()` and lock the student out of materials.
   unread badge. My Profile: details, extended "About you" with a completeness meter, photo upload
   (phone camera, cropped and resized in the browser, re-encoded by the server to strip EXIF/GPS),
   password change, Appearance (Light/Dark/Auto).
-- **Two-sided flip ID card** with photo, ID number, courses and validity; the back has a **QR code**
+- **Two-sided flip ID card** with photo, ID number, modules and validity; the back has a **QR code**
   linking to `/verify/{token}` plus the org address. Print prints only the card.
 - Ctrl+K quick search, dark mode toggle (top bar + menu + profile), collapsible sidebar, phone bottom
   tabs, offline banner, page-load progress bar, caps-lock warning, Help & Contact page (WhatsApp/call/
   email/map, FAQ, privacy notice), Report a problem (AJAX, attaches the current page, returns a reference).
 - Installable as a phone app (manifest + icons; full install prompt needs HTTPS).
 
-**Students:** apply for courses (multiple courses allowed), drag-and-drop proof upload with preview and
+**Students:** apply for modules (multiple modules allowed), drag-and-drop proof upload with preview and
 size check, see rejection reasons and re-upload, My Payments with printable **receipts** (`TC-000012`),
-materials per paid course, onboarding checklist. **Assignments** page (to hand in / handed in & marked) with a
+materials per paid module, onboarding checklist. **Assignments** page (to hand in / handed in & marked) with a
 nav badge; hand in a document (up to 10MB) and/or a typed answer; replace it until the due date; late hand-in if
 allowed; mark + % + feedback once marked. Dashboard "Assignments due" card lists what's outstanding.
 
-**Lecturers:** dashboard (courses, students-per-course chart, recent posts, **work to mark**), post/delete
-materials (file and/or link), which notifies students. **Assignments:** set work per course (instructions,
+**Lecturers:** dashboard (modules, students-per-module chart, recent posts, **work to mark**), post/delete
+materials (file and/or link), which notifies students. **Assignments:** set work per module (instructions,
 optional question paper, due date/time, marks out of, accept-late switch), which notifies paid-up students;
-changing the due date notifies them again. Marking sheet per assignment: every student on the course (not yet
+changing the due date notifies them again. Marking sheet per assignment: every student on the module (not yet
 marked first), open their file or typed answer, give a mark + feedback (student notified; re-marking allowed and
 logged with the old mark), **WhatsApp "Remind"** button for students who haven't handed in, stats (handed in,
 to mark, average). Can't delete an assignment once anyone has handed in.
 
-**Admins:** dashboard (fees-per-month bar chart, enrollments-by-course donut, pipeline, recent payments,
+**Admins:** dashboard (fees-per-month bar chart, enrollments-by-module donut, pipeline, recent payments,
 newest students, **setup checklist** that flags the default password, `admin@example.com` and a missing second admin, **Recent activity**, **System
 health**); payments (cards with inline proof images, approve, reject with reason, history, receipts);
-courses and lecturer assignment; **Students** list (search, last seen, reset requests highlighted, reset
+modules and lecturer assignment; **Students** list (search, last seen, reset requests highlighted, reset
 password, deactivate, CSV export); lecturers (auto-generated temp passwords like `Cedar-4827`, one-time
 credentials card with **Send on WhatsApp**); **Administrators** page (add admins with the same temp-password
 card, edit any admin's name/login email/phone including your own, reset or deactivate *other* admins); user card pages (photo upload, full profile edit, reissue ID
@@ -468,39 +475,39 @@ jump of ≥ 40 characters that isn't phone voice/IME composition (flag `bulk_ins
 drop and the right-click menu are blocked in the paper; question text can't be selected or copied; result page with %, feedback and a per-question breakdown with correct
 answers. Dashboard cards for both roles.
 
-**Results (v8):** lecturers set the assignment/exam weighting per course (slider), see every student's calculated
+**Results (v8):** lecturers set the assignment/exam weighting per module (slider), see every student's calculated
 assignment %, exam %, final % and grade with the reasons any result isn't ready, expand the marks each result is based
 on, add remarks, and publish the ticked ones (students notified; re-publishing notifies "updated"; withdraw hides it and
 tells the student it's under review). Students: **Results** page (score circle, grade, parts and weights, remarks,
-breakdown) and a printable **statement of results** (letterhead, student details, all courses, QR → public
-`/results/verify/{token}` page showing what is published *now*). Admins: overview per course (students, published,
-average, last published), per-course list, CSV export; grade boundaries + statement note under **Settings → Results**
+breakdown) and a printable **statement of results** (letterhead, student details, all modules, QR → public
+`/results/verify/{token}` page showing what is published *now*). Admins: overview per module (students, published,
+average, last published), per-module list, CSV export; grade boundaries + statement note under **Settings → Results**
 (kept in order: Distinction ≥ Merit ≥ Pass).
 
 **Ezra (v12):** a green floating chat button (bottom right, above the phone tab bar) on every signed-in page for all roles, answering from a local Ollama model plus built-in how-to guides (works without the model); students' dashboard has an **Ezra tip of the day** card instead of the Ask Ezra card. The v9 description below applies in Claude mode.
 
 **Ezra (v9):** students get **Ask Ezra** (sidebar + "More" on phones, dashboard card, Ctrl+K). A chat page: greeting, suggestion
 chips, answers formatted (bold, lists, headings; everything escaped first), typing dots, questions left today, "New
-conversation". Ezra knows the student's courses, lecturers, recent material titles, assignments (due, status, marks, feedback),
+conversation". Ezra knows the student's modules, lecturers, recent material titles, assignments (due, status, marks, feedback),
 exams (window, released results) and published overall results, follows the statement of faith, quotes the chosen Bible
 version, replies in English/Shona/Ndebele, won't write assessed work, can't change anything. Paused during an exam attempt,
 when the month's cap is reached, and at the daily limit. Admins: **System → Ezra (AI)** page.
 
-**Campus modules (v10):** **Discussions**: a board per course + General; start topics, reply (links clickable), search; lecturers/admins pin, close,
-delete; authors delete their own posts; notifications for new topics (to the course or its lecturers) and replies (to participants).
+**Campus modules (v10):** **Discussions**: a board per module + General; start topics, reply (links clickable), search; lecturers/admins pin, close,
+delete; authors delete their own posts; notifications for new topics (to the module or its lecturers) and replies (to participants).
 **Calendar**: month grid (dots on phones) + day-by-day list; staff add classes/events/holidays (all-day, multi-day, place, online Join link);
-assignment due dates and exam open/close times appear automatically; students notified of new/moved course events.
-**Library**: college-wide books/articles/commentaries/sermons/theses/audio/video (file ≤ 20 MB or link), category tabs with counts, course filter,
+assignment due dates and exam open/close times appear automatically; students notified of new/moved module events.
+**Library**: college-wide books/articles/commentaries/sermons/theses/audio/video (file ≤ 20 MB or link), category tabs with counts, module filter,
 search, download counter. **Attendance**: lecturer register (everyone starts present; tap Late/Absent/Excused; notes; All present/All absent;
 correct or delete later), per-student rate with a WhatsApp check-in button under 75%; students see their rate and every mark; admins see every
-course and export CSV. Student and lecturer dashboards get a **Coming up** + **Latest discussions / Questions waiting for a reply** row.
+module and export CSV. Student and lecturer dashboards get a **Coming up** + **Latest discussions / Questions waiting for a reply** row.
 
 **Documents + Reports (v11):** students and lecturers: **My documents** (menu badge when something required is missing) with a checklist of
 what the Center requires, upload a photo/scan, see Verified / Waiting / Not accepted (+ reason), remove unverified copies. Admins: **Documents**
 review queue (image previews, Verify / Reject with reason, tabs Verified/Rejected/Missing with WhatsApp Remind, required documents per role),
 and a Documents card on each user card. **Reports** (admin): overview KPIs; pass rates grouped by province (or gender, city, denomination,
-education, ministry role) with a pie of where passes come from + pass-rate bars + table; grades (donut + per-course bars/table); students by
-profile field (pie + table); attendance per course; fees per month/course; documents. Filters by course and year; Print/PDF and CSV on every report.
+education, ministry role) with a pie of where passes come from + pass-rate bars + table; grades (donut + per-module bars/table); students by
+profile field (pie + table); attendance per module; fees per month/module; documents. Filters by module and year; Print/PDF and CSV on every report.
 Pass = published result with grade ≠ Fail; region comes from `user_profiles.province` ("Not given" when blank).
 
 **Automatic error capture:** PHP errors and warnings, uncaught exceptions (custom handler), DB errors,
@@ -514,7 +521,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 ## 9. Key decisions (and why)
 
 1. **CodeIgniter 3, not 4**: the user already had CI3 set up; lowest friction.
-2. **Multiple courses per student** from day one, which avoids a painful retrofit later.
+2. **Multiple modules per student** from day one, which avoids a painful retrofit later.
 3. **No payment gateway.** Students pay by EcoCash or bank transfer and upload proof; an admin approves
    it. Approving calls `Enrollment_model::activate()`, which is the single moment access turns on.
 4. **One access-gate method** (`has_active_access`) used everywhere content is shown or downloaded.
@@ -523,7 +530,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
 7. **Self-hosted Bootstrap + no JS framework + server-side SVG charts + bundled QR library**, so
    everything works offline and on weak mobile data.
 8. **Design language:** Linear/Notion-style light sidebar + Stripe/Vercel-style calm surfaces + Coursera-style
-   course cards; navy/gold brand; token-based dark mode, **default "Auto"** (follows the device), stored
+   module cards; navy/gold brand; token-based dark mode, **default "Auto"** (follows the device), stored
    per device in `localStorage` (`tc-theme`, `tc-sidebar`, `tc-dismissed`).
 9. **Phone-first admin flows:** WhatsApp handoff for credentials, readable temp passwords, `+263` normalisation.
 10. **IDs:** `TCS/TCL/TCA-YEAR-####`, assigned on creation, never reused. **QR uses a random `verify_token`,
@@ -558,7 +565,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       cookies), set `ENVIRONMENT` to `production`, consider enabling CI's **CSRF protection** (currently off;
       AJAX and beacon endpoints would need exceptions), set `cookie_secure`, and test file-upload limits in `php.ini`
       (`upload_max_filesize` / `post_max_size` must be ≥ 20M for lecturer attachments, 10M for submissions).
-- [ ] Several older admin/lecturer actions (e.g. `toggle_status`, `courses/apply`) still work via plain GET links;
+- [ ] Several older admin/lecturer actions (e.g. `toggle_status`, `modules/apply`) still work via plain GET links;
       new code requires POST for changes. Tighten the old ones together with CSRF at go-live.
 - [ ] To test ID-card QR codes from a phone locally, open the portal via the laptop's LAN IP (e.g.
       `http://192.168.x.x/theological_portal`); a QR made while on `localhost` isn't reachable from a phone.
@@ -569,7 +576,7 @@ that recur reopen themselves. Branded error pages show the reference code (techn
       **policy for flagged attempts** (suggested: lecturer reviews, may call the student for a short oral check).
 - [ ] Changing an exam's closing time doesn't move the deadline of students already writing (their deadline was
       fixed when they started). Fine in practice; mention it if the user asks about extending time.
-- [ ] Possible Stage 6 extras: mark an enrollment "completed" / archive a course without locking materials (needs
+- [ ] Possible Stage 6 extras: mark an enrollment "completed" / archive a module without locking materials (needs
       `has_active_access` to accept `completed` for read-only access), per-assignment weights, a combined transcript
       across years, certificates. Not built.
 - [ ] Possible v10 extras (not built): iCal/Google Calendar feed, attendance tied to calendar classes or QR self check-in,
@@ -648,10 +655,26 @@ admin **Ezra (AI)** page → **Test connection**. PHP's cURL extension must be o
 `max_tokens`). Delete the throwaway `ezra.php` afterwards.
 
 **v10 knowledge:** `instructions()` now ends with `portal_guide()`: how every page works (incl. the four campus modules) + the **library
-catalogue** (80 newest items, shared, so it's cached). Each user's context adds, per course, attendance (student: rate + recent absences;
+catalogue** (80 newest items, shared, so it's cached). Each user's context adds, per module, attendance (student: rate + recent absences;
 lecturer: registers + students under 75%) and recent discussion topics, then the next 30 days of calendar events (multi-day events once, "until"),
 the General board, the user's own topics and (lecturers) unanswered questions. v11: the guide explains My documents, and the context lists
 the user's required documents with their state and any rejection reasons.
 
 **Possible next steps (not built):** streaming answers, Ezra for lecturers by default, letting Ezra read material
-*contents* (PDF text) rather than titles, a per-course "ask about this material" button, Shona/Ndebele UI text.
+*contents* (PDF text) rather than titles, a per-module "ask about this material" button, Shona/Ndebele UI text.
+
+---
+
+## 12. Program > Module (v13)
+
+**Words:** what used to be a *course* is now a **module**; modules sit inside a **program**. Everything that was tied to a course (enrolments, fees, payments via enrolments, materials, assignments, exams, grading, results, attendance, calendar, discussions, library "recommended for", lecturers) is tied to the module. A student applies for, pays for and is taught in **modules**; the program is the shelf they are found on. There are no "lessons" or separate progress tables in this system (materials, assignments, exams and results are the progress), so nothing was added for them.
+
+**The user's brief was written for Laravel** (factories, FormRequests, API resources, `/programs/{program}/modules`). This is CodeIgniter 3: validation is in the controllers (`form_validation`), there are no factories, and the nested address is a route in `config/routes.php`: `admin_programs/{id}/modules` → `Admin_modules::index`, `programs/{slug}/modules` → `Programs::view`. Old addresses still work (`courses`, `admin_courses`, `…/course/{id}` for six controllers; notification links were rewritten by the migration).
+
+**Decisions (told to the user):** fee stays per module; enrolment stays per module (no program-level enrolment or bundle fee); `sort_order` instead of `order`; programs use `duration_text` like modules; `courses_legacy` kept, never dropped; deleting a module/program is refused while it holds data (close it instead); closing a program or module only stops *new* applications. The default "General Program" is created only when there were courses to move.
+
+**Code map:** `Program_model` (slug, counts, delete guard), `Module_model` (every query joins the program: `program_name`, `program_slug`, `program_status`; `for_program`, `move`, `usage`, `is_open_for_applications`), `Programs` (student), `Modules::apply` (POST), `Admin_programs`, `Admin_modules`. Helpers in `ui_helper`: `crumbs([[label, url], ...])`, `module_crumbs($module, $leaf)` (Program › Module trail linked per role), `module_label($m)` ("Name (Program)" for pickers). Menus: student **Programs** (`also` => modules), admin **Programs** (`also` => admin_modules), lecturer **My Modules**. Nav items accept `'also' => [controller names]` to stay highlighted. Reports (pass rates, grades, students) have a **Program** filter plus the module filter. Ezra's context lists each module with its program and the guides/portal_guide explain programs; new admin guide `programs`.
+
+**Testing recipe used:** scratch DB from a `mysqldump` of the sandbox data + `config/testing/database.php` pointing at it + `CI_ENV=testing php index.php migrate` (CLI); a temporary controller calling `migration->version(20)` tested `down()`; row counts compared; then `/migrate` on the sandbox DB and a curl crawl of every page for the three roles plus POST flows (create/edit/move/delete program and module, apply, approve payment, material, assignment, calendar, register, discussion, library). Delete the throwaway `config/testing` and temp controller afterwards.
+
+**Not built (ideas):** apply for several modules of a program at once, a program-level fee or certificate, student progress per program (modules completed of total), per-program results/statement grouping, a public program catalogue before login.

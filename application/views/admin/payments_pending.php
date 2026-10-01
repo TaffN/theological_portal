@@ -50,15 +50,15 @@
                             <small class="text-muted text-truncate d-block"><?= html_escape($p['student_email']) ?></small>
                         </div>
                     </div>
-                    <ul class="course-meta mb-3">
-                        <li><?= icon('book', 16) ?> <?= html_escape($p['course_name']) ?></li>
+                    <ul class="module-meta mb-3">
+                        <li><?= icon('book', 16) ?> <?= html_escape($p['module_name']) ?></li>
                         <li><?= icon('dollar', 16) ?> <strong><?= money($p['amount']) ?></strong> &middot; <?= $p['method'] === 'ecocash' ? 'EcoCash' : 'Bank transfer' ?></li>
                         <li><?= icon('clock', 16) ?> <?= html_escape(time_ago($p['submitted_at'])) ?></li>
                     </ul>
 
                     <div class="mt-auto">
                         <form method="post" action="<?= base_url('admin_payments/approve/' . $p['id']) ?>" data-loading
-                              data-confirm="Approve <?= money($p['amount']) ?> from <?= html_escape($p['student_name']) ?>? Their course opens immediately."
+                              data-confirm="Approve <?= money($p['amount']) ?> from <?= html_escape($p['student_name']) ?>? Their module opens immediately."
                               data-confirm-ok="Approve">
                             <button type="submit" class="btn btn-success w-100 mb-2"><?= icon('check', 16) ?> Approve</button>
                         </form>
@@ -88,7 +88,7 @@
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-clean align-middle mb-0">
-                        <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Status</th><th>Reviewed</th><th></th></tr></thead>
+                        <thead><tr><th>Student</th><th>Module</th><th>Amount</th><th>Status</th><th>Reviewed</th><th></th></tr></thead>
                         <tbody>
                         <?php foreach ($payments as $p): ?>
                             <tr>
@@ -96,7 +96,7 @@
                                     <div class="fw-semibold"><?= html_escape($p['student_name']) ?></div>
                                     <small class="text-muted"><?= html_escape($p['student_email']) ?></small>
                                 </td>
-                                <td><?= html_escape($p['course_name']) ?></td>
+                                <td><?= html_escape($p['module_name']) ?></td>
                                 <td><?= money($p['amount']) ?><br><small class="text-muted"><?= $p['method'] === 'ecocash' ? 'EcoCash' : 'Bank' ?></small></td>
                                 <td>
                                     <?= status_badge($p['status']) ?>

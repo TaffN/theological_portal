@@ -3,14 +3,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Discussion boards, for every role.
- *   discussions               - topics on the boards you can see (?board=general|{course id}, ?q=search)
+ *   discussions               - topics on the boards you can see (?board=general|{module id}, ?q=search)
  *   discussions/create        - POST: new topic
  *   discussions/view/{id}     - a topic and its replies
  *   discussions/reply/{id}    - POST
  *   discussions/delete/{id}, delete_reply/{id}, pin/{id}, lock/{id} - POST
  *
- * Students see the General board and their paid-up courses; lecturers their
- * courses (and moderate them); administrators everything.
+ * Students see the General board and their paid-up modules; lecturers their
+ * modules (and moderate them); administrators everything.
  */
 class Discussions extends Auth_Controller
 {
@@ -19,7 +19,7 @@ class Discussions extends Auth_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model(['Discussion_model', 'Course_model', 'Course_lecturer_model']);
+        $this->load->model(['Discussion_model', 'Module_model', 'Module_lecturer_model']);
         $this->load->library('notifier');
         $this->load->helper('ui');
         if (! $this->db->table_exists('discussions')) {   // code updated, database not yet (visit /migrate)
@@ -30,19 +30,19 @@ class Discussions extends Auth_Controller
 
     public function index()
     {
-        $courses = $this->Course_model->for_user($this->current_user_id, $this->current_role);
+        $modules = $this->Module_model->for_user($this->current_user_id, $this->current_role);
         $board   = (string) $this->input->get('board');
-        if ($board !== 'general' && $board !== '' && ! in_array((int) $board, array_map('intval', array_column($courses, 'id')), true)) {
+        if ($board !== 'general' && $board !== '' && ! in_array((int) $board, array_map('intval', array_column($modules, 'id')), true)) {
             $board = '';
         }
         $q = trim((string) $this->input->get('q'));
 
         $this->load->view('templates/header', ['title' => 'Discussions']);
         $this->load->view('discussions/index', [
-            'courses'  => $courses,
+            'modules'  => $modules,
             'board'    => $board,
             'q'        => $q,
-            'topics'   => $this->can_use_general() || $courses ? $this->Discussion_model->topics(array_column($courses, 'id'), $board ?: null, $q) : [],
+            'topics'   => $this->can_use_general() || $modules ? $this->Discussion_model->topics(array_column($modules, 'id'), $board ?: null, $q) : [],
             'general'  => $this->can_use_general(),
         ]);
         $this->load->view('templates/footer');
@@ -56,9 +56,9 @@ class Discussions extends Auth_Controller
         $board = (string) $this->input->post('board');
         $title = trim((string) $this->input->post('title'));
         $body  = trim((string) $this->input->post('body'));
-        $courseId = $board === 'general' ? null : (int) $board;
+        $moduleId = $board === 'general' ? null : (int) $board;
 
-        if ($courseId === null ? ! $this->can_use_general() : ! $this->Course_model->user_can_see($courseId, $this->current_user_id, $this->current_role)) {
+        if ($moduleId === null ? ! $this->can_use_general() : ! $this->Module_model->user_can_see($moduleId, $this->current_user_id, $this->current_role)) {
             $this->session->set_flashdata('error', 'You can\'t post on that board.');
             return redirect('discussions');
         }
@@ -67,16 +67,16 @@ class Discussions extends Auth_Controller
             return redirect('discussions' . ($board ? '?board=' . $board : ''));
         }
 
-        $id = $this->Discussion_model->create($courseId, $this->current_user_id, $title, $body);
-        $boardName = $courseId ? $this->course_name($courseId) : 'General';
+        $id = $this->Discussion_model->create($moduleId, $this->current_user_id, $title, $body);
+        $boardName = $moduleId ? $this->module_name($moduleId) : 'General';
         $this->audit->log('discussion.created', 'discussion', $id, 'Started the topic "' . $title . '" on ' . $boardName);
 
         // Tell the people who should know.
         $name = $this->session->userdata('name');
-        if ($courseId && $this->current_role !== 'student') {
-            $this->notifier->notify_course($courseId, $name . ' started a discussion in ' . $boardName . ': "' . $title . '"', base_url('discussions/view/' . $id));
-        } elseif ($courseId) {
-            foreach ($this->Course_model->lecturers($courseId) as $l) {
+        if ($moduleId && $this->current_role !== 'student') {
+            $this->notifier->notify_module($moduleId, $name . ' started a discussion in ' . $boardName . ': "' . $title . '"', base_url('discussions/view/' . $id));
+        } elseif ($moduleId) {
+            foreach ($this->Module_model->lecturers($moduleId) as $l) {
                 $this->notifier->notify_user($l['id'], $name . ' asked in ' . $boardName . ': "' . $title . '"', base_url('discussions/view/' . $id));
             }
         }
@@ -135,7 +135,7 @@ class Discussions extends Auth_Controller
         $this->Discussion_model->delete($topic['id']);
         $this->audit->log('discussion.deleted', 'discussion', $topic['id'], 'Deleted the topic "' . $topic['title'] . '" (' . $topic['reply_count'] . ' replies)');
         $this->session->set_flashdata('success', 'The topic was deleted.');
-        redirect('discussions' . ($topic['course_id'] ? '?board=' . $topic['course_id'] : '?board=general'));
+        redirect('discussions' . ($topic['module_id'] ? '?board=' . $topic['module_id'] : '?board=general'));
     }
 
     public function delete_reply($replyId = null)
@@ -183,21 +183,21 @@ class Discussions extends Auth_Controller
         if (! $topic) {
             show_404();
         }
-        $ok = $topic['course_id'] === null ? $this->can_use_general()
-            : $this->Course_model->user_can_see($topic['course_id'], $this->current_user_id, $this->current_role);
+        $ok = $topic['module_id'] === null ? $this->can_use_general()
+            : $this->Module_model->user_can_see($topic['module_id'], $this->current_user_id, $this->current_role);
         if (! $ok) {
             show_404();
         }
         return $topic;
     }
 
-    /** Staff always; students once they have at least one paid-up course. */
+    /** Staff always; students once they have at least one paid-up module. */
     private function can_use_general()
     {
-        return $this->current_role !== 'student' || count($this->Course_model->ids_for_user($this->current_user_id, 'student')) > 0;
+        return $this->current_role !== 'student' || count($this->Module_model->ids_for_user($this->current_user_id, 'student')) > 0;
     }
 
-    /** Admins everywhere; lecturers on their courses' boards and on General. */
+    /** Admins everywhere; lecturers on their modules' boards and on General. */
     private function can_moderate($topic)
     {
         if ($this->current_role === 'admin') {
@@ -206,12 +206,12 @@ class Discussions extends Auth_Controller
         if ($this->current_role !== 'lecturer') {
             return false;
         }
-        return $topic['course_id'] === null || $this->Course_lecturer_model->is_assigned($topic['course_id'], $this->current_user_id);
+        return $topic['module_id'] === null || $this->Module_lecturer_model->is_assigned($topic['module_id'], $this->current_user_id);
     }
 
-    private function course_name($courseId)
+    private function module_name($moduleId)
     {
-        $c = $this->Course_model->find($courseId);
-        return $c ? $c['name'] : 'a course';
+        $c = $this->Module_model->find($moduleId);
+        return $c ? $c['name'] : 'a module';
     }
 }

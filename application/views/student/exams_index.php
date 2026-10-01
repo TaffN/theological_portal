@@ -5,11 +5,11 @@
     </div>
 </div>
 
-<?php if (! $hasCourses): ?>
+<?php if (! $hasModules): ?>
     <div class="card"><div class="empty-state">
         <span class="empty-icon bg-soft-navy"><?= icon('clock', 28) ?></span><br>
-        Exams appear once you're enrolled in a course and your payment has been approved.<br>
-        <a href="<?= base_url('courses') ?>" class="btn btn-primary btn-sm mt-3">Browse courses</a>
+        Exams appear once you're enrolled in a module and your payment has been approved.<br>
+        <a href="<?= base_url('programs') ?>" class="btn btn-primary btn-sm mt-3">Browse programs</a>
     </div></div>
 <?php else: ?>
     <?php
@@ -37,7 +37,7 @@
                             <span class="flex-grow-1 min-w-0">
                                 <span class="issue-title"><?= html_escape($e['title']) ?></span>
                                 <span class="issue-meta">
-                                    <?= html_escape($e['course_name']) ?> &middot; <?= (int) $e['duration_minutes'] ?> min &middot;
+                                    <?= html_escape($e['module_name']) ?> &middot; <?= (int) $e['duration_minutes'] ?> min &middot;
                                     <?php if ($e['state'] === 'scheduled'): ?>
                                         opens <?= html_escape(date('D j M, H:i', strtotime($e['opens_at']))) ?> (<?= html_escape(due_in($e['opens_at'])) ?>)
                                     <?php elseif ($e['state'] === 'open'): ?>

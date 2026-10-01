@@ -22,7 +22,7 @@ class Profile extends Auth_Controller
             'user'        => $user,
             'u'           => $user,
             'profile'     => $profile,
-            'cardCourses' => $this->User_model->card_courses($user),
+            'cardModules' => $this->User_model->card_modules($user),
             'complete'    => $this->User_model->completeness($user, $profile),
         ]);
         $this->load->view('templates/footer');

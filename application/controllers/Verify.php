@@ -33,7 +33,7 @@ class Verify extends CI_Controller
             'u'         => $user,
             'isStaff'   => $isStaff,
             'isAdmin'   => $viewerRole === 'admin',
-            'courses'   => $user ? $this->User_model->card_courses($user) : [],
+            'modules'   => $user ? $this->User_model->card_modules($user) : [],
             'profile'   => $user ? $this->User_model->get_profile($user['id']) : null,
         ]);
     }

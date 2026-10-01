@@ -24,17 +24,17 @@ class Payment_model extends CI_Model
     }
 
     /**
-     * Pending payments, with student name/email and course name joined in,
+     * Pending payments, with student name/email and module name joined in,
      * for the admin review screen.
      */
     public function pending_with_details()
     {
         return $this->db
-            ->select('payments.*, enrollments.id as enrollment_id, users.name as student_name, users.email as student_email, courses.name as course_name')
+            ->select('payments.*, enrollments.id as enrollment_id, users.name as student_name, users.email as student_email, modules.name as module_name')
             ->from('payments')
             ->join('enrollments', 'enrollments.id = payments.enrollment_id')
             ->join('users', 'users.id = enrollments.user_id')
-            ->join('courses', 'courses.id = enrollments.course_id')
+            ->join('modules', 'modules.id = enrollments.module_id')
             ->where('payments.status', 'pending')
             ->order_by('payments.submitted_at', 'ASC')
             ->get()
@@ -69,11 +69,11 @@ class Payment_model extends CI_Model
     public function history($limit = 50)
     {
         return $this->db
-            ->select('payments.*, users.name as student_name, users.email as student_email, courses.name as course_name, reviewer.name as reviewer_name')
+            ->select('payments.*, users.name as student_name, users.email as student_email, modules.name as module_name, reviewer.name as reviewer_name')
             ->from('payments')
             ->join('enrollments', 'enrollments.id = payments.enrollment_id')
             ->join('users', 'users.id = enrollments.user_id')
-            ->join('courses', 'courses.id = enrollments.course_id')
+            ->join('modules', 'modules.id = enrollments.module_id')
             ->join('users reviewer', 'reviewer.id = payments.reviewed_by', 'left')
             ->where_in('payments.status', ['approved', 'rejected'])
             ->order_by('payments.reviewed_at', 'DESC')
@@ -84,7 +84,7 @@ class Payment_model extends CI_Model
 
     /**
      * Latest payment row per enrollment for one student, keyed by
-     * enrollment_id - lets the course page say "rejected: <reason>".
+     * enrollment_id - lets the module page say "rejected: <reason>".
      */
     public function latest_by_enrollment_for_student($userId)
     {

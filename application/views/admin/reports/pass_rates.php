@@ -1,5 +1,5 @@
 <?php
-    $this->load->view('admin/reports/_filters', ['show' => ['by', 'course', 'year']]);
+    $this->load->view('admin/reports/_filters', ['show' => ['by', 'program', 'module', 'year']]);
     $rows = $data['rows']; $t = $data['total'];
     $label = $groupings[$by];
     $legend = array_map(function ($r) { return (int) $r['passed'] . ' passed <small>of ' . (int) $r['results'] . ' (' . score_fmt($r['rate']) . '%)</small>'; }, $rows);

@@ -7,7 +7,7 @@
         'Address'      => 'Printed on receipts and ID cards.',
         'Payments'     => 'Shown to students on the "Submit proof of payment" page.',
         'Documents'    => 'Wording used on generated documents.',
-        'Results'      => 'Grade boundaries used when lecturers publish course results, and the note on statements of results.',
+        'Results'      => 'Grade boundaries used when lecturers publish module results, and the note on statements of results.',
     ];
 ?>
 <div class="page-head">
